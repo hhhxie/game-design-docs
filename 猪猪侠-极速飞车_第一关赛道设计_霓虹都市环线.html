@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>猪猪侠-极速飞车 — 第一关赛道设计：霓虹都市环线</title>
+<style>
+  :root {
+    --bg: #080c1a;
+    --card: #0f1428;
+    --card2: #161d38;
+    --border: #253060;
+    --text: #e8eaf6;
+    --text2: #9ca3c4;
+    --accent: #8855ff;
+    --accent2: #00ccff;
+    --green: #00ff88;
+    --blue: #4488ff;
+    --cyan: #00eeff;
+    --purple: #aa66ff;
+    --gold: #ffcc00;
+    --neon-pink: #ff44aa;
+    --neon-blue: #0088ff;
+    --track: #2a2a4a;
+    --track-edge: #6644cc;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background:
+      linear-gradient(rgba(0,200,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,200,255,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero {
+    position: relative;
+    padding: 70px 20px 50px;
+    text-align: center;
+    background: linear-gradient(135deg, #0a0020 0%, #080c1a 40%, #001030 100%);
+    overflow: hidden;
+  }
+  .hero::before {
+    content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;
+    background: radial-gradient(circle at 25% 40%, rgba(136,85,255,0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 60%, rgba(0,204,255,0.08) 0%, transparent 50%);
+    animation: heroGlow 6s ease-in-out infinite alternate;
+  }
+  @keyframes heroGlow { 0%{transform:translateX(-3%)} 100%{transform:translateX(3%)} }
+  .hero-content { position:relative; z-index:1; }
+  .hero-badge {
+    display:inline-block;padding:6px 20px;border-radius:20px;
+    background:rgba(136,85,255,0.15);border:1px solid rgba(136,85,255,0.4);
+    color:var(--accent);font-size:13px;font-weight:600;letter-spacing:1px;margin-bottom:20px;
+  }
+  .hero h1 {
+    font-size:clamp(2rem,5vw,3rem);font-weight:800;
+    background:linear-gradient(135deg,#8855ff,#00ccff,#ff44aa);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    margin-bottom:10px;
+  }
+  .hero p { color:var(--text2);font-size:1rem;max-width:650px;margin:0 auto; }
+
+  .nav {
+    position:sticky;top:0;z-index:100;
+    background:rgba(8,12,26,0.92);backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--border);padding:0;
+  }
+  .nav-inner {
+    max-width:1200px;margin:0 auto;display:flex;gap:0;overflow-x:auto;
+    scrollbar-width:none;-ms-overflow-style:none;
+  }
+  .nav-inner::-webkit-scrollbar { display:none; }
+  .nav a {
+    flex-shrink:0;padding:12px 18px;color:var(--text2);text-decoration:none;
+    font-size:13px;font-weight:500;border-bottom:2px solid transparent;
+    transition:all 0.2s;white-space:nowrap;
+  }
+  .nav a:hover { color:var(--accent2);border-bottom-color:var(--accent2); }
+
+  section { padding: 50px 0; }
+  section h2 {
+    font-size:1.6rem;font-weight:700;margin-bottom:8px;
+    background:linear-gradient(90deg,var(--accent2),var(--accent));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  }
+  section h3 {
+    font-size:1.15rem;font-weight:600;margin:24px 0 12px;color:var(--accent2);
+  }
+  .section-desc { color:var(--text2);margin-bottom:24px;font-size:0.95rem; }
+
+  .info-grid {
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+    gap:14px;margin:24px 0;
+  }
+  .info-card {
+    background:var(--card);border:1px solid var(--border);border-radius:14px;
+    padding:20px 16px;text-align:center;
+    transition:transform 0.2s,border-color 0.2s;
+  }
+  .info-card:hover { transform:translateY(-3px);border-color:var(--accent); }
+  .info-card .label { font-size:12px;color:var(--text2);margin-bottom:6px;letter-spacing:0.5px; }
+  .info-card .value { font-size:1.5rem;font-weight:700;color:var(--accent2); }
+  .info-card .unit { font-size:0.85rem;color:var(--text2);margin-left:2px; }
+
+  .canvas-wrap {
+    background:var(--card);border:1px solid var(--border);border-radius:16px;
+    padding:24px;margin:24px 0;overflow:hidden;
+  }
+  .canvas-title {
+    font-size:1rem;font-weight:600;color:var(--accent2);margin-bottom:16px;
+    display:flex;align-items:center;gap:8px;
+  }
+  .canvas-title::before { content:'📐'; }
+  canvas { display:block;margin:0 auto;max-width:100%;border-radius:8px; }
+
+  .legend {
+    display:flex;flex-wrap:wrap;gap:16px;margin-top:16px;padding:12px 16px;
+    background:var(--card2);border-radius:10px;
+  }
+  .legend-item {
+    display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2);
+  }
+  .legend-dot {
+    width:14px;height:14px;border-radius:3px;flex-shrink:0;
+  }
+
+  .segments { display:grid;gap:16px;margin:24px 0; }
+  .seg-card {
+    background:var(--card);border:1px solid var(--border);border-radius:14px;
+    padding:20px 24px;display:grid;grid-template-columns:60px 1fr;
+    gap:16px;align-items:start;
+    transition:border-color 0.2s;
+  }
+  .seg-card:hover { border-color:var(--accent); }
+  .seg-num {
+    width:48px;height:48px;border-radius:12px;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    display:flex;align-items:center;justify-content:center;
+    font-size:1.2rem;font-weight:800;color:#fff;
+  }
+  .seg-body h4 { font-size:1.05rem;font-weight:600;margin-bottom:4px; }
+  .seg-body .seg-type {
+    display:inline-block;padding:2px 10px;border-radius:10px;
+    font-size:11px;font-weight:600;margin-bottom:8px;
+  }
+  .seg-body p { font-size:0.9rem;color:var(--text2);line-height:1.6; }
+  .seg-body .seg-tip {
+    margin-top:8px;padding:8px 12px;border-radius:8px;
+    font-size:0.85rem;color:var(--accent2);
+    background:rgba(0,204,255,0.08);border:1px solid rgba(0,204,255,0.15);
+  }
+
+  .data-table {
+    width:100%;border-collapse:collapse;margin:16px 0;
+    font-size:0.9rem;
+  }
+  .data-table th {
+    background:var(--card2);padding:10px 14px;text-align:left;
+    font-weight:600;color:var(--accent2);border-bottom:2px solid var(--border);
+    font-size:0.85rem;
+  }
+  .data-table td {
+    padding:10px 14px;border-bottom:1px solid rgba(42,48,85,0.5);
+    color:var(--text);
+  }
+  .data-table tr:hover td { background:rgba(136,85,255,0.05); }
+
+  .design-notes {
+    background:var(--card);border:1px solid var(--border);border-radius:14px;
+    padding:24px;margin:24px 0;
+  }
+  .design-notes h3 { color:var(--accent2);margin-bottom:12px; }
+  .design-notes ul { padding-left:20px; }
+  .design-notes li {
+    color:var(--text2);font-size:0.9rem;margin-bottom:8px;line-height:1.6;
+  }
+  .design-notes li strong { color:var(--text); }
+
+  .hl { color:var(--accent2);font-weight:600; }
+  .hl-gold { color:var(--gold);font-weight:600; }
+  .hl-green { color:var(--green);font-weight:600; }
+  .hl-pink { color:var(--neon-pink);font-weight:600; }
+
+  .tag {
+    display:inline-block;padding:3px 10px;border-radius:8px;
+    font-size:11px;font-weight:600;margin-right:6px;
+  }
+  .tag-straight { background:rgba(0,204,255,0.15);color:var(--accent2); }
+  .tag-curve { background:rgba(136,85,255,0.15);color:var(--accent); }
+  .tag-sc { background:rgba(255,204,0,0.15);color:var(--gold); }
+  .tag-mc { background:rgba(0,255,136,0.15);color:var(--green); }
+  .tag-gc { background:rgba(255,68,170,0.15);color:var(--neon-pink); }
+  .tag-start { background:rgba(255,68,170,0.2);color:var(--neon-pink); }
+
+  .facility-grid {
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:14px;margin:20px 0;
+  }
+  .facility-card {
+    background:var(--card2);border:1px solid var(--border);border-radius:12px;
+    padding:16px;text-align:center;
+  }
+  .facility-card .icon { font-size:1.8rem;margin-bottom:6px; }
+  .facility-card .name { font-size:0.95rem;font-weight:600;margin-bottom:4px; }
+  .facility-card .desc { font-size:0.8rem;color:var(--text2); }
+
+  footer {
+    text-align:center;padding:40px 20px;color:var(--text2);font-size:0.85rem;
+    border-top:1px solid var(--border);margin-top:40px;
+  }
+
+  @media(max-width:700px) {
+    .info-grid { grid-template-columns:repeat(2,1fr); }
+    .seg-card { grid-template-columns:1fr; }
+    .seg-num { width:40px;height:40px;font-size:1rem; }
+  }
+
+  .fade-in { opacity:0;transform:translateY(20px);transition:opacity 0.6s,transform 0.6s; }
+  .fade-in.visible { opacity:1;transform:translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-content">
+    <div class="hero-badge">📍 第一关 · 冠军之路</div>
+    <h1>霓虹都市环线</h1>
+    <p>在蓝紫赛博霓虹的都市中疾驰——未来科技主题赛道，新手入门的第一站</p>
+  </div>
+</div>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#overview">赛道总览</a>
+    <a href="#topview">俯视平面图</a>
+    <a href="#segments">分段详解</a>
+    <a href="#facilities">赛道设施</a>
+    <a href="#timing">时间估算</a>
+    <a href="#design">设计意图</a>
+  </div>
+</nav>
+
+<div class="container">
+
+<!-- Overview -->
+<section id="overview" class="fade-in">
+  <h2>赛道总览</h2>
+  <p class="section-desc">第一关「冠军之路」的起始赛道，以未来科技主题为基调，蓝紫赛博霓虹风格，适合新手学习基础操作。</p>
+
+  <div class="info-grid">
+    <div class="info-card">
+      <div class="label">赛道主题</div>
+      <div class="value" style="font-size:1.1rem;">🏙️ 未来科技</div>
+    </div>
+    <div class="info-card">
+      <div class="label">赛道长度</div>
+      <div class="value">860<span class="unit">m</span></div>
+    </div>
+    <div class="info-card">
+      <div class="label">赛道宽度</div>
+      <div class="value">14<span class="unit">m</span></div>
+    </div>
+    <div class="info-card">
+      <div class="label">完成圈数</div>
+      <div class="value">3<span class="unit">圈</span></div>
+    </div>
+    <div class="info-card">
+      <div class="label">总里程</div>
+      <div class="value">2,580<span class="unit">m</span></div>
+    </div>
+    <div class="info-card">
+      <div class="label">弯道数量</div>
+      <div class="value">6<span class="unit">个</span></div>
+    </div>
+  </div>
+
+  <h3>环境描述</h3>
+  <div class="design-notes">
+    <ul>
+      <li><strong>主题色调</strong>：蓝紫赛博风——深蓝夜空、紫色霓虹、青色全息投影</li>
+      <li><strong>远景</strong>：璀璨星空 + 巨型全息广告牌 + 浮空城市轮廓</li>
+      <li><strong>中景</strong>：霓虹灯管护栏、全息投影墙、发光高楼</li>
+      <li><strong>近景</strong>：金属赛道面 + 地面霓虹引导线 + 赛道两侧发光装置</li>
+      <li><strong>氛围</strong>：赛博朋克都市夜景，霓虹闪烁，科技感十足但不过度压迫，适合新手</li>
+      <li><strong>赛道面</strong>：深灰色金属板，带有淡蓝色发光纹路</li>
+    </ul>
+  </div>
+</section>
+
+<!-- Top View -->
+<section id="topview" class="fade-in">
+  <h2>俯视平面图</h2>
+  <p class="section-desc">赛道以逆时针方向行驶，起点/终点位于底部直道中段，一圈后自然回归。包含6个弯道（2急弯+2中弯+2缓弯）和4段直道。</p>
+
+  <div class="canvas-wrap">
+    <div class="canvas-title">赛道俯视布局图</div>
+    <canvas id="trackTopView" width="900" height="680"></canvas>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#44aaff;"></div>赛道</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#00ff88;"></div>加速地板</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#ff4444;"></div>油污</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#ffcc00;"></div>路障</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#ff44aa;"></div>起点/终点</div>
+      <div class="legend-item"><div class="legend-dot" style="background:rgba(136,85,255,0.3);border:1px dashed #8855ff;"></div>弯道区域</div>
+    </div>
+  </div>
+</section>
+
+<!-- Segments -->
+<section id="segments" class="fade-in">
+  <h2>分段详解</h2>
+  <p class="section-desc">赛道共8个分段，从起点出发按逆时针方向依次编号，标注每段操作要点与设施位置。</p>
+
+  <div class="segments">
+
+    <div class="seg-card">
+      <div class="seg-num">①</div>
+      <div class="seg-body">
+        <h4>出发直道</h4>
+        <span class="tag tag-start">起点/终点</span>
+        <span class="tag tag-straight">直道</span>
+        <span class="tag tag-sc">190m</span>
+        <p>宽阔的起步区域，赛道两侧巨型全息广告牌和霓虹灯柱。3秒倒计时结束后赛车自动加速，在此段达到最高时速。<strong>起点/终点线</strong>位于直道中段，每次跑完一圈自然回到此处。</p>
+        <div class="seg-tip">⚡ 赛道中段右侧有<span class="hl-green">加速地板</span>，驶过可获 +20% 速度 2秒</div>
+      </div>
+    </div>
+
+    <div class="seg-card">
+      <div class="seg-num">②</div>
+      <div class="seg-body">
+        <h4>霓虹大弯</h4>
+        <span class="tag tag-curve">缓弯</span>
+        <span class="tag tag-mc">90° 左弯</span>
+        <p>第一个弯道，90度缓弯向左。弯道两侧有紫色霓虹灯管护栏，全息投影墙在弯道外侧展示流动的数据流。这是漂移入门教学弯——转向超过45°持续0.5秒即可触发漂移。</p>
+        <div class="seg-tip">🎯 漂移入门点：保持左转姿态0.5s触发漂移，回正即释放氮气加速</div>
+      </div>
+    </div>
+
+    <div class="seg-card">
+      <div class="seg-num">③</div>
+      <div class="seg-body">
+        <h4>数据流直道</h4>
+        <span class="tag tag-straight">直道</span>
+        <span class="tag tag-sc">110m</span>
+        <p>地面有流动的蓝色数据光效的直道。右侧赛道边有2个<span class="hl-gold">路障</span>需要避开。这是释放上一弯漂移加速的最佳位置，同时也是技能充能后释放技能的好时机。</p>
+        <div class="seg-tip">🛡️ 氮气加速中撞路障会立即中断加速！注意避让</div>
+      </div>
+    </div>
+
+    <div class="seg-card">
+      <div class="seg-num">④</div>
+      <div class="seg-body">
+        <h4>光纤发夹弯</h4>
+        <span class="tag tag-curve">急弯</span>
+        <span class="tag tag-gc">160° 右弯</span>
+        <p>近乎U型回头的发夹弯，弯道内侧有光纤流光特效。是最适合练习长漂移的弯道——持续漂移3秒以上可填满氮气槽，达成<span class="hl-gold">完美漂移</span>。</p>
+        <div class="seg-tip">⭐ 完美漂移点：持续漂移至氮气满格，额外+1秒加速时长</div>
+      </div>
+    </div>
+
+    <div class="seg-card">
+      <div class="seg-num">⑤</div>
+      <div class="seg-body">
+        <h4>全息大道</h4>
+        <span class="tag tag-straight">长直道</span>
+        <span class="tag tag-sc">150m</span>
+        <p>最长的直道段。赛道两侧有巨型全息投影展示猪猪侠角色动画。中段左侧有<span class="hl-pink">油污</span>区域需要避开——碰到会打滑2秒！末端右侧有<span class="hl-green">加速地板</span>。</p>
+        <div class="seg-tip">⚠️ 油污在赛道偏左位置，贴右行驶或漂移绕过；加速地板在右侧行驶线</div>
+      </div>
+    </div>
+
+    <div class="seg-card">
+      <div class="seg-num">⑥</div>
+      <div class="seg-body">
+        <h4>矩阵S弯</h4>
+        <span class="tag tag-curve">S弯</span>
+        <span class="tag tag-gc">右→左→右</span>
+        <p>三连反向弯道，赛道面上投射着矩阵数字雨特效。这是练习<span class="hl">连携加速</span>的核心段——连续反向漂移可使氮气积累速度提升50%~100%。</p>
+        <div class="seg-tip">🔗 连携加速：1秒内进入反向漂移，第2层+75%、第3层+100%充能</div>
+      </div>
+    </div>
+
+    <div class="seg-card">
+      <div class="seg-num">⑦</div>
+      <div class="seg-body">
+        <h4>回廊直道</h4>
+        <span class="tag tag-straight">直道</span>
+        <span class="tag tag-sc">120m</span>
+        <p>穿越霓虹灯走廊的直道，两侧密布霓虹灯牌。赛道右侧有1个<span class="hl-gold">路障</span>。S弯连携积累的满格氮气在此段释放加速，搭配右侧<span class="hl-green">加速地板</span>可以获得极速体验。</p>
+        <div class="seg-tip">💨 氮气加速 + 加速地板 = 巅峰速度体验！注意路障避让</div>
+      </div>
+    </div>
+
+    <div class="seg-card">
+      <div class="seg-num">⑧</div>
+      <div class="seg-body">
+        <h4>归途弯</h4>
+        <span class="tag tag-curve">中弯</span>
+        <span class="tag tag-mc">100° 左弯</span>
+        <p>最后一个弯道，回到底部直道方向。弯道出口连接①出发直道，冲过起终点线即完成一圈。此处做最后一次漂移可为下一圈积累氮气，也可在最后一圈直接冲刺冲线。</p>
+        <div class="seg-tip">🏁 最后一圈：直接冲刺冲线！非最后一圈：漂移充能为下圈做准备</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- Facilities -->
+<section id="facilities" class="fade-in">
+  <h2>赛道设施配置</h2>
+  <p class="section-desc">第一关的设施密度较低，以教学引导为主，不影响难度设置（难度仅影响AI行为）。</p>
+
+  <div class="facility-grid">
+    <div class="facility-card">
+      <div class="icon">⚡</div>
+      <div class="name" style="color:var(--green);">加速地板 ×3</div>
+      <div class="desc">①出发直道中段<br>⑤全息大道末端<br>⑦回廊直道右侧</div>
+    </div>
+    <div class="facility-card">
+      <div class="icon">🛢️</div>
+      <div class="name" style="color:var(--neon-pink);">油污 ×1</div>
+      <div class="desc">⑤全息大道中段偏左<br>碰触打滑2秒</div>
+    </div>
+    <div class="facility-card">
+      <div class="icon">🔶</div>
+      <div class="name" style="color:var(--gold);">路障 ×3</div>
+      <div class="desc">③数据流直道右侧×2<br>⑦回廊直道右侧×1</div>
+    </div>
+    <div class="facility-card">
+      <div class="icon">🏁</div>
+      <div class="name" style="color:var(--neon-pink);">起/终点线</div>
+      <div class="desc">①出发直道中段<br>⑧归途弯出口</div>
+    </div>
+  </div>
+</section>
+
+<!-- Timing -->
+<section id="timing" class="fade-in">
+  <h2>时间估算</h2>
+  <p class="section-desc">基于猪猪侠（平衡型）初始属性：最高时速100km/h，加速3.0s，漂移速度×80%，氮气加速+30%。</p>
+
+  <h3>单圈时间估算</h3>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>分段</th>
+        <th>距离</th>
+        <th>基础操作</th>
+        <th>熟练操作</th>
+        <th>说明</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>① 出发直道</td><td>190m</td><td>8.5s</td><td>7.0s</td><td>起步加速+加速地板</td></tr>
+      <tr><td>② 霓虹大弯</td><td>~80m</td><td>4.0s</td><td>3.5s</td><td>缓弯漂移入门</td></tr>
+      <tr><td>③ 数据流直道</td><td>110m</td><td>4.5s</td><td>3.5s</td><td>避路障+释放加速</td></tr>
+      <tr><td>④ 光纤发夹弯</td><td>~90m</td><td>5.5s</td><td>4.0s</td><td>急弯长漂移</td></tr>
+      <tr><td>⑤ 全息大道</td><td>150m</td><td>5.5s</td><td>4.0s</td><td>长直道+避油污+加速地板</td></tr>
+      <tr><td>⑥ 矩阵S弯</td><td>~70m</td><td>5.0s</td><td>3.5s</td><td>三连弯+连携加速</td></tr>
+      <tr><td>⑦ 回廊直道</td><td>120m</td><td>4.5s</td><td>3.0s</td><td>释放加速+加速地板</td></tr>
+      <tr><td>⑧ 归途弯</td><td>~50m</td><td>3.0s</td><td>2.5s</td><td>中弯回归起点</td></tr>
+      <tr style="font-weight:700;border-top:2px solid var(--border);">
+        <td>合计</td><td>860m</td><td style="color:var(--accent2);">~40.5s</td><td style="color:var(--green);">~31.0s</td><td></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>3圈比赛总时间</h3>
+  <div class="info-grid" style="grid-template-columns:repeat(3,1fr);">
+    <div class="info-card" style="border-color:var(--accent2);">
+      <div class="label">🟢 简单难度 AI 30km/h</div>
+      <div class="value" style="font-size:1.3rem;">~2:02</div>
+      <div class="label" style="margin-top:4px;">基础 / 熟练</div>
+      <div class="value" style="font-size:1rem;color:var(--green);">~1:33</div>
+    </div>
+    <div class="info-card" style="border-color:var(--accent);">
+      <div class="label">🟡 普通难度 AI 80km/h</div>
+      <div class="value" style="font-size:1.3rem;">~2:02</div>
+      <div class="label" style="margin-top:4px;">基础 / 熟练</div>
+      <div class="value" style="font-size:1rem;color:var(--green);">~1:33</div>
+    </div>
+    <div class="info-card" style="border-color:var(--neon-pink);">
+      <div class="label">🔴 困难难度 AI 180km/h</div>
+      <div class="value" style="font-size:1.3rem;">~2:02</div>
+      <div class="label" style="margin-top:4px;">基础 / 熟练</div>
+      <div class="value" style="font-size:1rem;color:var(--green);">~1:33</div>
+    </div>
+  </div>
+  <p style="color:var(--text2);font-size:0.85rem;margin-top:12px;">注：以上为玩家赛车时间估算。难度仅影响AI速度和过弯精度，不影响赛道设施。简单难度AI较慢且偶有失误，困难难度AI精准走最优路线。</p>
+
+  <h3>平均速度计算</h3>
+  <table class="data-table">
+    <thead>
+      <tr><th>操作水平</th><th>单圈时间</th><th>平均速度</th><th>3圈总时间</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>基础操作（首次游玩）</td><td>~40.5s</td><td>76 km/h</td><td>~2:02</td></tr>
+      <tr><td>熟练操作（漂移+连携）</td><td>~31.0s</td><td>100 km/h</td><td>~1:33</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- Design Intent -->
+<section id="design" class="fade-in">
+  <h2>设计意图</h2>
+  <p class="section-desc">第一关作为教学关，需在趣味性中自然教会玩家核心操作。</p>
+
+  <div class="design-notes">
+    <h3>🏫 教学递进</h3>
+    <ul>
+      <li><strong>①→②</strong>：先直道体验自动加速 → 第一个弯自然引出漂移（转向>45°持续0.5s）</li>
+      <li><strong>②→③</strong>：漂移回正释放加速 → 直道上体验加速快感</li>
+      <li><strong>④</strong>：发夹弯迫使长时间漂移 → 自然发现完美漂移</li>
+      <li><strong>⑥</strong>：S弯连续反向漂移 → 自然发现连携加速</li>
+      <li><strong>全流程</strong>：技能能量在多次漂移中逐渐充满 → 引导尝试双手合并释放技能</li>
+    </ul>
+  </div>
+
+  <div class="design-notes">
+    <h3>🎯 速度节奏</h3>
+    <ul>
+      <li><strong>快-慢-快-慢</strong>交替节奏：直道加速 → 弯道漂移减速 → 加速释放 → 弯道漂移</li>
+      <li>3处加速地板分布在3段直道上，确保每次出弯后都能获得速度奖励</li>
+    </ul>
+  </div>
+
+  <div class="design-notes">
+    <h3>⚖️ 设施密度</h3>
+    <ul>
+      <li>障碍物共4个（3路障+1油污），密度约每百米0.5个——偏低，教学关不应过度惩罚</li>
+      <li>路障放在直道侧边，有足够避让空间</li>
+      <li>油污只有1处，放在最长直道上，位置偏左给右行路线留出安全通道</li>
+      <li>难度不影响设施密度，简单和困难模式的赛道完全相同</li>
+    </ul>
+  </div>
+
+  <div class="design-notes">
+    <h3>🏁 起点位置设计</h3>
+    <ul>
+      <li>起点/终点设置在底部直道中段，而非弯道或U型弯处</li>
+      <li>跑完一圈后自然回归直道中段，无需急弯入站</li>
+      <li>直道起点方便3秒倒计时后自动加速起步</li>
+      <li>终点冲线位于直道上，冲刺感更强</li>
+    </ul>
+  </div>
+
+  <div class="design-notes">
+    <h3>🎨 环境叙事</h3>
+    <ul>
+      <li>全息投影在弯道外侧展示引导箭头（视觉提示弯道方向）</li>
+      <li>加速地板的发光箭头与赛道面数据流光效形成视觉引导</li>
+      <li>油污区域上方有警示全息投影（红色闪烁），提前预警</li>
+      <li>起终点线有大型全息拱门，增强仪式感</li>
+    </ul>
+  </div>
+</section>
+
+</div>
+
+<footer>
+  <p>猪猪侠-极速飞车 · 第一关赛道设计 · 霓虹都市环线 · v1.1</p>
+</footer>
+
+<script>
+// ========== TOP VIEW CANVAS ==========
+(function(){
+  var c=document.getElementById('trackTopView');
+  if(!c)return;
+  var ctx=c.getContext('2d');
+  var dpr=window.devicePixelRatio||1;
+  c.width=900*dpr; c.height=680*dpr;
+  c.style.width='900px'; c.style.height='680px';
+  ctx.scale(dpr,dpr);
+  var W=900,H=680;
+
+  // Background
+  ctx.fillStyle='#060a14';
+  ctx.fillRect(0,0,W,H);
+
+  // Grid
+  ctx.strokeStyle='rgba(0,200,255,0.04)';
+  ctx.lineWidth=1;
+  for(var x=0;x<W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(var y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+
+  // Track center points - kidney/racetrack shape
+  // Start/finish is on the BOTTOM straight middle section
+  // Direction: counter-clockwise (up left side, across top, down right side, across bottom)
+  var trackPoints=[
+    // Bottom straight (start/finish area) - going LEFT
+    {x:680,y:530},{x:580,y:530},{x:480,y:530},  // ① start/finish mid
+    {x:380,y:530},{x:280,y:530},{x:200,y:530},   // bottom left approach
+    // ② Neon Bend (gentle left turn = going up-left)
+    {x:140,y:510},{x:100,y:460},{x:90,y:400},{x:100,y:340},
+    // ③ Data Stream Straight - going UP along left side
+    {x:110,y:280},{x:120,y:220},{x:140,y:170},
+    // ④ Fiber Hairpin (sharp right U-turn at top-left)
+    {x:170,y:130},{x:230,y:100},{x:300,y:95},{x:370,y:110},
+    {x:420,y:140},{x:450,y:190},{x:440,y:240},
+    // ⑤ Holo Boulevard - going RIGHT across top
+    {x:460,y:280},{x:520,y:300},{x:590,y:310},
+    {x:660,y:300},{x:720,y:280},
+    // ⑥ Matrix S-Curve - going down-right
+    {x:770,y:320},{x:790,y:370},   // right
+    {x:770,y:410},{x:740,y:430},   // left
+    {x:720,y:460},{x:730,y:490},   // right
+    // ⑦ Corridor Straight - going DOWN along right side
+    {x:740,y:520},{x:730,y:540},
+    // ⑧ Home Bend (medium left turn = going left back to bottom straight)
+    {x:720,y:560},{x:690,y:570},{x:660,y:565},{x:650,y:550},
+    // Back to bottom straight
+    {x:650,y:540},{x:680,y:530}
+  ];
+
+  // Draw track surface
+  ctx.lineCap='round'; ctx.lineJoin='round';
+
+  // Track shadow
+  ctx.beginPath();
+  ctx.moveTo(trackPoints[0].x,trackPoints[0].y);
+  for(var i=1;i<trackPoints.length;i++){
+    ctx.lineTo(trackPoints[i].x,trackPoints[i].y);
+  }
+  ctx.closePath();
+  ctx.strokeStyle='rgba(68,170,255,0.08)';
+  ctx.lineWidth=50;
+  ctx.stroke();
+
+  // Track edge (outer)
+  ctx.beginPath();
+  ctx.moveTo(trackPoints[0].x,trackPoints[0].y);
+  for(var i=1;i<trackPoints.length;i++){
+    ctx.lineTo(trackPoints[i].x,trackPoints[i].y);
+  }
+  ctx.closePath();
+  ctx.strokeStyle='#1a2a50';
+  ctx.lineWidth=52;
+  ctx.stroke();
+
+  // Track surface
+  ctx.beginPath();
+  ctx.moveTo(trackPoints[0].x,trackPoints[0].y);
+  for(var i=1;i<trackPoints.length;i++){
+    ctx.lineTo(trackPoints[i].x,trackPoints[i].y);
+  }
+  ctx.closePath();
+  ctx.strokeStyle='#2a3050';
+  ctx.lineWidth=40;
+  ctx.stroke();
+
+  // Track center line (dashed)
+  ctx.beginPath();
+  ctx.moveTo(trackPoints[0].x,trackPoints[0].y);
+  for(var i=1;i<trackPoints.length;i++){
+    ctx.lineTo(trackPoints[i].x,trackPoints[i].y);
+  }
+  ctx.closePath();
+  ctx.setLineDash([12,8]);
+  ctx.strokeStyle='rgba(100,150,255,0.25)';
+  ctx.lineWidth=2;
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Direction arrows along track
+  function drawArrow(x,y,angle,size,color){
+    ctx.save();
+    ctx.translate(x,y);
+    ctx.rotate(angle);
+    ctx.fillStyle=color;
+    ctx.beginPath();
+    ctx.moveTo(size,0);
+    ctx.lineTo(-size*0.5,-size*0.6);
+    ctx.lineTo(-size*0.5,size*0.6);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  var arrows=[
+    {x:480,y:520,angle:Math.PI,color:'rgba(0,204,255,0.5)'},       // ① Start straight (going left)
+    {x:95,y:420,angle:-Math.PI/2,color:'rgba(0,204,255,0.5)'},      // ② Neon bend (going up)
+    {x:125,y:240,angle:-Math.PI/2,color:'rgba(0,204,255,0.5)'},     // ③ Data stream (going up)
+    {x:310,y:100,angle:0,color:'rgba(0,204,255,0.5)'},              // ④ Hairpin (going right)
+    {x:590,y:305,angle:0,color:'rgba(0,204,255,0.5)'},              // ⑤ Holo boulevard (going right)
+    {x:780,y:390,angle:Math.PI/2,color:'rgba(0,204,255,0.5)'},      // ⑥ S-curve (going down)
+    {x:735,y:530,angle:Math.PI/2,color:'rgba(0,204,255,0.5)'},      // ⑦ Corridor (going down)
+    {x:690,y:570,angle:Math.PI,color:'rgba(0,204,255,0.5)'},        // ⑧ Home bend (going left)
+  ];
+  arrows.forEach(function(a){drawArrow(a.x,a.y,a.angle,8,a.color);});
+
+  // ===== START/FINISH LINE =====
+  // Located on the bottom straight, middle section
+  var sfx=480, sfy=530;
+  // Checkered pattern
+  for(var i=0;i<6;i++){
+    ctx.fillStyle=i%2===0?'#ff44aa':'#ffffff';
+    ctx.fillRect(sfx-3,sfy-12+i*4,6,4);
+  }
+  // Glow around start
+  ctx.fillStyle='rgba(255,68,170,0.15)';
+  ctx.fillRect(sfx-25,sfy-18,50,36);
+  ctx.strokeStyle='#ff44aa';
+  ctx.lineWidth=2;
+  ctx.strokeRect(sfx-25,sfy-18,50,36);
+
+  // Start label
+  ctx.fillStyle='#ff44aa';
+  ctx.font='bold 13px sans-serif';
+  ctx.textAlign='center';
+  ctx.fillText('起点/终点',sfx,sfy+32);
+  ctx.font='10px sans-serif';
+  ctx.fillText('S / F',sfx,sfy+46);
+
+  // Segment labels
+  var segLabels=[
+    {x:560,y:555,text:'① 出发直道',color:'#00ccff'},
+    {x:85,y:410,text:'② 霓虹大弯',color:'#8855ff'},
+    {x:90,y:225,text:'③ 数据流直道',color:'#00ccff'},
+    {x:350,y:80,text:'④ 光纤发夹弯',color:'#ff44aa'},
+    {x:600,y:275,text:'⑤ 全息大道',color:'#00ccff'},
+    {x:810,y:410,text:'⑥ 矩阵S弯',color:'#8855ff'},
+    {x:755,y:545,text:'⑦ 回廊直道',color:'#00ccff'},
+    {x:695,y:590,text:'⑧ 归途弯',color:'#8855ff'},
+  ];
+  segLabels.forEach(function(l){
+    ctx.fillStyle=l.color;
+    ctx.font='bold 11px sans-serif';
+    ctx.textAlign='center';
+    ctx.fillText(l.text,l.x,l.y);
+  });
+
+  // ===== BOOST PANELS (green) =====
+  function drawBoostPanel(x,y,angle){
+    ctx.save();
+    ctx.translate(x,y);
+    ctx.rotate(angle);
+    ctx.fillStyle='rgba(0,255,136,0.15)';
+    ctx.fillRect(-16,-8,32,16);
+    ctx.fillStyle='rgba(0,255,136,0.5)';
+    ctx.fillRect(-12,-5,24,10);
+    ctx.fillStyle='rgba(0,255,136,0.9)';
+    ctx.beginPath();
+    ctx.moveTo(6,0);ctx.lineTo(-4,-4);ctx.lineTo(-4,4);ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+  drawBoostPanel(420,y=530,Math.PI);         // ① Start straight mid
+  drawBoostPanel(660,y=300,0);               // ⑤ Holo boulevard end
+  drawBoostPanel(735,y=500,Math.PI/2);       // ⑦ Corridor straight
+
+  // Boost labels
+  ctx.fillStyle='#00ff88';
+  ctx.font='10px sans-serif';
+  ctx.textAlign='center';
+  ctx.fillText('加速',420,555);
+  ctx.fillText('加速',660,280);
+  ctx.fillText('加速',755,520);
+
+  // ===== OIL SPILL (red) =====
+  ctx.beginPath();
+  ctx.ellipse(560,315,18,10,0.3,0,Math.PI*2);
+  ctx.fillStyle='rgba(255,68,68,0.3)';
+  ctx.fill();
+  ctx.strokeStyle='rgba(255,68,68,0.6)';
+  ctx.lineWidth=1.5;
+  ctx.stroke();
+  ctx.fillStyle='#ff4444';
+  ctx.font='10px sans-serif';
+  ctx.textAlign='center';
+  ctx.fillText('油污',560,340);
+
+  // ===== BARRIERS (yellow triangles) =====
+  function drawBarrier(x,y){
+    ctx.fillStyle='rgba(255,204,0,0.6)';
+    ctx.beginPath();
+    ctx.moveTo(x,y-6);ctx.lineTo(x-5,y+4);ctx.lineTo(x+5,y+4);ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle='rgba(255,204,0,0.8)';
+    ctx.lineWidth=1;
+    ctx.stroke();
+  }
+  drawBarrier(125,190);  // ③ Data stream 1
+  drawBarrier(130,210);  // ③ Data stream 2
+  drawBarrier(735,515);  // ⑦ Corridor
+
+  // Barrier labels
+  ctx.fillStyle='#ffcc00';
+  ctx.font='9px sans-serif';
+  ctx.fillText('路障',140,175);
+  ctx.fillText('路障',145,195);
+
+  // ===== CURVE AREA HIGHLIGHTS =====
+  ctx.fillStyle='rgba(136,85,255,0.06)';
+  // ② Neon bend
+  ctx.beginPath();
+  ctx.ellipse(95,400,50,70,0,0,Math.PI*2);
+  ctx.fill();
+  // ④ Hairpin
+  ctx.beginPath();
+  ctx.ellipse(330,150,90,70,0.2,0,Math.PI*2);
+  ctx.fill();
+  // ⑥ S-curve
+  ctx.beginPath();
+  ctx.ellipse(760,420,40,60,0,0,Math.PI*2);
+  ctx.fill();
+  // ⑧ Home bend
+  ctx.beginPath();
+  ctx.ellipse(695,555,40,30,0,0,Math.PI*2);
+  ctx.fill();
+
+  // Compass
+  ctx.fillStyle='rgba(0,204,255,0.4)';
+  ctx.font='11px sans-serif';
+  ctx.textAlign='center';
+  ctx.fillText('N',870,25);
+  ctx.fillText('↑',870,40);
+
+  // Scale bar
+  ctx.strokeStyle='rgba(255,255,255,0.3)';
+  ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(40,650);ctx.lineTo(140,650);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(40,646);ctx.lineTo(40,654);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(140,646);ctx.lineTo(140,654);ctx.stroke();
+  ctx.fillStyle='rgba(255,255,255,0.4)';
+  ctx.font='10px sans-serif';
+  ctx.textAlign='center';
+  ctx.fillText('100m',90,665);
+  ctx.fillText('(比例参考)',90,678);
+
+  // Title
+  ctx.fillStyle='rgba(0,204,255,0.6)';
+  ctx.font='bold 14px sans-serif';
+  ctx.textAlign='left';
+  ctx.fillText('霓虹都市环线 — 俯视平面图',20,25);
+  ctx.font='11px sans-serif';
+  ctx.fillStyle='rgba(156,163,196,0.5)';
+  ctx.fillText('第一关 · 未来科技主题 · 860m · 逆时针方向 · 起点在直道中段',20,42);
+})();
+
+// ========== SCROLL ANIMATION ==========
+(function(){
+  var items=document.querySelectorAll('.fade-in');
+  var observer=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting) e.target.classList.add('visible');
+    });
+  },{threshold:0.1});
+  items.forEach(function(el){observer.observe(el);});
+})();
+</script>
+
+</body>
+</html>

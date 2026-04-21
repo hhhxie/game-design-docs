@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>猪猪侠-极速飞车 · 设计文档</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0e1a;--card:#131829;--card2:#1a2038;--border:#2a3155;
+  --gold:#f5c542;--red:#e74c3c;--green:#2ecc71;--blue:#3498db;--purple:#9b59b6;--cyan:#1abc9c;--orange:#e67e22;
+  --text:#e8ecf1;--text2:#8892a8;
+}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px}
+h1{font-size:clamp(28px,5vw,42px);font-weight:800;background:linear-gradient(135deg,var(--gold),var(--red),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px;text-align:center}
+.sub{color:var(--text2);font-size:15px;margin-bottom:40px;text-align:center}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;max-width:960px;width:100%}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;text-decoration:none;color:var(--text);transition:transform .2s,border-color .2s,box-shadow .2s;display:flex;flex-direction:column;gap:8px}
+.card:hover{transform:translateY(-4px);border-color:var(--gold);box-shadow:0 8px 32px rgba(245,197,66,.1)}
+.card-icon{font-size:32px}
+.card-title{font-size:17px;font-weight:700;color:var(--gold)}
+.card-desc{font-size:13px;color:var(--text2);line-height:1.5}
+.card-tag{display:inline-block;font-size:11px;padding:2px 10px;border-radius:10px;font-weight:600}
+.tag-mech{background:rgba(26,188,156,.15);color:var(--cyan)}
+.tag-attr{background:rgba(155,89,182,.15);color:var(--purple)}
+.tag-reward{background:rgba(245,197,66,.15);color:var(--gold)}
+.tag-track{background:rgba(46,204,113,.15);color:var(--green)}
+.tag-nfc{background:rgba(231,76,60,.15);color:var(--red)}
+footer{margin-top:48px;color:var(--text2);font-size:12px;text-align:center}
+</style>
+</head>
+<body>
+
+<h1>🏎️ 猪猪侠-极速飞车</h1>
+<p class="sub">设计文档中心 · 基于 Youdoo 体感游戏机</p>
+
+<div class="grid">
+  <a class="card" href="猪猪侠-极速飞车_核心机制设计.html">
+    <span class="card-icon">🔥</span>
+    <span class="card-title">核心机制设计 v1.3</span>
+    <span class="card-desc">手柄陀螺仪操作 · 漂移充能 · 按住扳机持续释放氮气 · 技能自动释放</span>
+    <span class="card-tag tag-mech">核心机制</span>
+  </a>
+  <a class="card" href="猪猪侠-极速飞车_属性设计.html">
+    <span class="card-icon">📊</span>
+    <span class="card-title">车手与赛车属性设计</span>
+    <span class="card-desc">12辆赛车四维属性 · 7项改车成长 · 属性→表现算法公式</span>
+    <span class="card-tag tag-attr">属性设计</span>
+  </a>
+  <a class="card" href="猪猪侠-极速飞车_奖励与升级数值设计.html">
+    <span class="card-icon">🏆</span>
+    <span class="card-title">奖励与升级数值设计 v1.2</span>
+    <span class="card-desc">积分表 · 改车消耗 · 成长曲线 · 平衡校验</span>
+    <span class="card-tag tag-reward">数值设计</span>
+  </a>
+  <a class="card" href="猪猪侠-极速飞车_第一关赛道设计_霓虹都市环线.html">
+    <span class="card-icon">🏙️</span>
+    <span class="card-title">第一关 · 霓虹都市环线</span>
+    <span class="card-desc">未来科技主题 · 860m · 14m宽 · 3圈 · 肾形赛道</span>
+    <span class="card-tag tag-track">赛道设计</span>
+  </a>
+  <a class="card" href="猪猪侠-极速飞车_第一关赛道设计_童话森林环线.html">
+    <span class="card-icon">🌳</span>
+    <span class="card-title">第一关 · 童话森林环线</span>
+    <span class="card-desc">热带雨林主题 · 赛道设计</span>
+    <span class="card-tag tag-track">赛道设计</span>
+  </a>
+  <a class="card" href="猪猪侠-极速飞车_NFC卡读取功能展示.html">
+    <span class="card-icon">🎴</span>
+    <span class="card-title">NFC卡读取功能展示</span>
+    <span class="card-desc">悬浮卡片 → 半插入 → 读取成功 → 模型出场 → 自由旋转</span>
+    <span class="card-tag tag-nfc">NFC功能</span>
+  </a>
+</div>
+
+<footer>猪猪侠-极速飞车 · 设计文档 · hhhxie</footer>
+
+</body>
+</html>

@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>猪猪侠-极速飞车 — 车手与赛车属性设计</title>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --card: #131829;
+    --card2: #1a2038;
+    --border: #2a3055;
+    --text: #e8eaf6;
+    --text2: #9ca3c4;
+    --accent: #ff4444;
+    --accent2: #ff8800;
+    --spd: #ff4466;
+    --acc: #ffaa00;
+    --hnd: #44cc88;
+    --dft: #4488ff;
+    --speed-type: #ff4466;
+    --control-type: #44cc88;
+    --balance-type: #4488ff;
+    --boost-type: #ffaa00;
+    --allround-type: #bb66ff;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+  /* Hero */
+  .hero {
+    position: relative;
+    padding: 80px 20px 60px;
+    text-align: center;
+    background: linear-gradient(135deg, #1a0a2e 0%, #0a0e1a 40%, #0a1628 100%);
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at 30% 50%, rgba(255,68,68,0.08) 0%, transparent 50%),
+                radial-gradient(circle at 70% 50%, rgba(68,136,255,0.08) 0%, transparent 50%);
+    animation: heroGlow 8s ease-in-out infinite alternate;
+  }
+  @keyframes heroGlow {
+    0% { transform: translateX(-5%) translateY(-2%); }
+    100% { transform: translateX(5%) translateY(2%); }
+  }
+  .hero-content { position: relative; z-index: 1; }
+  .hero-badge {
+    display: inline-block;
+    padding: 6px 20px;
+    border-radius: 20px;
+    background: rgba(255,68,68,0.15);
+    border: 1px solid rgba(255,68,68,0.3);
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 800;
+    background: linear-gradient(135deg, #ff4444, #ff8800, #ffcc00);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+  }
+  .hero p { color: var(--text2); font-size: 1.05rem; max-width: 600px; margin: 0 auto; }
+
+  /* Speed lines decoration */
+  .speed-lines {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .speed-line {
+    position: absolute;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,136,0,0.3), transparent);
+    animation: speedLine 3s linear infinite;
+  }
+  @keyframes speedLine {
+    0% { transform: translateX(-100%); opacity: 0; }
+    50% { opacity: 1; }
+    100% { transform: translateX(200%); opacity: 0; }
+  }
+
+  /* Container */
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+  /* Section */
+  .section { padding: 60px 0; }
+  .section-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-title .icon { font-size: 1.4rem; }
+  .section-subtitle { color: var(--text2); margin-bottom: 32px; font-size: 0.95rem; }
+
+  /* Attribute cards */
+  .attr-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .attr-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .attr-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .attr-label { font-size: 0.8rem; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .attr-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
+  .attr-desc { font-size: 0.85rem; color: var(--text2); }
+  .attr-bar-wrap { margin-top: 10px; height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; }
+  .attr-bar { height: 100%; border-radius: 2px; }
+
+  /* Upgrade cards */
+  .upgrade-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+  .upgrade-card {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+  }
+  .upgrade-card .label { font-size: 0.78rem; color: var(--text2); margin-bottom: 6px; }
+  .upgrade-card .values { font-size: 1rem; font-weight: 700; }
+  .upgrade-card .arrow { color: var(--accent2); margin: 0 6px; }
+  .upgrade-card .path { font-size: 0.75rem; color: var(--text2); margin-top: 4px; }
+
+  /* Type badges */
+  .type-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+  .type-badge {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 18px;
+    text-align: center;
+    border: 1px solid var(--border);
+  }
+  .type-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 6px;
+  }
+  .type-name { font-weight: 700; font-size: 1rem; margin-bottom: 4px; }
+  .type-desc { font-size: 0.82rem; color: var(--text2); }
+
+  /* Racer cards */
+  .racer-section { margin-bottom: 48px; }
+  .racer-section-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, rgba(255,68,68,0.1), rgba(255,136,0,0.05));
+    border-left: 4px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    margin-bottom: 24px;
+  }
+
+  .racer-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 24px;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .racer-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  }
+  .racer-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .racer-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .racer-info { flex: 1; min-width: 200px; }
+  .racer-name { font-size: 1.3rem; font-weight: 800; }
+  .racer-car { font-size: 0.95rem; color: var(--text2); margin-top: 2px; }
+  .racer-tags { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+  .racer-tag {
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  /* Radar chart */
+  .radar-container {
+    width: 180px;
+    height: 180px;
+    margin: 0 auto 16px;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .radar-svg { width: 100%; height: 100%; }
+
+  /* Stat bars */
+  .stat-bars { margin: 16px 0; }
+  .stat-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .stat-label {
+    width: 60px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .stat-bar-bg {
+    flex: 1;
+    height: 22px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+  }
+  .stat-bar-fill {
+    height: 100%;
+    border-radius: 6px;
+    position: relative;
+    transition: width 0.6s ease;
+  }
+  .stat-bar-fill-max {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    border-radius: 6px;
+    opacity: 0.3;
+  }
+  .stat-val {
+    width: 55px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .stat-max { color: var(--text2); font-size: 0.72rem; }
+
+  /* Growth row */
+  .growth-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin: 16px 0;
+    padding: 14px;
+    background: var(--card2);
+    border-radius: 10px;
+  }
+  .growth-item {
+    flex: 1;
+    min-width: 120px;
+    text-align: center;
+  }
+  .growth-item .gi-label { font-size: 0.72rem; color: var(--text2); margin-bottom: 4px; }
+  .growth-item .gi-val { font-size: 0.88rem; font-weight: 700; }
+  .growth-item .gi-arrow { color: var(--accent2); margin: 0 4px; }
+
+  /* Skill box */
+  .skill-box {
+    margin-top: 20px;
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(255,68,68,0.06), rgba(255,136,0,0.04));
+    border: 1px solid rgba(255,68,68,0.15);
+    border-radius: 12px;
+  }
+  .skill-name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+  .skill-desc { font-size: 0.88rem; color: var(--text); margin-bottom: 10px; }
+  .skill-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 8px;
+  }
+  .skill-detail {
+    padding: 8px 12px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 8px;
+    font-size: 0.8rem;
+  }
+  .skill-detail .sd-label { color: var(--text2); }
+  .skill-detail .sd-val { font-weight: 700; }
+
+  /* Design note */
+  .design-note {
+    margin-top: 16px;
+    padding: 12px 16px;
+    background: rgba(68,136,255,0.06);
+    border-left: 3px solid rgba(68,136,255,0.3);
+    border-radius: 0 8px 8px 0;
+    font-size: 0.85rem;
+    color: var(--text2);
+  }
+
+  /* Comparison table */
+  .comp-table-wrap { overflow-x: auto; margin-bottom: 32px; }
+  .comp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+  .comp-table th {
+    padding: 12px 10px;
+    background: var(--card2);
+    font-weight: 700;
+    text-align: center;
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+  }
+  .comp-table td {
+    padding: 10px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .comp-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .comp-table .racer-col { text-align: left; font-weight: 600; }
+  .comp-table .total { font-weight: 800; color: var(--accent2); }
+  .comp-table .best { color: var(--accent); font-weight: 700; }
+  .comp-table .worst { color: #666; }
+
+  /* NFC section */
+  .nfc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+  }
+  .nfc-pack {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .nfc-pack-title { font-weight: 700; font-size: 1rem; margin-bottom: 12px; }
+  .nfc-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-size: 0.85rem;
+  }
+  .nfc-item:last-child { border-bottom: none; }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text2);
+    font-size: 0.82rem;
+    border-top: 1px solid var(--border);
+  }
+
+  /* Nav tabs */
+  .nav-tabs {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,14,26,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 20px;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+  }
+  .nav-tab {
+    padding: 14px 18px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text2);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .nav-tab:hover { color: var(--text); }
+  .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* Unlock badge */
+  .unlock-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.68rem;
+    font-weight: 700;
+  }
+
+  @media (max-width: 640px) {
+    .racer-header { flex-direction: column; align-items: flex-start; }
+    .radar-container { width: 140px; height: 140px; }
+    .hero { padding: 50px 16px 40px; }
+    .section { padding: 40px 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="speed-lines">
+    <div class="speed-line" style="top:20%;width:60%;left:10%;animation-delay:0s;animation-duration:2.5s"></div>
+    <div class="speed-line" style="top:40%;width:40%;left:30%;animation-delay:0.8s;animation-duration:3s"></div>
+    <div class="speed-line" style="top:60%;width:55%;left:5%;animation-delay:1.5s;animation-duration:2.8s"></div>
+    <div class="speed-line" style="top:80%;width:45%;left:25%;animation-delay:0.5s;animation-duration:3.2s"></div>
+  </div>
+  <div class="hero-content">
+    <div class="hero-badge">GAME DESIGN DOC v1.0</div>
+    <h1>猪猪侠-极速飞车</h1>
+    <p>车手与赛车属性设计 — 12 名车手 / 12 辆专属赛车 / 8 项成长属性 / 12 个专属技能</p>
+  </div>
+</div>
+
+<!-- Nav -->
+<div class="nav-tabs" id="navTabs">
+  <div class="nav-tab active" data-section="attributes">属性体系</div>
+  <div class="nav-tab" data-section="initial">初始车手</div>
+  <div class="nav-tab" data-section="nfc">NFC车手</div>
+  <div class="nav-tab" data-section="comparison">对比总览</div>
+  <div class="nav-tab" data-section="nfc-packs">NFC套装</div>
+</div>
+
+<div class="container">
+
+<!-- Attributes Section -->
+<div class="section" id="attributes">
+  <div class="section-title"><span class="icon">📊</span> 属性体系说明</div>
+  <div class="section-subtitle">每辆赛车拥有 7 项可成长属性：4 项基础四维 + 4 项改车属性</div>
+
+  <div class="attr-grid">
+    <div class="attr-card">
+      <div class="attr-label">基础属性</div>
+      <div class="attr-name" style="color:var(--spd)">最高速 SPD</div>
+      <div class="attr-desc">赛车极限速度，决定直道竞争力</div>
+      <div class="attr-bar-wrap"><div class="attr-bar" style="width:92%;background:var(--spd)"></div></div>
+    </div>
+    <div class="attr-card">
+      <div class="attr-label">基础属性</div>
+      <div class="attr-name" style="color:var(--acc)">加速度 ACC</div>
+      <div class="attr-desc">速度提升快慢，碰撞后恢复能力</div>
+      <div class="attr-bar-wrap"><div class="attr-bar" style="width:90%;background:var(--acc)"></div></div>
+    </div>
+    <div class="attr-card">
+      <div class="attr-label">基础属性</div>
+      <div class="attr-name" style="color:var(--hnd)">转向 HND</div>
+      <div class="attr-desc">过弯灵活性，狭窄赛道表现</div>
+      <div class="attr-bar-wrap"><div class="attr-bar" style="width:85%;background:var(--hnd)"></div></div>
+    </div>
+    <div class="attr-card">
+      <div class="attr-label">基础属性</div>
+      <div class="attr-name" style="color:var(--dft)">漂移 DFT</div>
+      <div class="attr-desc">漂移能量积累效率，氮气与技能充能</div>
+      <div class="attr-bar-wrap"><div class="attr-bar" style="width:88%;background:var(--dft)"></div></div>
+    </div>
+  </div>
+
+  <div class="section-title" style="font-size:1.1rem;margin-top:40px"><span class="icon">🔧</span> 改车成长属性（所有赛车统一规则）</div>
+  <div class="upgrade-grid">
+    <div class="upgrade-card">
+      <div class="label">氮气容量</div>
+      <div class="values">1格 <span class="arrow">→</span> 3格</div>
+      <div class="path">1格 → 2格 → 3格（2次升级）</div>
+    </div>
+    <div class="upgrade-card">
+      <div class="label">漂移充能</div>
+      <div class="values">基础 <span class="arrow">→</span> 强化</div>
+      <div class="path">1次升级</div>
+    </div>
+    <div class="upgrade-card">
+      <div class="label">技能充能</div>
+      <div class="values">基础 <span class="arrow">→</span> 强化</div>
+      <div class="path">1次升级</div>
+    </div>
+  </div>
+
+  <div class="section-title" style="font-size:1.1rem;margin-top:32px"><span class="icon">🏷️</span> 赛车类型</div>
+  <div class="type-grid">
+    <div class="type-badge">
+      <div class="type-name"><span class="type-dot" style="background:var(--speed-type)"></span>速度型</div>
+      <div class="type-desc">最高速极高，转向/漂移偏低</div>
+    </div>
+    <div class="type-badge">
+      <div class="type-name"><span class="type-dot" style="background:var(--control-type)"></span>操控型</div>
+      <div class="type-desc">转向+漂移突出，最高速偏低</div>
+    </div>
+    <div class="type-badge">
+      <div class="type-name"><span class="type-dot" style="background:var(--balance-type)"></span>均衡型</div>
+      <div class="type-desc">四维均衡，无明显短板</div>
+    </div>
+    <div class="type-badge">
+      <div class="type-name"><span class="type-dot" style="background:var(--boost-type)"></span>加速型</div>
+      <div class="type-desc">加速度+漂移突出，最高速一般</div>
+    </div>
+    <div class="type-badge">
+      <div class="type-name"><span class="type-dot" style="background:var(--allround-type)"></span>全能型</div>
+      <div class="type-desc">总分最高，无极端属性</div>
+    </div>
+  </div>
+</div>
+
+<!-- Initial Racers -->
+<div class="section" id="initial">
+  <div class="section-title"><span class="icon">🏁</span> 初始可用车手（4 名）</div>
+  <div class="section-subtitle">游戏初始即拥有 · 免费试玩可用猪猪侠和菲菲</div>
+
+  <div id="initial-cards"></div>
+</div>
+
+<!-- NFC Racers -->
+<div class="section" id="nfc">
+  <div class="section-title"><span class="icon">💳</span> NFC 解锁车手（8 名）</div>
+  <div class="section-subtitle">购买实体 NFC 卡解锁 · 畅玩卡解锁全部赛车</div>
+
+  <div id="nfc-cards"></div>
+</div>
+
+<!-- Comparison -->
+<div class="section" id="comparison">
+  <div class="section-title"><span class="icon">📈</span> 全车属性对比</div>
+  <div class="section-subtitle">初始值 vs 满级值 · 成长幅度对比</div>
+
+  <h3 style="margin-bottom:16px;color:var(--accent2)">初始值对比</h3>
+  <div class="comp-table-wrap">
+    <table class="comp-table" id="comp-init"></table>
+  </div>
+
+  <h3 style="margin-bottom:16px;color:var(--accent2)">满级值对比</h3>
+  <div class="comp-table-wrap">
+    <table class="comp-table" id="comp-max"></table>
+  </div>
+
+  <h3 style="margin-bottom:16px;color:var(--accent2)">成长幅度对比</h3>
+  <div class="comp-table-wrap">
+    <table class="comp-table" id="comp-growth"></table>
+  </div>
+</div>
+
+<!-- NFC Packs -->
+<div class="section" id="nfc-packs">
+  <div class="section-title"><span class="icon">📦</span> NFC 卡套装方案</div>
+  <div class="section-subtitle">4 款套装 · 8 张 NFC 卡</div>
+
+  <div class="nfc-grid" id="nfc-packs-grid"></div>
+</div>
+
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  <p>猪猪侠-极速飞车 · 车手与赛车属性设计 v1.0</p>
+  <p style="margin-top:4px">基于策划大纲 v1.0 · 2026</p>
+</div>
+
+<script>
+const racers = [
+  {
+    id:1, name:'猪猪侠', car:'赤焰烈虎', type:'均衡型', typeColor:'var(--balance-type)',
+    typeIcon:'🔵', unlock:'初始', emoji:'🐷',
+    stats:{spd:70,acc:70,hnd:70,dft:70},
+    maxStats:{spd:82,acc:82,hnd:82,dft:82},
+    growth:{spd:12,acc:12,hnd:12,dft:12},
+    skill:'烈虎冲阵',
+    skillDesc:'释放猛虎之力，短时间内获得大幅加速，同时获得碰撞免疫',
+    skillDetails:{加速:'130% / 3秒','碰撞免疫':'3秒',充能:'漂移充能(无冷却)'},
+    note:'四维完全均衡，新手友好。成长最大(+48)，长期使用回报感强。'
+  },
+  {
+    id:2, name:'菲菲', car:'碧晶彩蝶', type:'操控型', typeColor:'var(--control-type)',
+    typeIcon:'🟢', unlock:'初始', emoji:'🐱',
+    stats:{spd:62,acc:72,hnd:85,dft:80},
+    maxStats:{spd:72,acc:82,hnd:92,dft:90},
+    growth:{spd:10,acc:10,hnd:7,dft:10},
+    skill:'彩蝶迷阵',
+    skillDesc:'释放大量闪亮彩蝶，对周围AI造成视觉干扰致其减速',
+    skillDetails:{减速:'AI -20% / 3秒','自身加成':'漂移充能+50%',充能:'漂移充能(无冷却)'},
+    note:'弯道灵活操控型，过弯流畅。成长重点在最高速，弥补直道劣势。'
+  },
+  {
+    id:3, name:'小呆呆', car:'呱呱蛙车', type:'加速型', typeColor:'var(--boost-type)',
+    typeIcon:'🟡', unlock:'初始', emoji:'🐸',
+    stats:{spd:65,acc:90,hnd:62,dft:82},
+    maxStats:{spd:75,acc:95,hnd:72,dft:90},
+    growth:{spd:10,acc:5,hnd:10,dft:8},
+    skill:'长舌缠绕',
+    skillDesc:'发射超长舌头吸附赛道边缘，像弹弓弹射冲刺',
+    skillDetails:{弹射:'150% / 1.5秒','额外':'自动收集氮气',充能:'漂移充能(无冷却)'},
+    note:'加速度全班最高，碰撞后极快恢复。转向成长大，弥补弯道短板。'
+  },
+  {
+    id:4, name:'超人强', car:'钢铁犀牛', type:'速度型', typeColor:'var(--speed-type)',
+    typeIcon:'🔴', unlock:'初始', emoji:'🦏',
+    stats:{spd:92,acc:55,hnd:58,dft:62},
+    maxStats:{spd:98,acc:65,hnd:68,dft:72},
+    growth:{spd:6,acc:10,hnd:10,dft:10},
+    skill:'犀牛冲撞',
+    skillDesc:'不可阻挡的冲撞状态，摧毁前方障碍物并获得加速',
+    skillDetails:{冲撞:'摧毁障碍物',加速:'140% / 2秒',充能:'漂移充能(无冷却)'},
+    note:'初始4车最高速，起步慢弯道差。成长弥补加速度和转向短板。'
+  },
+  {
+    id:5, name:'波比', car:'铁甲穿山甲', type:'加速型', typeColor:'var(--boost-type)',
+    typeIcon:'🟡', unlock:'NFC', emoji:'🦔',
+    stats:{spd:63,acc:85,hnd:68,dft:88},
+    maxStats:{spd:73,acc:92,hnd:75,dft:95},
+    growth:{spd:10,acc:7,hnd:7,dft:7},
+    skill:'无敌风火轮',
+    skillDesc:'高速旋转形成风火轮护体，持续加速并免疫一次碰撞',
+    skillDetails:{加速:'120% / 4秒','碰撞免疫':'1次','额外':'漂移充能+30%',充能:'漂移充能(无冷却)'},
+    note:'漂移效率极高，连携加速专家。满级后漂移达95，是技能流核心。'
+  },
+  {
+    id:6, name:'星航', car:'雷速音豹', type:'速度型', typeColor:'var(--speed-type)',
+    typeIcon:'🔴', unlock:'NFC', emoji:'🐆',
+    stats:{spd:88,acc:68,hnd:70,dft:72},
+    maxStats:{spd:95,acc:78,hnd:78,dft:80},
+    growth:{spd:7,acc:10,hnd:8,dft:8},
+    skill:'爆裂音速',
+    skillDesc:'引擎爆发音速冲击波，突破极限速度，推开后方AI',
+    skillDetails:{加速:'160% / 2秒',干扰:'AI -15% / 2秒',充能:'漂移充能(无冷却)'},
+    note:'速度型偏全能，无短板无顶级。满级后最高速95，四维均78+。'
+  },
+  {
+    id:7, name:'擎风', car:'疾风隼车', type:'速度型', typeColor:'var(--speed-type)',
+    typeIcon:'🔴', unlock:'NFC', emoji:'🦅',
+    stats:{spd:95,acc:52,hnd:50,dft:55},
+    maxStats:{spd:100,acc:62,hnd:60,dft:65},
+    growth:{spd:5,acc:10,hnd:10,dft:10},
+    skill:'飞坡冲刺',
+    skillDesc:'利用车身下压力悬浮腾空，无视障碍物飞跃加速',
+    skillDetails:{悬浮:'2秒无视障碍',落地:'145% / 2秒',充能:'漂移充能(无冷却)'},
+    note:'全场最高速(95→100)的赌徒之车。成长重点在弱项，但仍是极端定位。'
+  },
+  {
+    id:8, name:'芸芸', car:'绯光炫影', type:'操控型', typeColor:'var(--control-type)',
+    typeIcon:'🟢', unlock:'NFC', emoji:'🌸',
+    stats:{spd:68,acc:75,hnd:82,dft:78},
+    maxStats:{spd:78,acc:82,hnd:90,dft:85},
+    growth:{spd:10,acc:7,hnd:8,dft:7},
+    skill:'炫影残像',
+    skillDesc:'高速移动留下残像分身，吸引AI追击',
+    skillDetails:{分身:'持续4秒','自身加成':'转向+20%',充能:'漂移充能(无冷却)'},
+    note:'操控型中速度最快，弯道女王。满级最高速78，直道不再明显吃亏。'
+  },
+  {
+    id:9, name:'火虎', car:'紫曜神驹', type:'全能型', typeColor:'var(--allround-type)',
+    typeIcon:'🟣', unlock:'NFC', emoji:'🐯',
+    stats:{spd:85,acc:78,hnd:75,dft:78},
+    maxStats:{spd:92,acc:85,hnd:82,dft:85},
+    growth:{spd:7,acc:7,hnd:7,dft:7},
+    skill:'热浪虎啸',
+    skillDesc:'释放猛虎咆哮形成热浪冲击，大幅加速并烧毁前方障碍',
+    skillDetails:{加速:'135% / 3秒','障碍清除':'40米内',充能:'漂移充能(无冷却)'},
+    note:'全场总分最高(316→344)，终极赛车。成长均衡(+28)，每项+7。'
+  },
+  {
+    id:10, name:'雪竹', car:'盐湖冰晶', type:'操控型', typeColor:'var(--control-type)',
+    typeIcon:'🟢', unlock:'NFC', emoji:'❄️',
+    stats:{spd:60,acc:70,hnd:80,dft:90},
+    maxStats:{spd:70,acc:80,hnd:88,dft:97},
+    growth:{spd:10,acc:10,hnd:8,dft:7},
+    skill:'盐湖之雪',
+    skillDesc:'铺设冰晶路面，大幅提升漂移性能',
+    skillDetails:{冰晶:'5秒','自身':'漂移+80%/转向+15%','干扰':'AI打滑-10%',充能:'漂移充能(无冷却)'},
+    note:'漂移全场最高(90→97)，技能流最强。成长重点在最高速和加速度。'
+  },
+  {
+    id:11, name:'大福', car:'金刚战车', type:'全能型', typeColor:'var(--allround-type)',
+    typeIcon:'🟣', unlock:'NFC', emoji:'💪',
+    stats:{spd:78,acc:72,hnd:72,dft:68},
+    maxStats:{spd:85,acc:80,hnd:78,dft:75},
+    growth:{spd:7,acc:8,hnd:6,dft:7},
+    skill:'金刚脚刹车',
+    skillDesc:'猛踩金刚脚急刹车，瞬间弹射加速起步',
+    skillDetails:{刹车:'速度归零0.5秒',弹射:'140% / 2秒',被动:'碰撞减速减半',充能:'漂移充能(无冷却)'},
+    note:'防御全能型，被动碰撞减速减半。最稳定的"撞了不怕"型赛车。'
+  },
+  {
+    id:12, name:'老乔', car:'沙暴卡车', type:'加速型', typeColor:'var(--boost-type)',
+    typeIcon:'🟡', unlock:'NFC', emoji:'🏜️',
+    stats:{spd:72,acc:80,hnd:58,dft:75},
+    maxStats:{spd:82,acc:88,hnd:68,dft:82},
+    growth:{spd:10,acc:8,hnd:10,dft:7},
+    skill:'沙暴冲刺',
+    skillDesc:'卷起沙暴包裹车身，持续加速并形成沙暴屏障',
+    skillDetails:{加速:'140% / 3秒','沙暴屏障':'免疫障碍',额外:'技能结束+1格氮气',充能:'漂移充能(无冷却)'},
+    note:'爆发型选手，转向成长最大(+10)。配合技能额外氮气，爆发连击流。'
+  }
+];
+
+const nfcPacks = [
+  {name:'极速先锋', icon:'⚡', items:[{racer:'波比',car:'铁甲穿山甲',desc:'连携加速专家'},{racer:'星航',car:'雷速音豹',desc:'高手全能速度型'}]},
+  {name:'传奇车神', icon:'👑', items:[{racer:'火虎',car:'紫曜神驹',desc:'综合No.1'},{racer:'雪竹',car:'盐湖冰晶',desc:'漂移大师'}]},
+  {name:'老将出击', icon:'🦅', items:[{racer:'擎风',car:'疾风隼车',desc:'极限速度狂'},{racer:'芸芸',car:'绯光炫影',desc:'弯道女王'}]},
+  {name:'沙漠风暴', icon:'🏜️', items:[{racer:'大福',car:'金刚战车',desc:'稳健防御型'},{racer:'老乔',car:'沙暴卡车',desc:'爆发冲刺型'}]}
+];
+
+function createRadarSVG(stats, maxStats, color) {
+  const cx=90, cy=90, r=70;
+  const labels = ['SPD','ACC','HND','DFT'];
+  const keys = ['spd','acc','hnd','dft'];
+  const colors = ['var(--spd)','var(--acc)','var(--hnd)','var(--dft)'];
+  let svg = `<svg class="radar-svg" viewBox="0 0 180 180">`;
+  // Grid
+  for(let i=1;i<=4;i++){
+    const ri=r*i/4;
+    let pts=[];
+    for(let j=0;j<4;j++){
+      const a=(Math.PI*2*j/4)-Math.PI/2;
+      pts.push(`${cx+ri*Math.cos(a)},${cy+ri*Math.sin(a)}`);
+    }
+    svg+=`<polygon points="${pts.join(' ')}" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`;
+  }
+  // Axes
+  for(let j=0;j<4;j++){
+    const a=(Math.PI*2*j/4)-Math.PI/2;
+    svg+=`<line x1="${cx}" y1="${cy}" x2="${cx+r*Math.cos(a)}" y2="${cy+r*Math.sin(a)}" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>`;
+  }
+  // Max stat area
+  let maxPts=[];
+  for(let j=0;j<4;j++){
+    const a=(Math.PI*2*j/4)-Math.PI/2;
+    const v=maxStats[keys[j]]/100;
+    maxPts.push(`${cx+r*v*Math.cos(a)},${cy+r*v*Math.sin(a)}`);
+  }
+  svg+=`<polygon points="${maxPts.join(' ')}" fill="${color}" fill-opacity="0.12" stroke="${color}" stroke-opacity="0.3" stroke-width="1"/>`;
+  // Current stat area
+  let curPts=[];
+  for(let j=0;j<4;j++){
+    const a=(Math.PI*2*j/4)-Math.PI/2;
+    const v=stats[keys[j]]/100;
+    curPts.push(`${cx+r*v*Math.cos(a)},${cy+r*v*Math.sin(a)}`);
+  }
+  svg+=`<polygon points="${curPts.join(' ')}" fill="${color}" fill-opacity="0.25" stroke="${color}" stroke-width="2"/>`;
+  // Dots & labels
+  for(let j=0;j<4;j++){
+    const a=(Math.PI*2*j/4)-Math.PI/2;
+    const v=stats[keys[j]]/100;
+    const x=cx+r*v*Math.cos(a), y=cy+r*v*Math.sin(a);
+    svg+=`<circle cx="${x}" cy="${y}" r="3" fill="${colors[j]}"/>`;
+    const lx=cx+(r+14)*Math.cos(a), ly=cy+(r+14)*Math.sin(a);
+    svg+=`<text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle" fill="var(--text2)" font-size="10" font-weight="600">${labels[j]}</text>`;
+  }
+  svg+=`</svg>`;
+  return svg;
+}
+
+function createRacerCard(r) {
+  const totalInit = r.stats.spd+r.stats.acc+r.stats.hnd+r.stats.dft;
+  const totalMax = r.maxStats.spd+r.maxStats.acc+r.maxStats.hnd+r.maxStats.dft;
+  const totalGrowth = r.growth.spd+r.growth.acc+r.growth.hnd+r.growth.dft;
+  const isInitial = r.unlock==='初始';
+  const statColors = {spd:'var(--spd)',acc:'var(--acc)',hnd:'var(--hnd)',dft:'var(--dft)'};
+  const statNames = {spd:'最高速',acc:'加速度',hnd:'转向',dft:'漂移'};
+
+  let html = `<div class="racer-card">
+    <div class="racer-header">
+      <div class="racer-avatar" style="background:${r.typeColor}20;border:2px solid ${r.typeColor}40;color:${r.typeColor}">${r.emoji}</div>
+      <div class="racer-info">
+        <div class="racer-name">${r.name} <span style="color:var(--text2);font-weight:400;font-size:0.9rem">— ${r.car}</span></div>
+        <div class="racer-tags">
+          <span class="racer-tag" style="background:${r.typeColor}18;color:${r.typeColor};border:1px solid ${r.typeColor}30">${r.typeIcon} ${r.type}</span>
+          <span class="racer-tag" style="background:rgba(255,255,255,0.06);color:var(--text2);border:1px solid rgba(255,255,255,0.08)">总分 ${totalInit} → ${totalMax}</span>
+          <span class="unlock-badge" style="background:${isInitial?'rgba(68,136,255,0.15);color:#4488ff':'rgba(255,170,0,0.15);color:#ffaa00'}">${isInitial?'🎮 初始':'💳 NFC'}</span>
+        </div>
+      </div>
+      <div class="radar-container">${createRadarSVG(r.stats, r.maxStats, r.typeColor)}</div>
+    </div>
+
+    <div class="stat-bars">`;
+
+  for(const key of ['spd','acc','hnd','dft']){
+    html += `<div class="stat-row">
+      <div class="stat-label" style="color:${statColors[key]}">${statNames[key]}</div>
+      <div class="stat-bar-bg">
+        <div class="stat-bar-fill-max" style="width:${r.maxStats[key]}%;background:${statColors[key]}"></div>
+        <div class="stat-bar-fill" style="width:${r.stats[key]}%;background:${statColors[key]}"></div>
+      </div>
+      <div class="stat-val">${r.stats[key]} <span class="stat-max">→${r.maxStats[key]}</span></div>
+    </div>`;
+  }
+
+  html += `</div>
+    <div class="growth-row">
+      <div class="growth-item"><div class="gi-label">最高速成长</div><div class="gi-val" style="color:var(--spd)">+${r.growth.spd}</div></div>
+      <div class="growth-item"><div class="gi-label">加速度成长</div><div class="gi-val" style="color:var(--acc)">+${r.growth.acc}</div></div>
+      <div class="growth-item"><div class="gi-label">转向成长</div><div class="gi-val" style="color:var(--hnd)">+${r.growth.hnd}</div></div>
+      <div class="growth-item"><div class="gi-label">漂移成长</div><div class="gi-val" style="color:var(--dft)">+${r.growth.dft}</div></div>
+      <div class="growth-item"><div class="gi-label">总成长</div><div class="gi-val" style="color:var(--accent2)">+${totalGrowth}</div></div>
+    </div>
+
+    <div class="skill-box">
+      <div class="skill-name">⚡ ${r.skill}</div>
+      <div class="skill-desc">${r.skillDesc}</div>
+      <div class="skill-details">`;
+  for(const [k,v] of Object.entries(r.skillDetails)){
+    html += `<div class="skill-detail"><span class="sd-label">${k}：</span><span class="sd-val">${v}</span></div>`;
+  }
+  html += `</div></div>
+    <div class="design-note">💡 ${r.note}</div>
+  </div>`;
+  return html;
+}
+
+// Render initial racers
+document.getElementById('initial-cards').innerHTML = racers.filter(r=>r.unlock==='初始').map(createRacerCard).join('');
+document.getElementById('nfc-cards').innerHTML = racers.filter(r=>r.unlock==='NFC').map(createRacerCard).join('');
+
+// Comparison tables
+function buildCompTable(id, headers, rows, highlightBest) {
+  let html = `<thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>`;
+  rows.forEach(row => {
+    html += `<tr>${row.map((cell,i) => `<td class="${i===0?'racer-col':''} ${cell.cls||''}">${cell.v||cell}</td>`).join('')}</tr>`;
+  });
+  html += `</tbody>`;
+  document.getElementById(id).innerHTML = html;
+}
+
+const compHeaders = ['车手','赛车','类型','最高速','加速度','转向','漂移','总分'];
+
+// Init table
+const initRows = racers.map(r => {
+  const t = r.stats.spd+r.stats.acc+r.stats.hnd+r.stats.dft;
+  return [
+    {v:r.name}, {v:r.car}, {v:r.typeIcon+' '+r.type},
+    {v:r.stats.spd, cls: r.stats.spd>=90?'best':r.stats.spd<=62?'worst':''},
+    {v:r.stats.acc, cls: r.stats.acc>=90?'best':r.stats.acc<=55?'worst':''},
+    {v:r.stats.hnd, cls: r.stats.hnd>=85?'best':r.stats.hnd<=58?'worst':''},
+    {v:r.stats.dft, cls: r.stats.dft>=88?'best':r.stats.dft<=62?'worst':''},
+    {v:t, cls:'total'}
+  ];
+});
+buildCompTable('comp-init', compHeaders, initRows);
+
+const maxRows = racers.map(r => {
+  const t = r.maxStats.spd+r.maxStats.acc+r.maxStats.hnd+r.maxStats.dft;
+  return [
+    {v:r.name}, {v:r.car}, {v:r.typeIcon+' '+r.type},
+    {v:r.maxStats.spd, cls: r.maxStats.spd>=95?'best':''},
+    {v:r.maxStats.acc, cls: r.maxStats.acc>=92?'best':''},
+    {v:r.maxStats.hnd, cls: r.maxStats.hnd>=90?'best':''},
+    {v:r.maxStats.dft, cls: r.maxStats.dft>=95?'best':''},
+    {v:t, cls:'total'}
+  ];
+});
+buildCompTable('comp-max', compHeaders, maxRows);
+
+const growthHeaders = ['车手','最高速+','加速度+','转向+','漂移+','总成长'];
+const growthRows = racers.map(r => {
+  const tg = r.growth.spd+r.growth.acc+r.growth.hnd+r.growth.dft;
+  return [
+    {v:r.name},
+    {v:'+'+r.growth.spd, cls:r.growth.spd>=10?'best':''},
+    {v:'+'+r.growth.acc, cls:r.growth.acc>=10?'best':''},
+    {v:'+'+r.growth.hnd, cls:r.growth.hnd>=10?'best':''},
+    {v:'+'+r.growth.dft, cls:r.growth.dft>=10?'best':''},
+    {v:'+'+tg, cls:'total'}
+  ];
+});
+buildCompTable('comp-growth', growthHeaders, growthRows);
+
+// NFC Packs
+document.getElementById('nfc-packs-grid').innerHTML = nfcPacks.map(p => `
+  <div class="nfc-pack">
+    <div class="nfc-pack-title">${p.icon} 「${p.name}」套装</div>
+    ${p.items.map(item => `
+      <div class="nfc-item">
+        <span><strong>${item.racer}</strong> — ${item.car}</span>
+        <span style="color:var(--text2)">${item.desc}</span>
+      </div>
+    `).join('')}
+  </div>
+`).join('');
+
+// Nav tabs
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    const section = document.getElementById(tab.dataset.section);
+    if(section) section.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+});
+
+// Scroll spy
+const sections = ['attributes','initial','nfc','comparison','nfc-packs'];
+window.addEventListener('scroll', () => {
+  let current = sections[0];
+  for(const id of sections){
+    const el = document.getElementById(id);
+    if(el && el.getBoundingClientRect().top <= 120) current = id;
+  }
+  document.querySelectorAll('.nav-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.section === current);
+  });
+});
+</script>
+</body>
+</html>

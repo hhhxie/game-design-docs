@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>猪猪侠-极速飞车 — 奖励与升级数值设计</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0e1a;--card:#131829;--card2:#1a2038;--border:#2a3155;
+  --gold:#f5c542;--red:#e74c3c;--green:#2ecc71;--blue:#3498db;--purple:#9b59b6;--cyan:#1abc9c;--orange:#e67e22;--pink:#e91e8f;
+  --text:#e8ecf1;--text2:#8892a8;--text3:#5a6380;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;line-height:1.6;overflow-x:hidden}
+
+/* Nav */
+.nav{position:sticky;top:0;z-index:100;background:rgba(10,14,26,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 24px}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.nav-inner::-webkit-scrollbar{display:none}
+.nav a{color:var(--text2);text-decoration:none;font-size:13px;padding:14px 12px;white-space:nowrap;border-bottom:2px solid transparent;transition:all .2s}
+.nav a:hover,.nav a.active{color:var(--gold);border-bottom-color:var(--gold)}
+
+/* Hero */
+.hero{position:relative;padding:60px 24px 40px;text-align:center;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:conic-gradient(from 0deg,transparent,rgba(245,197,66,.06),transparent,rgba(231,76,60,.06),transparent);animation:heroSpin 20s linear infinite}
+@keyframes heroSpin{to{transform:rotate(360deg)}}
+.hero-content{position:relative;z-index:1}
+.hero h1{font-size:clamp(28px,5vw,44px);font-weight:800;background:linear-gradient(135deg,var(--gold),var(--red),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
+.hero .sub{color:var(--text2);font-size:15px;margin-bottom:24px}
+.hero-badges{display:flex;flex-wrap:wrap;justify-content:center;gap:12px}
+.hero-badge{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:6px 16px;font-size:13px;display:flex;align-items:center;gap:6px}
+.hero-badge .num{color:var(--gold);font-weight:700;font-size:18px}
+
+/* Container */
+.container{max-width:1200px;margin:0 auto;padding:0 24px 60px}
+
+/* Section */
+.section{margin-top:48px}
+.section-title{font-size:22px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+.section-title .icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.section-desc{color:var(--text2);font-size:14px;margin-bottom:20px}
+.sub-title{font-size:17px;font-weight:600;margin:24px 0 12px;display:flex;align-items:center;gap:8px}
+
+/* Cards */
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:16px}
+.card-glow{box-shadow:0 0 30px rgba(245,197,66,.05)}
+
+/* Table */
+.tbl-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border);margin-bottom:16px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{background:var(--card2);color:var(--gold);font-weight:600;padding:12px 14px;text-align:left;white-space:nowrap;border-bottom:2px solid var(--border);position:sticky;top:0}
+td{padding:10px 14px;border-bottom:1px solid rgba(42,49,85,.5);white-space:nowrap}
+tr:hover td{background:rgba(245,197,66,.03)}
+.highlight{color:var(--gold);font-weight:700}
+.text-green{color:var(--green)}
+.text-red{color:var(--red)}
+.text-blue{color:var(--blue)}
+.text-purple{color:var(--purple)}
+.text-cyan{color:var(--cyan)}
+.text-orange{color:var(--orange)}
+
+/* Stat cards */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:20px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;transition:transform .2s,border-color .2s}
+.stat-card:hover{transform:translateY(-2px);border-color:var(--gold)}
+.stat-label{font-size:12px;color:var(--text2);margin-bottom:4px}
+.stat-value{font-size:28px;font-weight:800;color:var(--gold)}
+.stat-extra{font-size:12px;color:var(--text3);margin-top:4px}
+
+/* Progress bar */
+.prog-row{display:flex;align-items:center;gap:12px;margin:8px 0}
+.prog-label{font-size:13px;color:var(--text2);min-width:100px;text-align:right}
+.prog-bar{flex:1;height:24px;background:var(--card2);border-radius:12px;overflow:hidden;position:relative}
+.prog-fill{height:100%;border-radius:12px;transition:width 1s ease;position:relative}
+.prog-fill::after{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent);animation:progShine 2s infinite}
+@keyframes progShine{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.prog-text{font-size:12px;color:var(--text2);min-width:70px}
+
+/* Difficulty tabs */
+.diff-tabs{display:flex;gap:8px;margin-bottom:12px}
+.diff-tab{padding:8px 20px;border-radius:20px;font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--text2);transition:all .2s}
+.diff-tab:hover{border-color:var(--text3)}
+.diff-tab.active-green{background:rgba(46,204,113,.15);border-color:var(--green);color:var(--green)}
+.diff-tab.active-gold{background:rgba(245,197,66,.15);border-color:var(--gold);color:var(--gold)}
+.diff-tab.active-red{background:rgba(231,76,60,.15);border-color:var(--red);color:var(--red)}
+.diff-panel{display:none}
+.diff-panel.show{display:block}
+
+/* Stage timeline */
+.timeline{position:relative;padding-left:28px}
+.timeline::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,var(--gold),var(--blue),var(--purple),var(--green))}
+.stage{position:relative;margin-bottom:24px}
+.stage::before{content:'';position:absolute;left:-24px;top:6px;width:14px;height:14px;border-radius:50%;border:2px solid var(--gold);background:var(--bg)}
+.stage:nth-child(2)::before{border-color:var(--blue)}
+.stage:nth-child(3)::before{border-color:var(--purple)}
+.stage:nth-child(4)::before{border-color:var(--green)}
+.stage-tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 10px;border-radius:10px;margin-bottom:6px}
+.stage h3{font-size:16px;font-weight:600;margin-bottom:4px}
+.stage p{font-size:13px;color:var(--text2)}
+
+/* Priority list */
+.priority-list{counter-reset:pri}
+.priority-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;margin-bottom:6px;background:var(--card);border:1px solid var(--border);counter-increment:pri;transition:transform .15s}
+.priority-item:hover{transform:translateX(4px)}
+.priority-item::before{content:counter(pri);font-size:14px;font-weight:800;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.priority-item:nth-child(1)::before{background:var(--gold);color:#000}
+.priority-item:nth-child(2)::before{background:#c0c0c0;color:#000}
+.priority-item:nth-child(3)::before{background:#cd7f32;color:#000}
+.priority-item:nth-child(n+4)::before{background:var(--card2);color:var(--text2)}
+.priority-name{font-weight:600;min-width:160px}
+.priority-cost{color:var(--orange);font-size:13px;min-width:80px}
+.priority-desc{color:var(--text2);font-size:12px;flex:1}
+
+/* Balance check */
+.check-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.check-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center}
+.check-icon{font-size:28px;margin-bottom:8px}
+.check-label{font-size:13px;color:var(--text2);margin-bottom:4px}
+.check-value{font-size:22px;font-weight:700;color:var(--green)}
+
+/* Compare */
+.compare-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+@media(max-width:700px){.compare-grid{grid-template-columns:1fr}}
+.compare-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center}
+.compare-card h4{font-size:14px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.compare-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0}
+.compare-row .val{font-weight:600}
+
+/* Principle */
+.principle-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.principle-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;transition:border-color .2s}
+.principle-card:hover{border-color:var(--gold)}
+.principle-num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--gold);color:#000;font-size:12px;font-weight:800;margin-right:8px}
+.principle-card strong{font-size:14px}
+.principle-card p{font-size:13px;color:var(--text2);margin-top:6px}
+
+/* Milestone */
+.milestone-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.milestone-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;align-items:center;gap:10px;transition:transform .15s}
+.milestone-card:hover{transform:translateY(-2px)}
+.milestone-icon{font-size:24px}
+.milestone-info h4{font-size:13px;font-weight:600}
+.milestone-info p{font-size:12px;color:var(--text2)}
+
+/* Tag */
+.tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:6px;font-weight:600}
+.tag-gold{background:rgba(245,197,66,.15);color:var(--gold)}
+.tag-green{background:rgba(46,204,113,.15);color:var(--green)}
+.tag-red{background:rgba(231,76,60,.15);color:var(--red)}
+.tag-blue{background:rgba(52,152,219,.15);color:var(--blue)}
+
+/* Info box */
+.info-box{border-radius:10px;padding:12px 16px;font-size:13px;margin:12px 0}
+.info-gold{background:rgba(245,197,66,.06);border:1px solid rgba(245,197,66,.15);color:var(--gold)}
+.info-blue{background:rgba(52,152,219,.06);border:1px solid rgba(52,152,219,.15);color:var(--blue)}
+
+/* Footer */
+.footer{text-align:center;padding:40px 24px;color:var(--text3);font-size:12px;border-top:1px solid var(--border)}
+
+/* Responsive */
+@media(max-width:600px){
+  .hero h1{font-size:24px}
+  .stat-grid{grid-template-columns:1fr 1fr}
+  .priority-name{min-width:auto}
+  .priority-desc{display:none}
+  th,td{padding:8px 10px;font-size:12px}
+  .diff-tabs{flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav class="nav">
+<div class="nav-inner">
+  <a href="#currency">💰 货币</a>
+  <a href="#earning">📈 获取</a>
+  <a href="#spending">🔧 消耗</a>
+  <a href="#growth">📊 成长</a>
+  <a href="#balance">⚖️ 平衡</a>
+  <a href="#milestone">🏆 里程碑</a>
+  <a href="#principles">📋 原则</a>
+</div>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+<div class="hero-content">
+  <h1>🏁 奖励与升级数值设计</h1>
+  <p class="sub">基于策划大纲 v1.0 · 车手赛车属性设计 v1.0 · 三难度体系 v1.2</p>
+  <div class="hero-badges">
+    <div class="hero-badge"><span class="num">3650</span>单车满改积分</div>
+    <div class="hero-badge"><span class="num">3</span>种难度</div>
+    <div class="hero-badge"><span class="num">2.4%</span>满改差距</div>
+    <div class="hero-badge"><span class="num">15</span>天全收集(中度)</div>
+  </div>
+</div>
+</div>
+
+<div class="container">
+
+<!-- 一、货币体系 -->
+<div class="section" id="currency">
+  <div class="section-title">
+    <span class="icon" style="background:rgba(245,197,66,.15);color:var(--gold)">💰</span>
+    一、货币体系
+  </div>
+  <p class="section-desc">积分是游戏内唯一货币，纯游戏内获取，不可充值，保证公平性</p>
+  <div class="card card-glow">
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-label">货币名称</div>
+        <div class="stat-value" style="font-size:22px">积分</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">获取方式</div>
+        <div class="stat-value" style="font-size:15px">比赛结算</div>
+        <div class="stat-extra">冠军之路 / 时间挑战赛</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">消耗方式</div>
+        <div class="stat-value" style="font-size:15px">改车升级</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">可充值</div>
+        <div class="stat-value text-red" style="font-size:22px">否</div>
+        <div class="stat-extra">纯游戏内获取</div>
+      </div>
+    </div>
+    <div class="info-box info-gold">💡 NFC 解锁角色通过实体卡购买，与积分系统完全独立——买了角色不需要再花积分解锁</div>
+  </div>
+</div>
+
+<!-- 二、积分获取 -->
+<div class="section" id="earning">
+  <div class="section-title">
+    <span class="icon" style="background:rgba(46,204,113,.15);color:var(--green)">📈</span>
+    二、积分获取
+  </div>
+
+  <!-- 核心数据 -->
+  <div class="stat-grid" style="margin-bottom:24px">
+    <div class="stat-card">
+      <div class="stat-label">平均效率</div>
+      <div class="stat-value">40-50</div>
+      <div class="stat-extra">积分/分钟</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">轻度（30分钟/天）</div>
+      <div class="stat-value" style="font-size:22px;color:var(--green)">~1,500</div>
+      <div class="stat-extra">积分/天</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">中度（60分钟/天）</div>
+      <div class="stat-value" style="font-size:22px;color:var(--gold)">~3,000</div>
+      <div class="stat-extra">积分/天</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">重度（90分钟/天）</div>
+      <div class="stat-value" style="font-size:22px;color:var(--red)">~4,500</div>
+      <div class="stat-extra">积分/天</div>
+    </div>
+  </div>
+
+  <!-- 难度体系说明 -->
+  <div class="sub-title">🎮 三难度体系</div>
+  <div class="card" style="margin-bottom:20px">
+    <div class="info-box info-blue">🔄 AI 速度由难度决定，与关卡无关；赛道难度随关卡递增（弯道更急、障碍更多）</div>
+    <div class="stat-grid" style="margin-top:12px">
+      <div class="stat-card" style="border-left:3px solid var(--green)">
+        <div class="stat-label">🟢 简单</div>
+        <div class="stat-value" style="font-size:20px;color:var(--green)">50 km/h</div>
+        <div class="stat-extra">AI 反应慢、失误多 · 乘数 ×0.6</div>
+      </div>
+      <div class="stat-card" style="border-left:3px solid var(--gold)">
+        <div class="stat-label">🟡 普通</div>
+        <div class="stat-value" style="font-size:20px;color:var(--gold)">80 km/h</div>
+        <div class="stat-extra">AI 正常表现 · 乘数 ×1.0</div>
+      </div>
+      <div class="stat-card" style="border-left:3px solid var(--red)">
+        <div class="stat-label">🔴 困难</div>
+        <div class="stat-value" style="font-size:20px;color:var(--red)">120 km/h</div>
+        <div class="stat-extra">AI 精准快速 · 乘数 ×1.5</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 冠军之路积分表 -->
+  <div class="sub-title">🏆 冠军之路 — 各难度积分表</div>
+  <div style="font-size:13px;color:var(--text2);margin-bottom:4px">规则：前三名 = 基础积分 × 难度乘数 + 每2关+5递增 · 第4名 = 统一20积分</div>
+  <div class="info-box info-gold" style="margin-bottom:12px">🔢 所有积分数值个位仅含 <strong>0</strong> 或 <strong>5</strong>，便于心算记忆</div>
+
+  <div class="diff-tabs">
+    <div class="diff-tab active-green" onclick="switchDiff('easy',this)">🟢 简单</div>
+    <div class="diff-tab" onclick="switchDiff('normal',this)">🟡 普通</div>
+    <div class="diff-tab" onclick="switchDiff('hard',this)">🔴 困难</div>
+  </div>
+
+  <div id="panel-easy" class="diff-panel show">
+    <div class="tbl-wrap">
+    <table>
+      <tr><th>关卡</th><th>AI速度</th><th>🥇 第1名</th><th>🥈 第2名</th><th>🥉 第3名</th><th>第4名</th></tr>
+      <tr><td>第1-2关</td><td rowspan="4" style="vertical-align:middle;color:var(--green);font-weight:600">50 km/h</td><td>60</td><td>40</td><td>20</td><td>20</td></tr>
+      <tr><td>第3-4关</td><td class="text-green" style="font-weight:700">65</td><td>40</td><td>25</td><td>20</td></tr>
+      <tr><td>第5-6关</td><td>70</td><td>45</td><td>25</td><td>20</td></tr>
+      <tr><td>第7-8关</td><td class="highlight">75</td><td>45</td><td>30</td><td>20</td></tr>
+    </table>
+    </div>
+  </div>
+
+  <div id="panel-normal" class="diff-panel">
+    <div class="tbl-wrap">
+    <table>
+      <tr><th>关卡</th><th>AI速度</th><th>🥇 第1名</th><th>🥈 第2名</th><th>🥉 第3名</th><th>第4名</th></tr>
+      <tr><td>第1-2关</td><td rowspan="4" style="vertical-align:middle;color:var(--gold);font-weight:600">80 km/h</td><td>100</td><td>65</td><td>35</td><td>20</td></tr>
+      <tr><td>第3-4关</td><td>105</td><td>70</td><td>35</td><td>20</td></tr>
+      <tr><td>第5-6关</td><td class="highlight">110</td><td>70</td><td>40</td><td>20</td></tr>
+      <tr><td>第7-8关</td><td>115</td><td>75</td><td>40</td><td>20</td></tr>
+    </table>
+    </div>
+  </div>
+
+  <div id="panel-hard" class="diff-panel">
+    <div class="tbl-wrap">
+    <table>
+      <tr><th>关卡</th><th>AI速度</th><th>🥇 第1名</th><th>🥈 第2名</th><th>🥉 第3名</th><th>第4名</th></tr>
+      <tr><td>第1-2关</td><td rowspan="4" style="vertical-align:middle;color:var(--red);font-weight:600">120 km/h</td><td>150</td><td>95</td><td>55</td><td>20</td></tr>
+      <tr><td>第3-4关</td><td>155</td><td>100</td><td>55</td><td>20</td></tr>
+      <tr><td>第5-6关</td><td>160</td><td>105</td><td>60</td><td>20</td></tr>
+      <tr><td>第7-8关</td><td class="text-red" style="font-weight:700;font-size:16px">165</td><td>105</td><td>65</td><td>20</td></tr>
+    </table>
+    </div>
+  </div>
+
+  <!-- 三星评价 -->
+  <div class="sub-title">⭐ 三星评价（纯成就，无积分奖励）</div>
+  <div class="card" style="padding:16px 20px">
+    <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:center">
+      <div><span style="color:var(--gold);font-size:18px">⭐</span> 进入前3名</div>
+      <div><span style="color:var(--gold);font-size:18px">⭐⭐</span> 限定时间到达</div>
+      <div><span style="color:var(--gold);font-size:18px">⭐⭐⭐</span> 无碰撞通过</div>
+      <div class="info-box info-gold" style="margin:0;flex:1;min-width:200px">三星仅作为成就展示，集齐可解锁隐藏内容（涂装/角色等），不提供积分</div>
+    </div>
+  </div>
+
+  <!-- 时间挑战赛 -->
+  <div class="sub-title">⏱️ 时间挑战赛</div>
+  <div class="tbl-wrap">
+  <table>
+    <tr><th>排名层级</th><th>条件</th><th>积分奖励</th></tr>
+    <tr><td>完赛</td><td>跑完全程</td><td>30</td></tr>
+    <tr><td>前50%</td><td>超越全球50%玩家</td><td>50</td></tr>
+    <tr><td>前10%</td><td>超越全球90%玩家</td><td class="highlight">100</td></tr>
+    <tr><td>前1%</td><td>超越全球99%玩家</td><td class="text-red" style="font-weight:700">150</td></tr>
+    <tr><td>刷新个人最佳</td><td>超越自己历史记录</td><td class="text-green">+30</td></tr>
+  </table>
+  </div>
+
+  <!-- 新手教程 -->
+  <div class="sub-title">🎓 新手教程</div>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="stat-label">方向控制</div><div class="stat-value" style="font-size:20px">50</div></div>
+    <div class="stat-card"><div class="stat-label">漂移</div><div class="stat-value" style="font-size:20px">50</div></div>
+    <div class="stat-card"><div class="stat-label">漂移加速</div><div class="stat-value" style="font-size:20px">50</div></div>
+    <div class="stat-card"><div class="stat-label">技能使用</div><div class="stat-value" style="font-size:20px">50</div></div>
+    <div class="stat-card" style="border:1px solid var(--gold)"><div class="stat-label">全部完成额外奖励</div><div class="stat-value" style="font-size:20px;color:var(--gold)">+100</div><div class="stat-extra">教程总奖励 = 300 积分</div></div>
+  </div>
+
+  <!-- 效率表 -->
+  <div class="sub-title">📊 积分获取效率估算</div>
+  <div class="tbl-wrap">
+  <table>
+    <tr><th>场景</th><th>每局时长</th><th>预期积分</th><th>效率</th></tr>
+    <tr><td>第1关·简单（第1名）</td><td>~2分钟</td><td>60</td><td>30/分钟</td></tr>
+    <tr><td>第5关·普通（第1名）</td><td>~3分钟</td><td>110</td><td class="highlight">37/分钟</td></tr>
+    <tr><td>第7关·困难（第1名）</td><td>~3.5分钟</td><td>165</td><td class="highlight">47/分钟</td></tr>
+    <tr><td>第8关·困难（第1名）</td><td>~4分钟</td><td>165</td><td>41/分钟</td></tr>
+    <tr><td>时间挑战赛（前10%）</td><td>~2分钟</td><td>100</td><td>50/分钟</td></tr>
+    <tr><td>时间挑战赛（前1%）</td><td>~2分钟</td><td>150</td><td class="text-green" style="font-weight:700">75/分钟</td></tr>
+  </table>
+  </div>
+</div>
+
+<!-- 三、改车消耗 -->
+<div class="section" id="spending">
+  <div class="section-title">
+    <span class="icon" style="background:rgba(231,76,60,.15);color:var(--red)">🔧</span>
+    三、改车消耗
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-card" style="border:1px solid var(--red)">
+      <div class="stat-label">单车满改总消耗</div>
+      <div class="stat-value" style="color:var(--red)">3650</div>
+      <div class="stat-extra">积分</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">四维属性消耗</div>
+      <div class="stat-value">2800</div>
+      <div class="stat-extra">占 68%</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">改车成长消耗</div>
+      <div class="stat-value">1300</div>
+      <div class="stat-extra">占 32%</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">改车操作次数</div>
+      <div class="stat-value">9</div>
+      <div class="stat-extra">次/车</div>
+    </div>
+  </div>
+
+  <div class="sub-title">🏎️ 四维属性升级（递增式消耗 1→2→4）</div>
+  <div class="tbl-wrap">
+  <table>
+    <tr><th>升级等级</th><th>消耗积分</th><th>累计消耗</th><th>可视化</th></tr>
+    <tr><td>第1级</td><td>100</td><td>100</td><td><div class="prog-row"><div class="prog-bar"><div class="prog-fill" style="width:14%;background:linear-gradient(90deg,var(--green),var(--cyan))"></div></div><div class="prog-text">100</div></div></td></tr>
+    <tr><td>第2级</td><td>200</td><td>300</td><td><div class="prog-row"><div class="prog-bar"><div class="prog-fill" style="width:43%;background:linear-gradient(90deg,var(--cyan),var(--blue))"></div></div><div class="prog-text">300</div></div></td></tr>
+    <tr><td>第3级</td><td>400</td><td class="highlight">700</td><td><div class="prog-row"><div class="prog-bar"><div class="prog-fill" style="width:100%;background:linear-gradient(90deg,var(--blue),var(--purple))"></div></div><div class="prog-text">700</div></div></td></tr>
+  </table>
+  </div>
+  <div style="font-size:13px;color:var(--text2);margin-top:8px">💡 四维属性×4项满级消耗 = 700 × 4 = <strong class="highlight">2800 积分</strong></div>
+
+  <div class="sub-title">⚡ 改车成长属性升级</div>
+  <div class="tbl-wrap">
+  <table>
+    <tr><th>升级项目</th><th>第1次升级</th><th>第2次升级</th><th>累计消耗</th></tr>
+    <tr><td>🟡 氮气容量（1→2→3格）</td><td>150</td><td>300</td><td class="highlight">450</td></tr>
+    <tr><td>🔵 漂移充能（基础→强化）</td><td>200</td><td>—</td><td class="highlight">200</td></tr>
+    <tr><td>🟣 技能充能（基础→强化）</td><td>200</td><td>—</td><td class="highlight">200</td></tr>
+    
+    <tr><td colspan="3" style="font-weight:700;color:var(--gold)">改车成长总消耗</td><td class="text-red" style="font-weight:700;font-size:18px">1300</td></tr>
+  </table>
+  </div>
+
+  <div class="sub-title">📊 单车满改消耗构成</div>
+  <div class="card">
+    <div class="prog-row"><div class="prog-label" style="font-weight:600">最高速 ×3</div><div class="prog-bar"><div class="prog-fill" style="width:100%;background:var(--red)"></div></div><div class="prog-text highlight">700</div></div>
+    <div class="prog-row"><div class="prog-label" style="font-weight:600">加速度 ×3</div><div class="prog-bar"><div class="prog-fill" style="width:100%;background:var(--orange)"></div></div><div class="prog-text highlight">700</div></div>
+    <div class="prog-row"><div class="prog-label" style="font-weight:600">转向 ×3</div><div class="prog-bar"><div class="prog-fill" style="width:100%;background:var(--blue)"></div></div><div class="prog-text highlight">700</div></div>
+    <div class="prog-row"><div class="prog-label" style="font-weight:600">漂移 ×3</div><div class="prog-bar"><div class="prog-fill" style="width:100%;background:var(--purple)"></div></div><div class="prog-text highlight">700</div></div>
+    <div class="prog-row"><div class="prog-label">氮气容量 ×2</div><div class="prog-bar"><div class="prog-fill" style="width:64%;background:var(--cyan)"></div></div><div class="prog-text">450</div></div>
+    <div class="prog-row"><div class="prog-label">漂移充能 ×1</div><div class="prog-bar"><div class="prog-fill" style="width:29%;background:var(--green)"></div></div><div class="prog-text">200</div></div>
+    <div class="prog-row"><div class="prog-label">技能充能 ×1</div><div class="prog-bar"><div class="prog-fill" style="width:29%;background:var(--green)"></div></div><div class="prog-text">200</div></div>
+    
+    <div style="text-align:right;margin-top:12px;font-size:18px;font-weight:800;color:var(--red)">总计：4,100 积分</div>
+  </div>
+</div>
+
+<!-- 四、成长曲线 -->
+<div class="section" id="growth">
+  <div class="section-title">
+    <span class="icon" style="background:rgba(52,152,219,.15);color:var(--blue)">📊</span>
+    四、成长曲线与节奏
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-card" style="text-align:center;border-top:3px solid var(--green)">
+      <div class="stat-label">轻度（30分钟/天）</div>
+      <div class="stat-value" style="font-size:20px;color:var(--green)">~30天</div>
+      <div class="stat-extra">全12辆满改</div>
+    </div>
+    <div class="stat-card" style="text-align:center;border-top:3px solid var(--gold)">
+      <div class="stat-label">中度（60分钟/天）</div>
+      <div class="stat-value" style="font-size:20px;color:var(--gold)">~15天</div>
+      <div class="stat-extra">全12辆满改</div>
+    </div>
+    <div class="stat-card" style="text-align:center;border-top:3px solid var(--red)">
+      <div class="stat-label">重度（90分钟/天）</div>
+      <div class="stat-value" style="font-size:20px;color:var(--red)">~10天</div>
+      <div class="stat-extra">全12辆满改</div>
+    </div>
+  </div>
+
+  <div class="sub-title">🎯 推荐升级优先级</div>
+  <div class="priority-list">
+    <div class="priority-item"><span class="priority-name">氮气容量 1→2格</span><span class="priority-cost">150 积分</span><span class="priority-desc">最直观的体验提升</span></div>
+    <div class="priority-item"><span class="priority-name">漂移充能 基础→强化</span><span class="priority-cost">200 积分</span><span class="priority-desc">加快氮气积累频率</span></div>
+    <div class="priority-item"><span class="priority-name">弱项四维 第1级</span><span class="priority-cost">100 积分</span><span class="priority-desc">性价比最高的属性提升</span></div>
+    <div class="priority-item"><span class="priority-name">技能充能 基础→强化</span><span class="priority-cost">200 积分</span><span class="priority-desc">技能使用更频繁</span></div>
+    <div class="priority-item"><span class="priority-name">氮气容量 2→3格</span><span class="priority-cost">300 积分</span><span class="priority-desc">提升持续战斗能力</span></div>
+    
+    <div class="priority-item"><span class="priority-name">弱项四维 第2级</span><span class="priority-cost">200 积分</span><span class="priority-desc">继续补短板</span></div>
+    <div class="priority-item"><span class="priority-name">强项四维 第1级</span><span class="priority-cost">100 积分</span><span class="priority-desc">提升优势项</span></div>
+    
+    <div class="priority-item"><span class="priority-name">四维属性 第3级</span><span class="priority-cost">各400 积分</span><span class="priority-desc">最贵但最显著，后期追求</span></div>
+  </div>
+
+  <div class="sub-title">🗺️ 成长阶段路线图</div>
+  <div class="card">
+    <div class="timeline">
+      <div class="stage">
+        <span class="stage-tag" style="background:rgba(245,197,66,.15);color:var(--gold)">第一阶段 · 0-800积分</span>
+        <h3>新手起步</h3>
+        <p>教程+前两关普通/困难首通后约持有700-800积分。优先氮气容量和弱项属性第1级。</p>
+      </div>
+      <div class="stage">
+        <span class="stage-tag" style="background:rgba(52,152,219,.15);color:var(--blue)">第二阶段 · 800-4000积分</span>
+        <h3>中期推进</h3>
+        <p>约3-5天。推进至第4-5关困难难度，尝试困难。主力车改车成长属性基本改满（≈1250），约70%完成度。</p>
+      </div>
+      <div class="stage">
+        <span class="stage-tag" style="background:rgba(155,89,182,.15);color:var(--purple)">第三阶段 · 4000-12000积分</span>
+        <h3>后期完善</h3>
+        <p>约1-2周。全关卡通关，挑战困难难度。主力车满改（3650），第2辆车改到约50%。</p>
+      </div>
+      <div class="stage">
+        <span class="stage-tag" style="background:rgba(46,204,113,.15);color:var(--green)">第四阶段 · 12000+积分</span>
+        <h3>全收集</h3>
+        <p>长期游玩。全12辆满改需49200积分，重度约10天，中度约15天，轻度约30天。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- 五、平衡校验 -->
+<div class="section" id="balance">
+  <div class="section-title">
+    <span class="icon" style="background:rgba(26,188,156,.15);color:var(--cyan)">⚖️</span>
+    五、数值平衡校验
+  </div>
+
+  <div class="check-grid">
+    <div class="check-card"><div class="check-icon">✅</div><div class="check-label">单车满改局数（第5关·普通第1名）</div><div class="check-value">37局</div><div style="font-size:12px;color:var(--text3)">目标 30-45局</div></div>
+    <div class="check-card"><div class="check-icon">✅</div><div class="check-label">单车满改天数（中度）</div><div class="check-value">~1.5天</div><div style="font-size:12px;color:var(--text3)">目标 1-2天</div></div>
+    <div class="check-card"><div class="check-icon">✅</div><div class="check-label">全收集（重度）</div><div class="check-value">~10天</div><div style="font-size:12px;color:var(--text3)">目标 ~10天</div></div>
+    <div class="check-card"><div class="check-icon">✅</div><div class="check-label">全收集（中度）</div><div class="check-value">~15天</div><div style="font-size:12px;color:var(--text3)">目标 ~15天</div></div>
+    <div class="check-card"><div class="check-icon">✅</div><div class="check-label">全收集（轻度）</div><div class="check-value">~30天</div><div style="font-size:12px;color:var(--text3)">目标 ~30天</div></div>
+    <div class="check-card"><div class="check-icon">✅</div><div class="check-label">单局最低积分</div><div class="check-value">20</div><div style="font-size:12px;color:var(--text3)">目标 ≥20</div></div>
+    <div class="check-card"><div class="check-icon">✅</div><div class="check-label">最贵单次升级</div><div class="check-value">400</div><div style="font-size:12px;color:var(--text3)">目标 ≤500</div></div>
+    <div class="check-card"><div class="check-icon">✅</div><div class="check-label">积分个位数字</div><div class="check-value">仅0/5</div><div style="font-size:12px;color:var(--text3)">全部数值合规</div></div>
+  </div>
+
+  <div class="sub-title">📉 满改后差距缩小</div>
+  <div class="card" style="text-align:center">
+    <div style="display:flex;justify-content:center;align-items:center;gap:40px;flex-wrap:wrap">
+      <div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:4px">初始差距</div>
+        <div style="font-size:36px;font-weight:800;color:var(--red)">5.7%</div>
+        <div style="font-size:12px;color:var(--text3)">299 vs 316</div>
+      </div>
+      <div style="font-size:28px;color:var(--gold)">→</div>
+      <div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:4px">满改差距</div>
+        <div style="font-size:36px;font-weight:800;color:var(--green)">2.4%</div>
+        <div style="font-size:12px;color:var(--text3)">336 vs 344</div>
+      </div>
+    </div>
+    <div style="margin-top:16px;font-size:13px;color:var(--gold)">💡 长期游玩的免费玩家可以追近付费玩家</div>
+  </div>
+</div>
+
+<!-- 六、里程碑 -->
+<div class="section" id="milestone">
+  <div class="section-title">
+    <span class="icon" style="background:rgba(245,197,66,.15);color:var(--gold)">🏆</span>
+    六、成就与里程碑奖励
+  </div>
+
+  <div class="sub-title">🏁 冠军之路里程碑</div>
+  <div class="milestone-grid">
+    <div class="milestone-card"><div class="milestone-icon">🏅</div><div class="milestone-info"><h4>初出茅庐</h4><p>通关第1关（任意难度）· <span class="highlight">+100</span></p></div></div>
+    <div class="milestone-card"><div class="milestone-icon">🎖️</div><div class="milestone-info"><h4>渐入佳境</h4><p>通关第3关（任意难度）· <span class="highlight">+200</span></p></div></div>
+    <div class="milestone-card"><div class="milestone-icon">⭐</div><div class="milestone-info"><h4>赛车新星</h4><p>通关第5关（任意难度）· <span class="highlight">+300</span></p></div></div>
+    <div class="milestone-card"><div class="milestone-icon">👑</div><div class="milestone-info"><h4>速度之王</h4><p>通关第8关（任意难度）· <span class="text-red" style="font-weight:700">+500</span></p></div></div>
+    <div class="milestone-card"><div class="milestone-icon">🔥</div><div class="milestone-info"><h4>困难征服者</h4><p>全8关困难通关 · <span class="text-red" style="font-weight:700">+800</span></p></div></div>
+  </div>
+
+  <div class="sub-title">🔧 改车里程碑</div>
+  <div class="milestone-grid">
+    <div class="milestone-card"><div class="milestone-icon">🔩</div><div class="milestone-info"><h4>初次改装</h4><p>完成第1次改车 · <span class="highlight">+50</span></p></div></div>
+    <div class="milestone-card"><div class="milestone-icon">🔧</div><div class="milestone-info"><h4>改装达人</h4><p>累计改车10次 · <span class="highlight">+200</span></p></div></div>
+    <div class="milestone-card"><div class="milestone-icon">⚙️</div><div class="milestone-info"><h4>改装大师</h4><p>累计改车30次 · <span class="highlight">+500</span></p></div></div>
+    <div class="milestone-card"><div class="milestone-icon">🏎️</div><div class="milestone-info"><h4>满改传奇</h4><p>首辆赛车满改 · <span class="highlight">+300</span></p></div></div>
+    <div class="milestone-card"><div class="milestone-icon">🏛️</div><div class="milestone-info"><h4>车库全满</h4><p>全部赛车满改 · <span class="text-red" style="font-weight:700">+2000</span></p></div></div>
+  </div>
+
+  <div class="card" style="text-align:center;margin-top:16px">
+    <div style="font-size:13px;color:var(--text2);margin-bottom:8px">里程碑总奖励</div>
+    <div style="font-size:36px;font-weight:800;color:var(--gold)">4,950 <span style="font-size:16px;font-weight:400;color:var(--text2)">积分</span></div>
+    <div style="font-size:13px;color:var(--text3);margin-top:4px">≈ 1.2 辆车的满改费用</div>
+  </div>
+</div>
+
+<!-- 七、原则 -->
+<div class="section" id="principles">
+  <div class="section-title">
+    <span class="icon" style="background:rgba(155,89,182,.15);color:var(--purple)">📋</span>
+    九、设计原则总结
+  </div>
+
+  <div class="principle-grid">
+    <div class="principle-card"><span class="principle-num">1</span><strong>低门槛高上限</strong><p>第1次改车仅需100积分，满改需3650，长期目标清晰</p></div>
+    <div class="principle-card"><span class="principle-num">2</span><strong>递增式消耗</strong><p>1→2→4倍递增（100/200/400），前期轻松后期需决策</p></div>
+    <div class="principle-card"><span class="principle-num">3</span><strong>难度自由选择</strong><p>三难度体系让不同水平玩家享受合适挑战，困难高回报</p></div>
+    <div class="principle-card"><span class="principle-num">4</span><strong>免费友好</strong><p>免费玩家可体验所有难度，满改后与NFC车差距仅2.4%</p></div>
+    <div class="principle-card"><span class="principle-num">5</span><strong>内容驱动付费</strong><p>付费解锁关卡/模式/角色，而非数值碾压</p></div>
+    <div class="principle-card"><span class="principle-num">6</span><strong>多维度成长</strong><p>四维属性+改车属性+里程碑，每局都有进展感</p></div>
+    <div class="principle-card"><span class="principle-num">7</span><strong>避免刷分</strong><p>时间挑战赛需刷新记录，三星纯成就无积分</p></div>
+    <div class="principle-card"><span class="principle-num">8</span><strong>NFC与积分独立</strong><p>刷卡即解锁角色，积分仅用于改车</p></div>
+    <div class="principle-card"><span class="principle-num">9</span><strong>里程碑回馈</strong><p>4950积分额外奖励，长期玩家有惊喜</p></div>
+    <div class="principle-card"><span class="principle-num">10</span><strong>数字简洁</strong><p>所有积分数值个位仅含0或5，便于心算记忆</p></div>
+  </div>
+</div>
+
+</div><!-- container -->
+
+<div class="footer">
+  猪猪侠-极速飞车 · 奖励与升级数值设计 · GAME DESIGN DOC v1.2 · 2026
+</div>
+
+<script>
+// Difficulty tabs
+function switchDiff(diff,tab){
+  document.querySelectorAll('.diff-panel').forEach(p=>p.classList.remove('show'));
+  document.querySelectorAll('.diff-tab').forEach(t=>{t.className='diff-tab'});
+  document.getElementById('panel-'+diff).classList.add('show');
+  const cls=diff==='easy'?'active-green':diff==='normal'?'active-gold':'active-red';
+  tab.classList.add(cls);
+}
+
+// Nav active state
+const sections=document.querySelectorAll('.section');
+const navLinks=document.querySelectorAll('.nav a');
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      navLinks.forEach(l=>l.classList.remove('active'));
+      const link=document.querySelector(`.nav a[href="#${e.target.id}"]`);
+      if(link)link.classList.add('active');
+    }
+  });
+},{threshold:0.2,rootMargin:'-80px 0px -60% 0px'});
+sections.forEach(s=>obs.observe(s));
+
+// Animate progress bars on scroll
+const progFills=document.querySelectorAll('.prog-fill');
+const progObs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const w=e.target.style.width;
+      e.target.style.width='0%';
+      setTimeout(()=>{e.target.style.width=w},100);
+      progObs.unobserve(e.target);
+    }
+  });
+},{threshold:0.3});
+progFills.forEach(f=>progObs.observe(f));
+</script>
+</body>
+</html>

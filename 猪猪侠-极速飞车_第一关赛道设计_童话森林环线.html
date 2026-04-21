@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>猪猪侠-极速飞车 — 第一关赛道设计：童话森林环线</title>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --card: #131829;
+    --card2: #1a2038;
+    --border: #2a3055;
+    --text: #e8eaf6;
+    --text2: #9ca3c4;
+    --accent: #ff4444;
+    --accent2: #ff8800;
+    --green: #44cc88;
+    --blue: #4488ff;
+    --cyan: #44ddee;
+    --purple: #aa66ff;
+    --gold: #ffcc00;
+    --track: #3a3a5c;
+    --track-edge: #5555aa;
+    --grass: #1a3320;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* Hero */
+  .hero {
+    position: relative;
+    padding: 60px 20px 40px;
+    text-align: center;
+    background: linear-gradient(135deg, #0a1a0e 0%, #0a0e1a 40%, #0a1628 100%);
+    overflow: hidden;
+  }
+  .hero::before {
+    content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;
+    background: radial-gradient(circle at 30% 40%, rgba(68,204,136,0.06) 0%, transparent 50%),
+                radial-gradient(circle at 70% 60%, rgba(68,221,238,0.05) 0%, transparent 50%);
+    animation: heroGlow 8s ease-in-out infinite alternate;
+  }
+  @keyframes heroGlow { 0%{transform:translateX(-3%)} 100%{transform:translateX(3%)} }
+  .hero-content { position:relative; z-index:1; }
+  .hero-badge {
+    display:inline-block; padding:6px 20px; border-radius:20px;
+    background:rgba(68,204,136,0.12); border:1px solid rgba(68,204,136,0.3);
+    color:var(--green); font-size:13px; font-weight:600; letter-spacing:1px; margin-bottom:16px;
+  }
+  .hero h1 {
+    font-size:clamp(1.8rem,4vw,2.8rem); font-weight:800;
+    background:linear-gradient(135deg,#44cc88,#44ddee,#aaddff);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    margin-bottom:8px;
+  }
+  .hero p { color:var(--text2); font-size:1rem; max-width:600px; margin:0 auto; }
+
+  /* Container */
+  .container { max-width:1100px; margin:0 auto; padding:0 20px; }
+
+  /* Section */
+  .section { padding:50px 0; }
+  .section-title {
+    font-size:1.5rem; font-weight:700; margin-bottom:24px; padding-left:16px;
+    border-left:4px solid var(--green);
+  }
+  .section-sub {
+    font-size:1.1rem; font-weight:600; margin:20px 0 12px; color:var(--cyan);
+  }
+
+  /* Info Grid */
+  .info-grid {
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:16px; margin-bottom:32px;
+  }
+  .info-card {
+    background:var(--card); border:1px solid var(--border); border-radius:12px;
+    padding:20px; text-align:center; transition:transform .2s, border-color .2s;
+  }
+  .info-card:hover { transform:translateY(-2px); border-color:var(--green); }
+  .info-card .label { font-size:0.8rem; color:var(--text2); margin-bottom:6px; text-transform:uppercase; letter-spacing:1px; }
+  .info-card .value { font-size:1.6rem; font-weight:800; color:var(--green); }
+  .info-card .note { font-size:0.75rem; color:var(--text2); margin-top:4px; }
+
+  /* Canvas wrapper */
+  .canvas-wrap {
+    background:var(--card); border:1px solid var(--border); border-radius:16px;
+    padding:20px; margin-bottom:24px; overflow:hidden;
+  }
+  .canvas-wrap canvas { width:100%; height:auto; display:block; border-radius:8px; }
+  .canvas-title {
+    font-size:1rem; font-weight:600; color:var(--cyan); margin-bottom:12px;
+    display:flex; align-items:center; gap:8px;
+  }
+
+  /* Table */
+  table { width:100%; border-collapse:collapse; margin:16px 0; font-size:0.9rem; }
+  th { background:var(--card2); color:var(--cyan); padding:10px 14px; text-align:left; font-weight:600; border-bottom:2px solid var(--border); }
+  td { padding:10px 14px; border-bottom:1px solid var(--border); }
+  tr:hover td { background:rgba(68,204,136,0.04); }
+
+  /* Legend */
+  .legend {
+    display:flex; flex-wrap:wrap; gap:16px; padding:16px 20px;
+    background:var(--card2); border-radius:10px; margin-bottom:20px; font-size:0.85rem;
+  }
+  .legend-item { display:flex; align-items:center; gap:6px; }
+  .legend-dot { width:14px; height:14px; border-radius:3px; flex-shrink:0; }
+
+  /* Segment cards */
+  .seg-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; }
+  .seg-card {
+    background:var(--card); border:1px solid var(--border); border-radius:12px;
+    padding:16px; transition:border-color .2s;
+  }
+  .seg-card:hover { border-color:var(--cyan); }
+  .seg-card .seg-id {
+    display:inline-block; width:28px; height:28px; line-height:28px; text-align:center;
+    border-radius:50%; font-size:0.8rem; font-weight:700; margin-right:8px; color:#fff;
+  }
+  .seg-card h3 { font-size:0.95rem; font-weight:600; display:flex; align-items:center; margin-bottom:8px; }
+  .seg-card .seg-meta { font-size:0.8rem; color:var(--text2); margin-bottom:8px; }
+  .seg-card .seg-desc { font-size:0.85rem; color:var(--text); line-height:1.6; }
+  .seg-card .seg-tip {
+    margin-top:8px; padding:8px 10px; border-radius:6px; font-size:0.8rem;
+    background:rgba(255,136,0,0.08); border-left:3px solid var(--accent2); color:var(--accent2);
+  }
+
+  /* Time calc */
+  .time-box {
+    display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:20px;
+  }
+  @media(max-width:600px){ .time-box{grid-template-columns:1fr;} }
+  .time-card {
+    background:var(--card); border:1px solid var(--border); border-radius:12px;
+    padding:20px; text-align:center;
+  }
+  .time-card .big { font-size:2rem; font-weight:800; }
+  .time-card .big.green { color:var(--green); }
+  .time-card .big.cyan { color:var(--cyan); }
+  .time-card .big.gold { color:var(--gold); }
+  .time-card .sub { font-size:0.8rem; color:var(--text2); margin-top:4px; }
+
+  /* Elevation note */
+  .elev-note {
+    background:var(--card2); border:1px solid var(--border); border-radius:10px;
+    padding:16px 20px; margin-top:16px; font-size:0.85rem; color:var(--text2);
+  }
+  .elev-note strong { color:var(--cyan); }
+
+  /* Footer */
+  footer {
+    text-align:center; padding:30px 20px; font-size:0.8rem;
+    color:var(--text2); border-top:1px solid var(--border);
+  }
+
+  /* Fade in */
+  .fade-in { opacity:0; transform:translateY(20px); transition:opacity .6s, transform .6s; }
+  .fade-in.visible { opacity:1; transform:translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-badge">TRACK DESIGN — STAGE 1</div>
+    <h1>🌿 童话森林环线</h1>
+    <p>冠军之路第一关 · 循环赛道设计示例 · 适合学习漂移基础</p>
+  </div>
+</section>
+
+<div class="container">
+
+  <!-- Track Info -->
+  <section class="section fade-in">
+    <h2 class="section-title">📋 赛道基本信息</h2>
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="label">赛道名称</div>
+        <div class="value" style="font-size:1.2rem;">童话森林环线</div>
+        <div class="note">Fairy Forest Circuit</div>
+      </div>
+      <div class="info-card">
+        <div class="label">赛道长度</div>
+        <div class="value">820m</div>
+        <div class="note">中等偏短，适合入门</div>
+      </div>
+      <div class="info-card">
+        <div class="label">赛道宽度</div>
+        <div class="value">14m</div>
+        <div class="note">标准宽度，容错空间大</div>
+      </div>
+      <div class="info-card">
+        <div class="label">完成圈数</div>
+        <div class="value">3 圈</div>
+        <div class="note">总里程 2,460m</div>
+      </div>
+      <div class="info-card">
+        <div class="label">弯道数量</div>
+        <div class="value">6 个</div>
+        <div class="note">2急弯 + 2中弯 + 2缓弯</div>
+      </div>
+      <div class="info-card">
+        <div class="label">推荐难度</div>
+        <div class="value" style="font-size:1.1rem;">🟢 简单</div>
+        <div class="note">新手教学关</div>
+      </div>
+      <div class="info-card">
+        <div class="label">环境主题</div>
+        <div class="value" style="font-size:1.1rem;">🌳 童话森林</div>
+        <div class="note">阳光、草地、蘑菇、溪流</div>
+      </div>
+      <div class="info-card">
+        <div class="label">预计单圈时间</div>
+        <div class="value">~42s</div>
+        <div class="note">基础赛车·普通操作</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Track Overview (Top View) -->
+  <section class="section fade-in">
+    <h2 class="section-title">🗺️ 赛道俯视图</h2>
+
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#5555aa;"></div>赛道路面</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#ff4444;"></div>起点/终点线</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#ffcc00;"></div>加速地板</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#333;"></div>油污区域</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#ff8800;"></div>路障</div>
+      <div class="legend-item"><div class="legend-dot" style="border:2px dashed #44cc88;"></div>漂移路线示意</div>
+      <div class="legend-item"><div class="legend-dot" style="background:rgba(68,204,136,0.2);"></div>草地/沙地区域</div>
+    </div>
+
+    <div class="canvas-wrap">
+      <div class="canvas-title">⬆ 俯视图 · 顺时针方向行驶</div>
+      <canvas id="trackTopView" width="1060" height="640"></canvas>
+    </div>
+
+    <!-- Segment Descriptions -->
+    <h3 class="section-sub" style="margin-top:32px;">赛道分段详细说明</h3>
+    <div class="seg-grid">
+
+      <div class="seg-card">
+        <h3><span class="seg-id" style="background:var(--accent);">1</span>起点直道</h3>
+        <div class="seg-meta">直道 · 180m · 方向：东</div>
+        <div class="seg-desc">宽敞的出发直道，两侧是整齐的蘑菇树林。倒计时结束后4辆赛车同时出发，在此直道完成0→100km/h加速。中段设有1处<strong style="color:#ffcc00;">加速地板</strong>，帮助快速达到最高速。</div>
+        <div class="seg-tip">💡 直道末段可使用专属技能冲刺，抢占入弯优势</div>
+      </div>
+
+      <div class="seg-card">
+        <h3><span class="seg-id" style="background:var(--green);">2</span>蘑菇弯（右转·缓弯）</h3>
+        <div class="seg-meta">缓弯 · 约90° · 弯道半径 ~30m</div>
+        <div class="seg-desc">第一个弯道，角度温和，适合新手学习漂移入门。弯道外侧有一排巨型蘑菇作为装饰。弯道入口处有<strong style="color:#ff8800;">2个路障</strong>，引导玩家走内线。</div>
+        <div class="seg-tip">💡 入门教学弯：尝试转向>45°保持0.5s触发漂移，积累第一份氮气</div>
+      </div>
+
+      <div class="seg-card">
+        <h3><span class="seg-id" style="background:var(--blue);">3</span>林间短直道</h3>
+        <div class="seg-meta">直道 · 100m · 方向：南</div>
+        <div class="seg-desc">穿越林间的短直道，阳光从树冠间洒下。出弯后释放漂移加速的最佳路段，弯道出口设有<strong style="color:#ffcc00;">加速地板</strong>可衔接漂移。</div>
+        <div class="seg-tip">💡 漂移加速后降速衰减期正好经过此段，自然回归最高速</div>
+      </div>
+
+      <div class="seg-card">
+        <h3><span class="seg-id" style="background:var(--accent);">4</span>发夹弯（左转·急弯）</h3>
+        <div class="seg-meta">急弯 · 约160° · 弯道半径 ~18m</div>
+        <div class="seg-desc">本赛道最急的弯道，弯道外侧是一条小溪。需要大幅转向进入漂移，弯道出口设有<strong style="color:#ffcc00;">加速地板</strong>帮助出弯。弯道内侧为草地，冲出则速度降至40%。</div>
+        <div class="seg-tip">💡 关键弯道！急弯适合长漂移，容易达成完美漂移(+1s加速)</div>
+      </div>
+
+      <div class="seg-card">
+        <h3><span class="seg-id" style="background:var(--blue);">5</span>花田中直道</h3>
+        <div class="seg-meta">直道 · 140m · 方向：西</div>
+        <div class="seg-desc">穿越五彩花田的直道，中段设有<strong style="color:#333;background:#555;padding:0 6px;border-radius:3px;">油污区域</strong>，需要提前走位避开或准备承受打滑。直道尽头为S弯入口，适合释放技能清障。</div>
+        <div class="seg-tip">⚠️ 油污在赛道右侧1/3处，提前靠左走位即可安全通过</div>
+      </div>
+
+      <div class="seg-card">
+        <h3><span class="seg-id" style="background:var(--green);">6</span>S弯·连携练习段</h3>
+        <div class="seg-meta">S弯 · 左-右-左 · 每段约60°</div>
+        <div class="seg-desc">三段连续反向弯道，是练习<strong style="color:var(--purple);">连携加速</strong>技巧的绝佳位置。每次漂移后1秒内进入反向漂移即可叠加连携层数（最高3层），氮气充能速率+50%~100%。第一段入口有<strong style="color:#ff8800;">1个路障</strong>。</div>
+        <div class="seg-tip">💡 进阶核心：熟练后可在S弯获得3层连携+完美漂移，一次获得5秒加速！</div>
+      </div>
+
+      <div class="seg-card">
+        <h3><span class="seg-id" style="background:var(--blue);">7</span>回程长直道</h3>
+        <div class="seg-meta">直道 · 120m · 方向：北偏西</div>
+        <div class="seg-desc">最后一段直道，中段设有<strong style="color:#ffcc00;">加速地板</strong>。直道末段进入最后一个弯道回到起点。沿途可看到远处城堡的轮廓，是本关的标志性风景。</div>
+        <div class="seg-tip">💡 如果S弯积累了满氮气，在此直道释放加速可直接冲回起点</div>
+      </div>
+
+      <div class="seg-card">
+        <h3><span class="seg-id" style="background:var(--green);">8</span>归途弯（右转·中弯）</h3>
+        <div class="seg-meta">中弯 · 约100° · 弯道半径 ~24m</div>
+        <div class="seg-desc">回到起点的最后一个弯道，角度适中。弯道外侧有一棵巨型橡树作为地标。出弯后即进入起点直道，完成一圈。此弯道无障碍物，是安全的漂移练习点。</div>
+        <div class="seg-tip">💡 出弯后立即进入起点直道的加速地板，可形成加速地板→漂移衔接</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Elevation Profile -->
+  <section class="section fade-in">
+    <h2 class="section-title">📐 赛道侧面高程图</h2>
+    <div class="canvas-wrap">
+      <div class="canvas-title">↗ 侧面高程剖面 · 顺时针方向</div>
+      <canvas id="trackElevation" width="1060" height="340"></canvas>
+    </div>
+    <div class="elev-note">
+      <strong>设计说明：</strong>第一关整体地形平坦，最大高差仅 <strong>5m</strong>（起点地面海拔 0m → 发夹弯下坡最低点 -3m → 花田直道微升 2m）。下坡段自然加速，上坡段轻微减速，整体对单圈时间影响 <strong>±2%</strong>，主要考验漂移技术而非地形应对。第二关起将引入更显著的高低差和跳跃区域。
+    </div>
+  </section>
+
+  <!-- Facilities Summary -->
+  <section class="section fade-in">
+    <h2 class="section-title">🔧 赛道设施配置</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>设施类型</th>
+          <th>数量</th>
+          <th>位置</th>
+          <th>具体说明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="color:#ffcc00;">⚡ 加速地板</td>
+          <td><strong>4 处</strong></td>
+          <td>起点直道中段、蘑菇弯出口、发夹弯出口、回程直道中段</td>
+          <td>宽度约占赛道40%，效果+20%速度持续2秒</td>
+        </tr>
+        <tr>
+          <td style="color:#888;">🛢️ 油污区域</td>
+          <td><strong>1 处</strong></td>
+          <td>花田直道中段右侧</td>
+          <td>黑色油渍区域约8m×3m，碰撞后打滑2秒</td>
+        </tr>
+        <tr>
+          <td style="color:#ff8800;">🔶 路障</td>
+          <td><strong>3 个</strong></td>
+          <td>蘑菇弯入口×2、S弯入口×1</td>
+          <td>黄黑三角锥，碰撞后-20%速度2秒</td>
+        </tr>
+        <tr>
+          <td style="color:#44cc88;">🏁 起点/终点</td>
+          <td><strong>1 处</strong></td>
+          <td>起点直道起始位置</td>
+          <td>红白格子旗标线，3秒倒计时</td>
+        </tr>
+        <tr>
+          <td style="color:#666;">🌿 脱离赛道区域</td>
+          <td><strong>4 处</strong></td>
+          <td>发夹弯内侧草地、S弯两侧花坛边缘等</td>
+          <td>驶出赛道速度降至40%，朝赛道方向行驶自动归位</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Time Estimation -->
+  <section class="section fade-in">
+    <h2 class="section-title">⏱️ 单圈时间计算</h2>
+
+    <p style="color:var(--text2); margin-bottom:16px; font-size:0.9rem;">
+      基于核心机制参数：基础赛车最高时速 100 km/h（27.8 m/s）、漂移速度×80%、氮气加速+30%持续1-3s、加速地板+20%持续2s。以下为不同操作水平下的单圈时间估算。
+    </p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>赛道分段</th>
+          <th>长度</th>
+          <th>基础操作时间</th>
+          <th>熟练操作时间</th>
+          <th>操作要点</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>① 起点直道</strong></td>
+          <td>180m</td>
+          <td>8.2s</td>
+          <td>7.0s</td>
+          <td>0→100加速(3s) + 巡航 + 加速地板</td>
+        </tr>
+        <tr>
+          <td><strong>② 蘑菇弯</strong></td>
+          <td>~55m弧长</td>
+          <td>3.0s</td>
+          <td>2.5s</td>
+          <td>基础转向 or 短漂移充能</td>
+        </tr>
+        <tr>
+          <td><strong>③ 林间直道</strong></td>
+          <td>100m</td>
+          <td>4.2s</td>
+          <td>3.6s</td>
+          <td>漂移加速释放 + 加速地板衔接</td>
+        </tr>
+        <tr>
+          <td><strong>④ 发夹弯</strong></td>
+          <td>~50m弧长</td>
+          <td>3.5s</td>
+          <td>2.8s</td>
+          <td>长漂移→完美漂移 + 出弯加速地板</td>
+        </tr>
+        <tr>
+          <td><strong>⑤ 花田直道</strong></td>
+          <td>140m</td>
+          <td>5.8s</td>
+          <td>5.2s</td>
+          <td>避开油污 + 漂移加速衰减回归</td>
+        </tr>
+        <tr>
+          <td><strong>⑥ S弯连携段</strong></td>
+          <td>~110m弧长</td>
+          <td>7.5s</td>
+          <td>6.0s</td>
+          <td>三段反向漂移 + 连携加速×3层</td>
+        </tr>
+        <tr>
+          <td><strong>⑦ 回程直道</strong></td>
+          <td>120m</td>
+          <td>5.0s</td>
+          <td>4.2s</td>
+          <td>氮气加速释放 + 加速地板</td>
+        </tr>
+        <tr>
+          <td><strong>⑧ 归途弯</strong></td>
+          <td>~65m弧长</td>
+          <td>3.2s</td>
+          <td>2.7s</td>
+          <td>中弯漂移 + 出弯衔接起点加速地板</td>
+        </tr>
+        <tr style="border-top:2px solid var(--cyan);">
+          <td><strong>单圈合计</strong></td>
+          <td><strong>820m</strong></td>
+          <td style="color:var(--green);font-weight:700;"><strong>~40.4s</strong></td>
+          <td style="color:var(--gold);font-weight:700;"><strong>~34.0s</strong></td>
+          <td>熟练操作快约6.4秒(16%)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="time-box">
+      <div class="time-card">
+        <div class="label" style="font-size:0.8rem;color:var(--text2);margin-bottom:4px;">基础操作 · 3圈比赛总时间</div>
+        <div class="big green">~2:04</div>
+        <div class="sub">40.4s × 3圈 + 3s倒计时 ≈ 124s</div>
+      </div>
+      <div class="time-card">
+        <div class="label" style="font-size:0.8rem;color:var(--text2);margin-bottom:4px;">熟练操作 · 3圈比赛总时间</div>
+        <div class="big gold">~1:45</div>
+        <div class="sub">34.0s × 3圈 + 3s倒计时 ≈ 105s</div>
+      </div>
+      <div class="time-card">
+        <div class="label" style="font-size:0.8rem;color:var(--text2);margin-bottom:4px;">基础操作 · 平均时速</div>
+        <div class="big cyan">73 km/h</div>
+        <div class="sub">含漂移减速、弯道降速等因素</div>
+      </div>
+      <div class="time-card">
+        <div class="label" style="font-size:0.8rem;color:var(--text2);margin-bottom:4px;">熟练操作 · 平均时速</div>
+        <div class="big cyan">87 km/h</div>
+        <div class="sub">完美漂移+连携+加速地板全部利用</div>
+      </div>
+    </div>
+
+    <div class="elev-note" style="margin-top:24px;">
+      <strong>时间估算假设：</strong><br>
+      · 基础操作 = 偶尔漂移、不连携、偶尔踩加速地板、不使用技能<br>
+      · 熟练操作 = 每弯漂移、S弯3层连携+完美漂移、全部踩加速地板、至少使用1次技能<br>
+      · 未计算碰撞障碍物的时间损失（每个路障/油污约损失1.5-2秒）<br>
+      · 未计算起步3秒倒计时后的加速时间对第一圈的影响（首圈约多2秒）
+    </div>
+  </section>
+
+  <!-- Design Notes -->
+  <section class="section fade-in">
+    <h2 class="section-title">📝 设计意图</h2>
+    <div class="seg-grid">
+      <div class="seg-card">
+        <h3>🎓 教学递进</h3>
+        <div class="seg-desc">
+          赛道设计遵循<strong>由简到繁</strong>原则：<br>
+          ① 直道加速（自动）<br>
+          ② 蘑菇弯学习漂移入门<br>
+          ③ 林间直道学习释放加速<br>
+          ④ 发夹弯挑战完美漂移<br>
+          ⑤-⑥ S弯练习连携技巧<br>
+          ⑦-⑧ 综合运用
+        </div>
+      </div>
+      <div class="seg-card">
+        <h3>🎯 速度节奏</h3>
+        <div class="seg-desc">
+          直道-弯道交替排列，形成<strong>加速→减速→漂移加速→减速</strong>的节奏感。
+          每个弯道出口都设有加速地板或紧接着直道，让漂移加速的价值最大化。
+          S弯三连是速度节奏的高潮，也是拉开差距的关键段落。
+        </div>
+      </div>
+      <div class="seg-card">
+        <h3>⚡ 设施密度</h3>
+        <div class="seg-desc">
+          第一关作为入门关卡，设施密度较低（每100m约0.6个设施）。
+          加速地板(4处)多于障碍物(4个)，鼓励正向探索。
+          唯一的油污在直道上，给了玩家充分的反应时间和走位空间。
+        </div>
+      </div>
+      <div class="seg-card">
+        <h3>🌍 环境叙事</h3>
+        <div class="seg-desc">
+          童话森林主题贯穿全赛道：蘑菇弯的巨型蘑菇、林间的光影、花田的五彩花朵、小溪旁的发夹弯、远处的城堡轮廓。
+          环境元素既是装饰也是<strong>地标</strong>，帮助玩家记忆赛道布局和判断弯道位置。
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  《猪猪侠-极速飞车》赛道设计文档 · Stage 1 童话森林环线 · v1.0
+</footer>
+
+<script>
+// ====== Track Top View Canvas ======
+(function(){
+  const canvas = document.getElementById('trackTopView');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  // Grass background
+  ctx.fillStyle = '#0d1f12';
+  ctx.fillRect(0,0,W,H);
+
+  // Decorative trees (simple circles)
+  const trees = [
+    [80,100],[50,200],[90,300],[60,420],[100,530],[130,80],
+    [920,90],[960,200],[930,320],[970,440],[910,550],
+    [200,60],[350,50],[500,55],[650,50],[800,60],
+    [180,580],[320,590],[480,585],[620,590],[780,580],
+    [150,160],[250,170],[820,150],[870,270],[760,480],
+  ];
+  trees.forEach(function(t){
+    ctx.beginPath(); ctx.arc(t[0],t[1],18+Math.random()*12,0,Math.PI*2);
+    ctx.fillStyle='rgba(20,60,30,0.6)'; ctx.fill();
+    ctx.beginPath(); ctx.arc(t[0]-3,t[1]-3,12+Math.random()*8,0,Math.PI*2);
+    ctx.fillStyle='rgba(30,80,40,0.4)'; ctx.fill();
+  });
+
+  // Track path definition (centerline)
+  // Going clockwise: start straight → mushroom curve → forest straight → hairpin → flower straight → S-curves → return straight → home curve
+  const trackWidth = 38;
+
+  // Define track centerline as series of points
+  // Starting from bottom-left, going right (east)
+  var pts = [];
+
+  // Segment 1: Start straight (going east)
+  for(var i=0;i<=30;i++){
+    pts.push({x: 150+i*10, y: 440});
+  }
+  // Segment 2: Mushroom curve (right turn, gentle ~90°)
+  for(var i=0;i<=20;i++){
+    var a = -Math.PI/2 + (i/20)*(Math.PI/2);
+    pts.push({x: 450+28*Math.cos(a), y: 440-28+28*Math.sin(a)});
+  }
+  // Adjust: make it smoother
+  pts = [];
+  // 1: Start straight
+  for(var i=0;i<=40;i++) pts.push({x:130+i*9, y:445});
+  // 2: Mushroom curve (right turn ~90°, gentle)
+  var cx1=490, cy1=380;
+  for(var i=1;i<=25;i++){
+    var a=-Math.PI/2 + (i/25)*(Math.PI*0.55);
+    pts.push({x:cx1+65*Math.cos(a), y:cy1+65*Math.sin(a)});
+  }
+  // 3: Forest short straight (going south)
+  for(var i=1;i<=15;i++) pts.push({x:pts[pts.length-1].x, y:pts[pts.length-1].y+i*7});
+  // 4: Hairpin turn (left turn ~160°, sharp)
+  var hx=pts[pts.length-1].x, hy=pts[pts.length-1].y+10;
+  var cx4=hx-10, cy4=hy+40;
+  for(var i=1;i<=30;i++){
+    var a=Math.PI*0.1 + (i/30)*(-Math.PI*0.9);
+    pts.push({x:cx4+45*Math.cos(a), y:cy4+45*Math.sin(a)});
+  }
+  // 5: Flower field straight (going west)
+  var lastPt = pts[pts.length-1];
+  for(var i=1;i<=20;i++) pts.push({x:lastPt.x-i*10, y:lastPt.y-2});
+  // 6: S-curves (left-right-left)
+  lastPt = pts[pts.length-1];
+  var sx = lastPt.x;
+  // S1: left
+  for(var i=1;i<=12;i++){
+    var a=Math.PI*0.0 + (i/12)*(Math.PI*0.4);
+    pts.push({x:sx-10-30*Math.sin(a), y:lastPt.y-30*(1-Math.cos(a))});
+  }
+  lastPt=pts[pts.length-1];
+  // S2: right
+  for(var i=1;i<=12;i++){
+    var a=Math.PI+ (i/12)*(Math.PI*0.5);
+    pts.push({x:lastPt.x-25*Math.cos(a), y:lastPt.y-25*Math.sin(a)});
+  }
+  lastPt=pts[pts.length-1];
+  // S3: left
+  for(var i=1;i<=10;i++){
+    var a=Math.PI*0.5+(i/10)*(Math.PI*0.35);
+    pts.push({x:lastPt.x+35*(1-Math.cos(a)), y:lastPt.y-35*Math.sin(a)});
+  }
+  // 7: Return straight (going north-west, back to start)
+  lastPt=pts[pts.length-1];
+  // Navigate back to start area
+  var startX=130, startY=445;
+  var dx=(startX-lastPt.x), dy=(startY-lastPt.y);
+  for(var i=1;i<=25;i++){
+    pts.push({x:lastPt.x+dx*i/25, y:lastPt.y+dy*i/25});
+  }
+  // 8: Home curve merge into start straight
+  // Already connected
+
+  // Draw track surface (thick line)
+  // Outer edge
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for(var i=1;i<pts.length;i++){
+    ctx.lineTo(pts[i].x, pts[i].y);
+  }
+  ctx.closePath();
+  ctx.strokeStyle = '#2a2a4c';
+  ctx.lineWidth = trackWidth + 6;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+
+  // Track surface
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for(var i=1;i<pts.length;i++){
+    ctx.lineTo(pts[i].x, pts[i].y);
+  }
+  ctx.closePath();
+  ctx.strokeStyle = '#3a3a5c';
+  ctx.lineWidth = trackWidth;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+
+  // Track center dashed line (direction guide)
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for(var i=1;i<pts.length;i++){
+    ctx.lineTo(pts[i].x, pts[i].y);
+  }
+  ctx.closePath();
+  ctx.strokeStyle = 'rgba(100,100,160,0.3)';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([8,12]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Direction arrows on track
+  function drawArrow(x, y, angle, color){
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.beginPath();
+    ctx.moveTo(8, 0);
+    ctx.lineTo(-4, -5);
+    ctx.lineTo(-4, 5);
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.restore();
+  }
+  // Place arrows along the track
+  var arrowIndices = [10, 35, 55, 75, 100, 115, 130, 145];
+  arrowIndices.forEach(function(idx){
+    if(idx < pts.length - 1){
+      var p = pts[idx], pn = pts[Math.min(idx+2, pts.length-1)];
+      var angle = Math.atan2(pn.y-p.y, pn.x-p.x);
+      drawArrow(p.x, p.y, angle, 'rgba(200,200,255,0.5)');
+    }
+  });
+
+  // Start/Finish line
+  var sp = pts[0];
+  ctx.fillStyle = '#ff4444';
+  ctx.fillRect(sp.x-2, sp.y-trackWidth/2, 5, trackWidth);
+  // Checkered pattern
+  var sqSize = 5;
+  for(var r=0;r<Math.floor(trackWidth/sqSize);r++){
+    for(var c=0;c<2;c++){
+      if((r+c)%2===0){
+        ctx.fillStyle='#fff';
+        ctx.fillRect(sp.x-2+c*sqSize, sp.y-trackWidth/2+r*sqSize, sqSize, sqSize);
+      } else {
+        ctx.fillStyle='#ff4444';
+        ctx.fillRect(sp.x-2+c*sqSize, sp.y-trackWidth/2+r*sqSize, sqSize, sqSize);
+      }
+    }
+  }
+
+  // Start label
+  ctx.font = 'bold 12px sans-serif';
+  ctx.fillStyle = '#ff4444';
+  ctx.textAlign = 'center';
+  ctx.fillText('起点/终点', sp.x, sp.y - trackWidth/2 - 10);
+
+  // Boost pads (yellow glow on track)
+  function drawBoostPad(x, y, angle, label){
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    // Glow
+    var g = ctx.createRadialGradient(0,0,2,0,0,18);
+    g.addColorStop(0,'rgba(255,204,0,0.4)');
+    g.addColorStop(1,'rgba(255,204,0,0)');
+    ctx.fillStyle=g;
+    ctx.fillRect(-20,-12,40,24);
+    // Pad
+    ctx.fillStyle = 'rgba(255,204,0,0.6)';
+    ctx.fillRect(-16,-8,32,16);
+    // Arrows
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 10px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('» »', 0, 4);
+    ctx.restore();
+    // Label
+    ctx.font = '10px sans-serif';
+    ctx.fillStyle = '#ffcc00';
+    ctx.textAlign = 'center';
+    ctx.fillText(label, x, y - 22);
+  }
+
+  // Boost pad positions (approximate on track)
+  drawBoostPad(280, 445, 0, '加速地板①');
+  drawBoostPad(530, 350, Math.PI*0.3, '加速地板②');
+  drawBoostPad(410, 530, -Math.PI*0.2, '加速地板③');
+  drawBoostPad(280, 210, Math.PI*1.3, '加速地板④');
+
+  // Oil spill (dark area)
+  var oilX = 340, oilY = 220;
+  ctx.beginPath();
+  ctx.ellipse(oilX, oilY, 16, 10, 0.3, 0, Math.PI*2);
+  ctx.fillStyle = 'rgba(20,20,30,0.8)';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(40,40,60,0.6)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  // Shine
+  ctx.beginPath();
+  ctx.ellipse(oilX-4, oilY-3, 6, 3, 0.5, 0, Math.PI*2);
+  ctx.fillStyle = 'rgba(60,60,100,0.3)';
+  ctx.fill();
+  ctx.font = '10px sans-serif';
+  ctx.fillStyle = '#888';
+  ctx.textAlign = 'center';
+  ctx.fillText('油污', oilX, oilY - 16);
+
+  // Barriers (orange triangles)
+  function drawBarrier(x, y, angle){
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.beginPath();
+    ctx.moveTo(0,-6); ctx.lineTo(5,5); ctx.lineTo(-5,5);
+    ctx.closePath();
+    ctx.fillStyle='#ff8800';
+    ctx.fill();
+    ctx.strokeStyle='#cc6600';
+    ctx.lineWidth=1;
+    ctx.stroke();
+    // Stripes
+    ctx.beginPath();
+    ctx.moveTo(-2,-2); ctx.lineTo(2,3);
+    ctx.strokeStyle='#fff';
+    ctx.lineWidth=1;
+    ctx.stroke();
+    ctx.restore();
+  }
+  drawBarrier(435, 420, 0);
+  drawBarrier(448, 410, 0.2);
+  drawBarrier(440, 280, -0.3);
+  ctx.font = '10px sans-serif';
+  ctx.fillStyle = '#ff8800';
+  ctx.textAlign = 'center';
+  ctx.fillText('路障×2', 455, 400);
+  ctx.fillText('路障', 448, 268);
+
+  // Segment number labels
+  function drawSegLabel(x, y, num, text){
+    ctx.beginPath();
+    ctx.arc(x, y, 11, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(68,204,136,0.9)';
+    ctx.fill();
+    ctx.font = 'bold 11px sans-serif';
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center';
+    ctx.fillText(num, x, y+4);
+    ctx.font = '10px sans-serif';
+    ctx.fillStyle = 'rgba(200,220,200,0.8)';
+    ctx.fillText(text, x, y+22);
+  }
+  drawSegLabel(230, 470, '1', '起点直道');
+  drawSegLabel(510, 400, '2', '蘑菇弯');
+  drawSegLabel(520, 300, '3', '林间直道');
+  drawSegLabel(440, 560, '4', '发夹弯');
+  drawSegLabel(350, 245, '5', '花田直道');
+  drawSegLabel(310, 290, '6', 'S弯');
+  drawSegLabel(220, 240, '7', '回程直道');
+  drawSegLabel(145, 340, '8', '归途弯');
+
+  // Decorative: castle silhouette in background
+  ctx.fillStyle = 'rgba(30,40,70,0.3)';
+  ctx.fillRect(750, 80, 60, 80);
+  ctx.fillRect(770, 50, 20, 30);
+  ctx.fillRect(790, 60, 15, 20);
+  ctx.fillStyle = 'rgba(30,40,70,0.2)';
+  ctx.fillRect(760, 160, 40, 5);
+  ctx.font = '9px sans-serif';
+  ctx.fillStyle = 'rgba(150,160,200,0.3)';
+  ctx.fillText('🏰 远处城堡', 780, 170);
+
+  // Mushroom decoration near turn 2
+  function drawMushroom(x, y, size){
+    ctx.beginPath();
+    ctx.arc(x, y, size, Math.PI, 0);
+    ctx.fillStyle = 'rgba(200,60,60,0.3)';
+    ctx.fill();
+    ctx.fillRect(x-size*0.2, y, size*0.4, size*0.6);
+    ctx.fillStyle = 'rgba(180,140,100,0.3)';
+  }
+  drawMushroom(560, 430, 12);
+  drawMushroom(575, 445, 9);
+  drawMushroom(545, 450, 10);
+
+  // Flower decorations near segment 5
+  var flowerColors = ['rgba(255,100,100,0.3)','rgba(255,200,100,0.3)','rgba(200,100,255,0.3)','rgba(100,200,255,0.3)'];
+  for(var i=0;i<15;i++){
+    ctx.beginPath();
+    ctx.arc(290+Math.random()*100, 230+Math.random()*50, 2+Math.random()*3, 0, Math.PI*2);
+    ctx.fillStyle = flowerColors[i%flowerColors.length];
+    ctx.fill();
+  }
+
+  // Stream decoration near turn 4
+  ctx.beginPath();
+  ctx.moveTo(470, 570);
+  ctx.quadraticCurveTo(490, 550, 510, 560);
+  ctx.quadraticCurveTo(530, 570, 550, 555);
+  ctx.strokeStyle = 'rgba(60,120,180,0.3)';
+  ctx.lineWidth = 8;
+  ctx.stroke();
+
+  // Title watermark
+  ctx.font = 'bold 14px sans-serif';
+  ctx.fillStyle = 'rgba(200,220,200,0.15)';
+  ctx.textAlign = 'right';
+  ctx.fillText('童话森林环线 · 820m · 顺时针', W-20, H-15);
+
+})();
+
+// ====== Elevation Profile Canvas ======
+(function(){
+  const canvas = document.getElementById('trackElevation');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const pad = {t:40, r:40, b:50, l:60};
+  const gW = W-pad.l-pad.r, gH = H-pad.t-pad.b;
+
+  // Background
+  ctx.fillStyle = '#0d1117';
+  ctx.fillRect(0,0,W,H);
+
+  // Elevation data: [distance(m), elevation(m)]
+  // Segments: ①180m ②55m ③100m ④50m ⑤140m ⑥110m ⑦120m ⑥65m = 820m
+  var data = [
+    // ① Start straight (0-180m): slight uphill +2m
+    {d:0,e:0}, {d:30,e:0}, {d:60,e:0.5}, {d:90,e:1}, {d:120,e:1.5}, {d:150,e:2}, {d:180,e:2},
+    // ② Mushroom curve (180-235m): flat at 2m
+    {d:195,e:2}, {d:210,e:1.8}, {d:235,e:1.5},
+    // ③ Forest short straight (235-335m): gentle downhill
+    {d:260,e:1}, {d:290,e:0}, {d:320,e:-1}, {d:335,e:-2},
+    // ④ Hairpin turn (335-385m): downhill to lowest point
+    {d:350,e:-2.5}, {d:365,e:-3}, {d:380,e:-2.5}, {d:385,e:-2},
+    // ⑤ Flower field straight (385-525m): uphill back
+    {d:410,e:-1}, {d:440,e:0.5}, {d:470,e:1.5}, {d:500,e:2}, {d:525,e:2},
+    // ⑥ S-curves (525-635m): gentle undulation
+    {d:545,e:2}, {d:560,e:1.8}, {d:575,e:1.5}, {d:590,e:1.8}, {d:605,e:2}, {d:620,e:1.5}, {d:635,e:1},
+    // ⑦ Return straight (635-755m): slight downhill
+    {d:660,e:0.5}, {d:690,e:0}, {d:720,e:-0.5}, {d:755,e:0},
+    // ⑧ Home curve (755-820m): back to start level
+    {d:775,e:0}, {d:800,e:0}, {d:820,e:0}
+  ];
+
+  var minE = -4, maxE = 4;
+
+  function dToX(d){ return pad.l + (d/820)*gW; }
+  function eToY(e){ return pad.t + gH*(1-(e-minE)/(maxE-minE)); }
+
+  // Grid
+  ctx.strokeStyle = 'rgba(42,48,85,0.4)';
+  ctx.lineWidth = 1;
+  // Horizontal (elevation)
+  for(var e=-3;e<=3;e++){
+    var y = eToY(e);
+    ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(pad.l+gW,y); ctx.stroke();
+    ctx.fillStyle = '#9ca3c4'; ctx.font = '11px sans-serif'; ctx.textAlign = 'right';
+    ctx.fillText((e>=0?'+':'')+e+'m', pad.l-8, y+4);
+  }
+  // Vertical (distance)
+  for(var d=0;d<=820;d+=100){
+    var x = dToX(d);
+    ctx.beginPath(); ctx.moveTo(x,pad.t); ctx.lineTo(x,pad.t+gH); ctx.stroke();
+    ctx.fillStyle = '#9ca3c4'; ctx.font = '11px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText(d+'m', x, pad.t+gH+18);
+  }
+
+  // Zero line (thicker)
+  ctx.strokeStyle = 'rgba(68,204,136,0.3)';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6,4]);
+  ctx.beginPath(); ctx.moveTo(pad.l, eToY(0)); ctx.lineTo(pad.l+gW, eToY(0)); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Segment boundaries
+  var segBounds = [0, 180, 235, 335, 385, 525, 635, 755, 820];
+  var segLabels = ['①起点直道','②蘑菇弯','③林间直道','④发夹弯','⑤花田直道','⑥S弯','⑦回程直道','⑧归途弯'];
+  var segColors = ['#ff4444','#44cc88','#4488ff','#ff4444','#4488ff','#44cc88','#4488ff','#44cc88'];
+  segBounds.forEach(function(b,i){
+    var x = dToX(b);
+    ctx.strokeStyle = 'rgba(100,120,180,0.3)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(x,pad.t); ctx.lineTo(x,pad.t+gH); ctx.stroke();
+    ctx.setLineDash([]);
+    // Label
+    if(i < segLabels.length){
+      var midX = i < segBounds.length-1 ? (dToX(segBounds[i])+dToX(segBounds[i+1]))/2 : dToX(b)+20;
+      ctx.font = '10px sans-serif';
+      ctx.fillStyle = segColors[i] || '#9ca3c4';
+      ctx.textAlign = 'center';
+      ctx.fillText(segLabels[i], midX, pad.t+gH+36);
+    }
+  });
+
+  // Fill area under curve
+  ctx.beginPath();
+  ctx.moveTo(dToX(data[0].d), eToY(data[0].e));
+  for(var i=1;i<data.length;i++){
+    var px = dToX(data[i].d);
+    var py = eToY(data[i].e);
+    var prevX = dToX(data[i-1].d);
+    var cpx = (prevX+px)/2;
+    ctx.bezierCurveTo(cpx, eToY(data[i-1].e), cpx, py, px, py);
+  }
+  ctx.lineTo(dToX(data[data.length-1].d), eToY(0));
+  ctx.lineTo(dToX(data[0].d), eToY(0));
+  ctx.closePath();
+  var fillGrad = ctx.createLinearGradient(0,pad.t,0,pad.t+gH);
+  fillGrad.addColorStop(0,'rgba(68,204,136,0.15)');
+  fillGrad.addColorStop(0.5,'rgba(68,204,136,0.05)');
+  fillGrad.addColorStop(1,'rgba(68,221,238,0.1)');
+  ctx.fillStyle = fillGrad;
+  ctx.fill();
+
+  // Main curve line
+  ctx.beginPath();
+  ctx.moveTo(dToX(data[0].d), eToY(data[0].e));
+  for(var i=1;i<data.length;i++){
+    var px = dToX(data[i].d);
+    var py = eToY(data[i].e);
+    var prevX = dToX(data[i-1].d);
+    var cpx = (prevX+px)/2;
+    ctx.bezierCurveTo(cpx, eToY(data[i-1].e), cpx, py, px, py);
+  }
+  ctx.strokeStyle = '#44cc88';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  // Glow effect
+  ctx.beginPath();
+  ctx.moveTo(dToX(data[0].d), eToY(data[0].e));
+  for(var i=1;i<data.length;i++){
+    var px = dToX(data[i].d);
+    var py = eToY(data[i].e);
+    var prevX = dToX(data[i-1].d);
+    var cpx = (prevX+px)/2;
+    ctx.bezierCurveTo(cpx, eToY(data[i-1].e), cpx, py, px, py);
+  }
+  ctx.strokeStyle = 'rgba(68,204,136,0.2)';
+  ctx.lineWidth = 10;
+  ctx.stroke();
+
+  // Key points markers
+  var keyPoints = [
+    {d:0,e:0,label:'起点',color:'#ff4444'},
+    {d:180,e:2,label:'最高点+2m',color:'#ffcc00'},
+    {d:365,e:-3,label:'最低点-3m',color:'#44ddee'},
+    {d:525,e:2,label:'回到+2m',color:'#ffcc00'},
+    {d:820,e:0,label:'一圈结束',color:'#44cc88'}
+  ];
+  keyPoints.forEach(function(kp){
+    var x = dToX(kp.d), y = eToY(kp.e);
+    ctx.beginPath(); ctx.arc(x,y,5,0,Math.PI*2);
+    ctx.fillStyle = kp.color; ctx.fill();
+    ctx.beginPath(); ctx.arc(x,y,8,0,Math.PI*2);
+    ctx.strokeStyle = kp.color; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.font = '10px sans-serif';
+    ctx.fillStyle = kp.color;
+    ctx.textAlign = 'center';
+    var labelY = kp.e > 0 ? y - 14 : y + 18;
+    ctx.fillText(kp.label, x, labelY);
+  });
+
+  // Axis labels
+  ctx.fillStyle = '#9ca3c4'; ctx.font = '12px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('赛道距离 (m)', pad.l+gW/2, H-8);
+  ctx.save();
+  ctx.translate(14, pad.t+gH/2);
+  ctx.rotate(-Math.PI/2);
+  ctx.fillText('海拔高度 (m)', 0, 0);
+  ctx.restore();
+
+})();
+
+// ====== Scroll Fade-in ======
+const observer = new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(e.isIntersecting) e.target.classList.add('visible');
+  });
+},{threshold:0.1});
+document.querySelectorAll('.fade-in').forEach(function(el){ observer.observe(el); });
+</script>
+
+</body>
+</html>

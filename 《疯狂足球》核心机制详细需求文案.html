@@ -1,0 +1,1701 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>疯狂足球 · 核心机制详细需求文案 v2.1</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --card: #161b22;
+    --card-hover: #1c2333;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-dim: #8b949e;
+    --accent: #58a6ff;
+    --red: #ff4444;
+    --blue: #4488ff;
+    --green: #44ff44;
+    --gold: #ffd700;
+    --orange: #f0883e;
+    --purple: #bc8cff;
+    --cyan: #39d2c0;
+    --pink: #f778ba;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+  /* Hero Header */
+  .hero {
+    position: relative;
+    min-height: 420px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    overflow: hidden;
+    background: linear-gradient(135deg, #0d1117 0%, #1a1040 40%, #0d2030 70%, #0d1117 100%);
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: 
+      radial-gradient(ellipse 600px 300px at 30% 40%, rgba(255,68,68,0.12), transparent),
+      radial-gradient(ellipse 500px 250px at 70% 60%, rgba(68,136,255,0.12), transparent),
+      radial-gradient(ellipse 300px 300px at 50% 50%, rgba(255,215,0,0.06), transparent);
+  }
+  .hero-field {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 520px;
+    height: 340px;
+    opacity: 0.08;
+    border: 2px solid #fff;
+    border-radius: 4px;
+  }
+  .hero-field .center-line { position:absolute; top:0; bottom:0; left:50%; width:1px; background:#fff; }
+  .hero-field .center-circle { position:absolute; top:50%; left:50%; width:80px; height:80px; transform:translate(-50%,-50%); border:1px solid #fff; border-radius:50%; }
+  .hero-field .penalty-left { position:absolute; left:0; top:50%; transform:translateY(-50%); width:60px; height:160px; border:1px solid #fff; border-left:none; }
+  .hero-field .penalty-right { position:absolute; right:0; top:50%; transform:translateY(-50%); width:60px; height:160px; border:1px solid #fff; border-right:none; }
+  .hero h1 {
+    font-size: 3.2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--red), var(--gold), var(--blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 4px;
+    position: relative;
+    z-index: 1;
+  }
+  .hero .subtitle {
+    font-size: 1.1rem;
+    color: var(--text-dim);
+    margin-top: 12px;
+    position: relative;
+    z-index: 1;
+  }
+  .hero .version-badge {
+    display: inline-block;
+    margin-top: 16px;
+    padding: 6px 20px;
+    background: rgba(88,166,255,0.15);
+    border: 1px solid rgba(88,166,255,0.3);
+    border-radius: 20px;
+    font-size: 0.85rem;
+    color: var(--accent);
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Nav */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(13,17,23,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  nav::-webkit-scrollbar { display:none; }
+  nav a {
+    flex-shrink: 0;
+    padding: 12px 16px;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  nav a:hover, nav a.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  /* Main content */
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  /* Chapter */
+  .chapter {
+    margin-bottom: 64px;
+    scroll-margin-top: 60px;
+  }
+  .chapter-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .chapter-num {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .chapter-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+  .chapter-desc {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    margin-left: 64px;
+    margin-top: -20px;
+    margin-bottom: 24px;
+  }
+
+  /* Section */
+  .section {
+    margin-bottom: 36px;
+    scroll-margin-top: 60px;
+  }
+  .section-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    padding-left: 12px;
+    border-left: 3px solid var(--accent);
+    color: var(--text);
+  }
+
+  /* Card */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+    transition: border-color 0.2s;
+  }
+  .card:hover {
+    border-color: rgba(88,166,255,0.3);
+  }
+  .card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title .icon {
+    font-size: 1.1rem;
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+  th {
+    background: rgba(88,166,255,0.08);
+    color: var(--accent);
+    font-weight: 600;
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 9px 14px;
+    border-bottom: 1px solid rgba(48,54,61,0.5);
+    color: var(--text);
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(88,166,255,0.03); }
+  td code, .inline-code {
+    background: rgba(88,166,255,0.1);
+    color: var(--cyan);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.82rem;
+  }
+
+  /* Code blocks */
+  .code-block {
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    color: #c9d1d9;
+    overflow-x: auto;
+    margin: 12px 0;
+  }
+  .code-block .comment { color: #6a737d; }
+  .code-block .keyword { color: #ff7b72; }
+  .code-block .func { color: #d2a8ff; }
+  .code-block .num { color: #79c0ff; }
+  .code-block .str { color: #a5d6ff; }
+
+  /* Callout */
+  .callout {
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 14px 0;
+    font-size: 0.88rem;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .callout-icon { font-size: 1.1rem; flex-shrink:0; margin-top:2px; }
+  .callout-info { background: rgba(88,166,255,0.08); border: 1px solid rgba(88,166,255,0.2); }
+  .callout-warn { background: rgba(240,136,62,0.08); border: 1px solid rgba(240,136,62,0.2); }
+  .callout-success { background: rgba(57,210,192,0.08); border: 1px solid rgba(57,210,192,0.2); }
+
+  /* Visual diagrams */
+  .diagram-container {
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin: 16px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* Grid layouts */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 768px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 2rem; }
+  }
+
+  /* Stat pill */
+  .stat-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 12px 0;
+  }
+  .stat-pill {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 20px;
+    min-width: 140px;
+    text-align: center;
+  }
+  .stat-pill .val {
+    font-size: 1.6rem;
+    font-weight: 800;
+    line-height: 1.2;
+  }
+  .stat-pill .label {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  /* Tag */
+  .tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .tag-red { background: rgba(255,68,68,0.15); color: var(--red); }
+  .tag-blue { background: rgba(68,136,255,0.15); color: var(--blue); }
+  .tag-green { background: rgba(68,255,68,0.15); color: var(--green); }
+  .tag-gold { background: rgba(255,215,0,0.15); color: var(--gold); }
+  .tag-purple { background: rgba(188,140,255,0.15); color: var(--purple); }
+  .tag-cyan { background: rgba(57,210,192,0.15); color: var(--cyan); }
+  .tag-orange { background: rgba(240,136,62,0.15); color: var(--orange); }
+
+  /* Flow chart */
+  .flow {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 12px 0;
+  }
+  .flow-node {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+  .flow-node.active { border-color: var(--accent); color: var(--accent); }
+  .flow-node.highlight { border-color: var(--gold); color: var(--gold); background: rgba(255,215,0,0.06); }
+  .flow-arrow {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+  }
+
+  /* State machine */
+  .state-machine {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    padding: 20px;
+  }
+  .state-node {
+    width: fit-content;
+    padding: 10px 24px;
+    border-radius: 24px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-align: center;
+  }
+  .state-arrow {
+    font-size: 1.2rem;
+    color: var(--text-dim);
+  }
+  .state-label {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+  }
+
+  /* Mapping diagram */
+  .mapping-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    margin: 8px 0;
+  }
+  .mapping-item {
+    text-align: center;
+    padding: 12px 20px;
+    border-radius: 10px;
+    min-width: 120px;
+  }
+  .mapping-arrow {
+    font-size: 1.5rem;
+    color: var(--text-dim);
+  }
+
+  /* Color chips */
+  .color-chip {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+
+  /* Appendix */
+  .appendix-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+  }
+  .appendix-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    transition: border-color 0.2s;
+  }
+  .appendix-item:hover { border-color: rgba(88,166,255,0.3); }
+  .appendix-item .sys { font-size: 0.72rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+  .appendix-item .param { font-size: 0.85rem; margin-top: 4px; }
+  .appendix-item .val { font-size: 1.1rem; font-weight: 700; color: var(--accent); margin-top: 4px; }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 40px 24px;
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ HERO ============ -->
+<header class="hero">
+  <div class="hero-field">
+    <div class="center-line"></div>
+    <div class="center-circle"></div>
+    <div class="penalty-left"></div>
+    <div class="penalty-right"></div>
+  </div>
+  <h1>疯狂足球</h1>
+  <p class="subtitle">核心机制详细需求文案 · 📷 摄像头体感操作 · 第三人称俯视角</p>
+  <span class="version-badge">v2.1 · 2026-04-27 · 谢华明</span>
+</header>
+
+<!-- ============ NAV ============ -->
+<nav id="nav">
+  <a href="#ch1">操作系统</a>
+  <a href="#ch2">球场镜头</a>
+  <a href="#ch3">足球物理</a>
+  <a href="#ch4">角色系统</a>
+  <a href="#ch5">腿部踢球</a>
+  <a href="#ch6">带球系统</a>
+  <a href="#ch7">守门员飞扑</a>
+  <a href="#ch8">AI球员</a>
+  <a href="#ch9">碰撞系统</a>
+  <a href="#ch10">比赛规则</a>
+  <a href="#appendix">附录速查</a>
+</nav>
+
+<div class="container">
+
+<!-- ============ 一、操作系统 ============ -->
+<section class="chapter" id="ch1">
+  <div class="chapter-header">
+    <div class="chapter-num" style="background:rgba(255,68,68,0.15);color:var(--red);">01</div>
+    <div class="chapter-title">操作系统</div>
+  </div>
+  <p class="chapter-desc">📷 摄像头体感操作——玩家通过身体动作控制角色，MediaPipe Pose 骨骼识别驱动</p>
+
+  <!-- 1.1 操作模式 -->
+  <div class="section" id="s1-1">
+    <div class="section-title">1.1 操作模式</div>
+    <div class="callout callout-info">
+      <span class="callout-icon">📷</span>
+      <span>游戏仅支持摄像头体感操作，玩家通过身体动作控制角色。</span>
+    </div>
+    <div class="stat-row">
+      <div class="stat-pill">
+        <div class="val" style="color:var(--accent);">📷</div>
+        <div class="label">输入设备</div>
+      </div>
+      <div class="stat-pill">
+        <div class="val" style="color:var(--cyan);">33</div>
+        <div class="label">骨骼关节数</div>
+      </div>
+      <div class="stat-pill">
+        <div class="val" style="color:var(--orange);">≤100ms</div>
+        <div class="label">识别延迟目标</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1.2 摄像头操作方案 -->
+  <div class="section" id="s1-2">
+    <div class="section-title">1.2 摄像头操作方案</div>
+
+    <!-- 1.2.2 骨骼绑定 -->
+    <div class="card">
+      <div class="card-title"><span class="icon">🔄</span> 骨骼绑定系统 · 对应映射</div>
+      <p style="color:var(--text-dim);font-size:0.85rem;margin-bottom:16px;">核心映射：左手→左腿，右手→右腿</p>
+      <div class="mapping-row">
+        <div class="mapping-item" style="background:rgba(255,68,68,0.1);border:1px solid rgba(255,68,68,0.3);border-radius:10px;">
+          <div style="font-size:1.6rem;">🤚</div>
+          <div style="font-size:0.8rem;color:var(--red);">左手腕</div>
+        </div>
+        <div class="mapping-arrow">⟹</div>
+        <div class="mapping-item" style="background:rgba(255,68,68,0.1);border:1px solid rgba(255,68,68,0.3);border-radius:10px;">
+          <div style="font-size:1.6rem;">🦵</div>
+          <div style="font-size:0.8rem;color:var(--red);">左腿</div>
+        </div>
+      </div>
+      <div class="mapping-row" style="margin-top:8px;">
+        <div class="mapping-item" style="background:rgba(68,136,255,0.1);border:1px solid rgba(68,136,255,0.3);border-radius:10px;">
+          <div style="font-size:1.6rem;">🤚</div>
+          <div style="font-size:0.8rem;color:var(--blue);">右手腕</div>
+        </div>
+        <div class="mapping-arrow">⟹</div>
+        <div class="mapping-item" style="background:rgba(68,136,255,0.1);border:1px solid rgba(68,136,255,0.3);border-radius:10px;">
+          <div style="font-size:1.6rem;">🦵</div>
+          <div style="font-size:0.8rem;color:var(--blue);">右腿</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 绑定参数 -->
+    <div class="card">
+      <div class="card-title"><span class="icon">⚙️</span> 绑定参数</div>
+      <div class="grid-2">
+        <div>
+          <table>
+            <tr><th>参数</th><th>值</th><th>说明</th></tr>
+            <tr><td>平滑系数</td><td><code>6 ~ 40</code></td><td>低速→减少抖动 / 高速→提高响应</td></tr>
+            <tr><td>手臂角速度上限</td><td><code>300 °/s</code></td><td>超出则钳制</td></tr>
+            <tr><td>手臂有效角度</td><td><code>10° ~ 170°</code></td><td>映射范围</td></tr>
+            <tr><td>死区角度</td><td><code>15°</code></td><td>低于此值不映射</td></tr>
+            <tr><td>最小置信度</td><td><code>0.5</code></td><td>关节点置信度阈值</td></tr>
+          </table>
+        </div>
+        <div>
+          <table>
+            <tr><th>参数</th><th>值</th><th>说明</th></tr>
+            <tr><td>腿最大前摆角</td><td><code>π/2.5 ≈ 72°</code></td><td></td></tr>
+            <tr><td>腿最大侧摆角</td><td><code>π/6 ≈ 30°</code></td><td></td></tr>
+            <tr><td>膝盖弯曲比</td><td><code>0.6</code></td><td>大腿角度 × 0.6</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 映射公式 -->
+    <div class="card">
+      <div class="card-title"><span class="icon">📐</span> 映射公式</div>
+      <div class="code-block">
+<span class="func">t</span> = clamp((armAngle - deadZone) / (armAngleMax - deadZone), 0, 1)
+<span class="func">easedT</span> = 1 - (1-t)²   <span class="comment">// ease-out 曲线</span>
+<span class="func">legX</span> = -easedT × legSwingMax   <span class="comment">// 前摆</span>
+<span class="func">legZ</span> = clamp(sideOffset × 5, -1, 1) × legSideMax  <span class="comment">// 侧摆</span>
+<span class="func">kneeX</span> = max(0, -legX) × kneeBendRatio  <span class="comment">// 膝盖弯曲</span>
+      </div>
+      <div class="code-block" style="margin-top:8px;">
+<span class="comment">// 动态平滑</span>
+<span class="func">speedRatio</span> = min(1, armAngVel / armSpeedMax)
+<span class="func">alpha</span> = dt × (smoothMin + (smoothMax - smoothMin) × speedRatio)
+<span class="func">boundAngle</span> += (target - boundAngle) × alpha
+      </div>
+    </div>
+
+    <!-- 踢腿触发 -->
+    <div class="card">
+      <div class="card-title"><span class="icon">🦵</span> 踢腿触发</div>
+      <div class="flow" style="justify-content:center;">
+        <div class="flow-node" style="border-color:var(--orange);color:var(--orange);">90°~120°</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">侧踢</div>
+        <div style="width:32px;"></div>
+        <div class="flow-node" style="border-color:var(--gold);color:var(--gold);">120°~150°</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">侧前踢</div>
+        <div style="width:32px;"></div>
+        <div class="flow-node" style="border-color:var(--red);color:var(--red);">150°~180°</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">前踢</div>
+      </div>
+      <div class="callout callout-info" style="margin-top:12px;">
+        <span class="callout-icon">⚡</span>
+        <span>触发方式：边缘检测——手臂角度从下方越过 90° 时触发一次</span>
+      </div>
+    </div>
+
+    <!-- 加速 -->
+    <div class="card">
+      <div class="card-title"><span class="icon">🚀</span> 加速触发</div>
+      <div class="flow" style="justify-content:center;">
+        <div class="flow-node">双手距离 &lt; 0.2</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node highlight">加速 6 m/s 🏃</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">双手距离 ≥ 0.2</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">自动追球 1 m/s 🚶</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1.3 自动移动 -->
+  <div class="section">
+    <div class="section-title">1.3 自动移动机制</div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title"><span class="icon">🚶</span> 无球 / 未加速</div>
+        <div style="text-align:center;padding:12px 0;">
+          <div style="font-size:2.2rem;font-weight:800;color:var(--cyan);">1 m/s</div>
+          <div style="font-size:0.8rem;color:var(--text-dim);">自动向球移动</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="icon">🏃</span> 加速（双手靠近）</div>
+        <div style="text-align:center;padding:12px 0;">
+          <div style="font-size:2.2rem;font-weight:800;color:var(--orange);">6 m/s</div>
+          <div style="font-size:0.8rem;color:var(--text-dim);">加速冲向球</div>
+        </div>
+      </div>
+    </div>
+    <div class="callout callout-info">
+      <span class="callout-icon">🎯</span>
+      <span>无球时：角色自动朝球的位置移动，自动朝向球<br>带球时：角色自动朝对方球门移动，朝向锁定球门中点<br>速度平滑：<code>vx += (targetVx - vx) × min(1, dt × 8)</code></span>
+    </div>
+  </div>
+
+  <!-- 1.4 角色朝向 -->
+  <div class="section">
+    <div class="section-title">1.4 角色朝向</div>
+    <div class="card">
+      <table>
+        <tr><th>状态</th><th>朝向逻辑</th></tr>
+        <tr><td><span class="tag tag-green">无球</span></td><td>自动朝向球（角度差 × 0.15 插值）</td></tr>
+        <tr><td><span class="tag tag-gold">带球</span></td><td>自动朝向对方球门中点（角度差 × 0.15 插值）</td></tr>
+        <tr><td><span class="tag tag-cyan">速度 > 0.3</span></td><td>朝向 = atan2(vx, vz)</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 二、球场屏幕与镜头系统 ============ -->
+<section class="chapter" id="ch2">
+  <div class="chapter-header">
+    <div class="chapter-num" style="background:rgba(88,166,255,0.15);color:var(--accent);">02</div>
+    <div class="chapter-title">球场屏幕与镜头系统</div>
+  </div>
+  <p class="chapter-desc">1920×1080 屏幕 · 25×16m 球场 · 第三人称俯视角 · 可调高度</p>
+
+  <div class="section">
+    <div class="stat-row">
+      <div class="stat-pill"><div class="val" style="color:var(--accent);">1920×1080</div><div class="label">目标分辨率</div></div>
+      <div class="stat-pill"><div class="val" style="color:var(--cyan);">90°</div><div class="label">水平 FOV</div></div>
+      <div class="stat-pill"><div class="val" style="color:var(--orange);">60 FPS</div><div class="label">目标帧率</div></div>
+      <div class="stat-pill"><div class="val" style="color:var(--green);">4.5m</div><div class="label">默认摄像机高度</div></div>
+    </div>
+  </div>
+
+  <!-- 球场图 -->
+  <div class="section">
+    <div class="section-title">2.2 球场世界坐标与尺寸</div>
+    <div class="diagram-container">
+      <canvas id="fieldCanvas" width="520" height="340"></canvas>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <table>
+          <tr><th>参数</th><th>值</th><th>坐标</th></tr>
+          <tr><td>球场长度</td><td><code>25 m</code></td><td>Z: -12.5 ~ +12.5</td></tr>
+          <tr><td>球场宽度</td><td><code>16 m</code></td><td>X: -8 ~ +8</td></tr>
+          <tr><td>中圈半径</td><td><code>2 m</code></td><td>圆心 (0,0,0)</td></tr>
+          <tr><td>禁区</td><td><code>5m × 8m</code></td><td>各端</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <table>
+          <tr><th>参数</th><th>值</th><th>坐标</th></tr>
+          <tr><td><strong>球门宽度</strong></td><td><code>5 m</code></td><td>X: -2.5 ~ +2.5</td></tr>
+          <tr><td><strong>球门高度</strong></td><td><code>1.5 m</code></td><td>Y: 0 ~ 1.5</td></tr>
+          <tr><td><strong>球门深度</strong></td><td><code>1.8 m</code></td><td>红: -12.5~-14.3 / 蓝: +12.5~+14.3</td></tr>
+          <tr><td>边界墙高</td><td><code>1 m</code></td><td>封闭墙壁</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 摄像机 -->
+  <div class="section">
+    <div class="section-title">2.3 摄像机系统</div>
+    <div class="card">
+      <table>
+        <tr><th>参数</th><th>设定值</th><th>说明</th></tr>
+        <tr><td>视角类型</td><td>第三人称俯视角</td><td>从上方俯瞰球场</td></tr>
+        <tr><td>摄像机 X/Z</td><td>跟随角色（平滑）</td><td>smoothFactor = 0.12</td></tr>
+        <tr><td>摄像机 Y</td><td><code>2.05 ~ 14 m</code></td><td>HUD 滑条控制，默认 4.5 m</td></tr>
+        <tr><td>摄像机朝向</td><td>lookAt(角色X, 0, 角色Z)</td><td>始终俯视角色位置</td></tr>
+      </table>
+      <div class="code-block" style="margin-top:12px;">
+<span class="func">cameraSmoothX</span> += (playerX - cameraSmoothX) × <span class="num">0.12</span>
+<span class="func">cameraSmoothZ</span> += (playerZ - cameraSmoothZ) × <span class="num">0.12</span>
+camera.position = (cameraSmoothX, camHeight, cameraSmoothZ)
+camera.lookAt(cameraSmoothX, <span class="num">0</span>, cameraSmoothZ)
+      </div>
+    </div>
+  </div>
+
+  <!-- HUD -->
+  <div class="section">
+    <div class="section-title">2.4 HUD 系统</div>
+    <div class="diagram-container" style="min-height:280px;">
+      <canvas id="hudCanvas" width="640" height="360"></canvas>
+    </div>
+    <div class="card">
+      <table>
+        <tr><th>元素</th><th>位置</th><th>尺寸</th><th>说明</th></tr>
+        <tr><td>比分板</td><td>顶部居中</td><td>自适应</td><td>红:VS:蓝，36px</td></tr>
+        <tr><td>计时器</td><td>右上角</td><td>自适应</td><td>MM:SS，20px</td></tr>
+        <tr><td>小地图</td><td>右上角</td><td>108×168 px</td><td>竖向，匹配球场形状</td></tr>
+        <tr><td>速度条</td><td>底部居中</td><td>200×8 px</td><td>渐变色（绿→黄→红）</td></tr>
+        <tr><td>带球指示</td><td>中心偏上</td><td>18px</td><td>⚽ 带球中，金色</td></tr>
+        <tr><td>体感标识</td><td>左上角</td><td>小标签</td><td>📷 体感模式</td></tr>
+        <tr><td>球方向箭头</td><td>屏幕边缘</td><td>32×32 px</td><td>黄色三角</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 三、足球物理系统 ============ -->
+<section class="chapter" id="ch3">
+  <div class="chapter-header">
+    <div class="chapter-num" style="background:rgba(255,215,0,0.15);color:var(--gold);">03</div>
+    <div class="chapter-title">足球物理系统</div>
+  </div>
+  <p class="chapter-desc">弹性弹跳 · 摩擦减速 · 空气阻力 · 最大球速 30 m/s</p>
+
+  <div class="section">
+    <div class="stat-row">
+      <div class="stat-pill"><div class="val" style="color:var(--gold);">0.11m</div><div class="label">球体半径</div></div>
+      <div class="stat-pill"><div class="val" style="color:var(--orange);">0.7</div><div class="label">弹性系数</div></div>
+      <div class="stat-pill"><div class="val" style="color:var(--red);">30 m/s</div><div class="label">最大球速</div></div>
+      <div class="stat-pill"><div class="val" style="color:var(--cyan);">0.985</div><div class="label">滚动摩擦</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">3.1 碰撞规则</div>
+    <div class="card">
+      <table>
+        <tr><th>碰撞对象</th><th>行为</th><th>弹性系数</th></tr>
+        <tr><td>地面</td><td>弹跳 + 滚动</td><td><code>0.7</code></td></tr>
+        <tr><td>长边墙壁</td><td>反弹</td><td><code>0.8</code></td></tr>
+        <tr><td>短边墙壁（非球门区）</td><td>反弹</td><td><code>0.8</code></td></tr>
+        <tr><td>球门侧壁</td><td>反弹</td><td><code>0.5</code></td></tr>
+        <tr><td>球门后墙</td><td>减速反弹</td><td><code>0.3</code></td></tr>
+        <tr><td>球门柱</td><td>反弹</td><td><code>0.6</code>（半径 0.06m）</td></tr>
+        <tr><td>球员身体</td><td>弹开</td><td><code>1.5×</code> 法线冲量</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">3.2 球的状态机</div>
+    <div class="diagram-container">
+      <div class="flow" style="flex-direction:column;align-items:center;">
+        <div class="flow-node active" style="border-radius:24px;">⚪ 静止</div>
+        <div class="flow-arrow">↓ 被踢</div>
+        <div class="flow-node highlight" style="border-radius:24px;">⚽ 滚动/飞行</div>
+        <div style="display:flex;gap:40px;margin-top:8px;">
+          <div style="text-align:center;">
+            <div class="flow-arrow">↓ 摩擦减速</div>
+            <div class="flow-node active" style="border-radius:24px;">⚪ 静止</div>
+          </div>
+          <div style="text-align:center;">
+            <div class="flow-arrow">↓ 撞墙</div>
+            <div class="flow-node" style="border-radius:24px;">↩ 反弹</div>
+          </div>
+          <div style="text-align:center;">
+            <div class="flow-arrow">↓ 进球</div>
+            <div class="flow-node" style="border-radius:24px;border-color:var(--gold);color:var(--gold);">🥅 进球判定 → 2秒后重置</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 四、角色系统 ============ -->
+<section class="chapter" id="ch4">
+  <div class="chapter-header">
+    <div class="chapter-num" style="background:rgba(57,210,192,0.15);color:var(--cyan);">04</div>
+    <div class="chapter-title">角色系统</div>
+  </div>
+  <p class="chapter-desc">火柴人骨骼模型 · 4v4 红蓝对决 · 前锋/中场/后卫/守门员</p>
+
+  <div class="section">
+    <div class="section-title">4.1 火柴人模型</div>
+    <div class="diagram-container">
+      <canvas id="stickmanCanvas" width="400" height="400"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="icon">🦴</span> 骨骼结构</div>
+      <div class="code-block">
+头部（球体 r=0.15）
+  ↓
+身体（圆柱 r=0.06, h=0.5）
+  ├─ 左臂（圆柱 r=0.04, h=0.35）
+  ├─ 右臂（圆柱 r=0.04, h=0.35）
+  ├─ 左腿
+  │   ├─ 髋关节枢轴（x=-0.1, y=0.7）
+  │   ├─ 大腿（r=0.04, h=0.35）
+  │   ├─ 膝关节枢轴（y=-0.35）
+  │   └─ 小腿（r=0.04, h=0.35）
+  └─ 右腿
+      ├─ 髋关节枢轴（x=0.1, y=0.7）
+      ├─ 大腿 / 膝关节 / 小腿
+腿部总长 = <span class="num">0.70 m</span>
+玩家标识：头顶<span style="color:var(--green);">绿色箭头</span>（y=1.65）
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">4.2 角色参数</div>
+    <div class="grid-2">
+      <div class="card">
+        <table>
+          <tr><th>参数</th><th>值</th></tr>
+          <tr><td>角色高度</td><td><code>≈1.6 m</code></td></tr>
+          <tr><td>角色宽度</td><td><code>0.5 m</code></td></tr>
+          <tr><td>腿部长度</td><td><code>0.70 m</code></td></tr>
+          <tr><td>基础移动速度</td><td><code>1 m/s</code></td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <table>
+          <tr><th>参数</th><th>值</th></tr>
+          <tr><td>最大移动速度</td><td><code>6 m/s</code></td></tr>
+          <tr><td>速度衰减</td><td><code>×0.92/帧</code></td></tr>
+          <tr><td>踢球冷却</td><td><code>0.15 秒</code></td></tr>
+          <tr><td>攻击冷却</td><td><code>0.3 秒</code></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 状态机 -->
+  <div class="section">
+    <div class="section-title">4.3 角色状态机</div>
+    <div class="diagram-container">
+      <div class="state-machine" style="flex-direction:row;flex-wrap:wrap;justify-content:center;gap:24px;">
+        <div style="text-align:center;">
+          <div class="state-node" style="background:rgba(57,210,192,0.15);border:2px solid var(--cyan);color:var(--cyan);">站立/跑动</div>
+          <div class="state-label">✅ 可操作 · 无限 · 1~6 m/s</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:0.8rem;color:var(--text-dim);">球触碰 &lt; 0.8m ↓<br>↑ 踢球/AI抢球</div>
+        </div>
+        <div style="text-align:center;">
+          <div class="state-node" style="background:rgba(255,215,0,0.15);border:2px solid var(--gold);color:var(--gold);">⚽ 带球</div>
+          <div class="state-label">✅ 可操作 · 无限 · ≤3 m/s</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:0.8rem;color:var(--text-dim);">被击中 ↓</div>
+        </div>
+        <div style="text-align:center;">
+          <div class="state-node" style="background:rgba(255,68,68,0.15);border:2px solid var(--red);color:var(--red);">💥 倒地</div>
+          <div class="state-label">❌ 1.5~3秒</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:0.8rem;color:var(--text-dim);">时间到 ↓</div>
+        </div>
+        <div style="text-align:center;">
+          <div class="state-node" style="background:rgba(188,140,255,0.15);border:2px solid var(--purple);color:var(--purple);">起身</div>
+          <div class="state-label">❌ 0.3秒</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 队伍配置 -->
+  <div class="section">
+    <div class="section-title">4.4 队伍配置 · 4v4</div>
+    <div class="grid-2">
+      <div class="card" style="border-color:rgba(255,68,68,0.3);">
+        <div class="card-title"><span class="color-chip" style="background:var(--red);"></span>红队（玩家方）</div>
+        <table>
+          <tr><th>角色</th><th>类型</th><th>初始位置</th></tr>
+          <tr><td><span class="tag tag-gold">前锋</span></td><td>🎮 玩家</td><td>(0, 0, -2)</td></tr>
+          <tr><td><span class="tag tag-green">中场</span></td><td>🤖 AI</td><td>(-2, 0, -5)</td></tr>
+          <tr><td><span class="tag tag-cyan">后卫</span></td><td>🤖 AI</td><td>(-2, 0, -9)</td></tr>
+          <tr><td><span class="tag tag-orange">守门员</span></td><td>🤖 AI</td><td>(0, 0, -11.5)</td></tr>
+        </table>
+      </div>
+      <div class="card" style="border-color:rgba(68,136,255,0.3);">
+        <div class="card-title"><span class="color-chip" style="background:var(--blue);"></span>蓝队（AI 方）</div>
+        <table>
+          <tr><th>角色</th><th>类型</th><th>初始位置</th></tr>
+          <tr><td><span class="tag tag-gold">前锋</span></td><td>🤖 AI</td><td>(0, 0, 2)</td></tr>
+          <tr><td><span class="tag tag-green">中场</span></td><td>🤖 AI</td><td>(-2, 0, 5)</td></tr>
+          <tr><td><span class="tag tag-cyan">后卫</span></td><td>🤖 AI</td><td>(-2, 0, 9)</td></tr>
+          <tr><td><span class="tag tag-orange">守门员</span></td><td>🤖 AI</td><td>(0, 0, 11.5)</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 五、腿部碰撞与踢球系统 ============ -->
+<section class="chapter" id="ch5">
+  <div class="chapter-header">
+    <div class="chapter-num" style="background:rgba(240,136,62,0.15);color:var(--orange);">05</div>
+    <div class="chapter-title">腿部碰撞与踢球系统</div>
+  </div>
+  <p class="chapter-desc">实际脚部世界坐标碰撞 · 角速度驱动力度 · 踢球/击人双判定</p>
+
+  <div class="section">
+    <div class="stat-row">
+      <div class="stat-pill"><div class="val" style="color:var(--orange);">0.25m</div><div class="label">腿部碰撞半径</div></div>
+      <div class="stat-pill"><div class="val" style="color:var(--accent);">10</div><div class="label">默认踢球力度</div></div>
+      <div class="stat-pill"><div class="val" style="color:var(--red);">0.15s</div><div class="label">踢球冷却</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">5.1 腿部碰撞参数</div>
+    <div class="card">
+      <table>
+        <tr><th>参数</th><th>设定值</th><th>说明</th></tr>
+        <tr><td>腿部碰撞半径</td><td><code>0.25 m</code></td><td>LEG_HIT_R</td></tr>
+        <tr><td>踢球碰撞距离</td><td><code>LEG_HIT_R + BALL_R + 0.05</code></td><td>无球时</td></tr>
+        <tr><td>带球踢球碰撞距离</td><td><code>LEG_HIT_R + BALL_R + 0.15</code></td><td>带球时扩大判定</td></tr>
+        <tr><td>击人碰撞距离</td><td><code>LEG_HIT_R + PLAYER_W/2</code></td><td></td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="icon">⚡</span> 腿部激活条件</div>
+      <table>
+        <tr><th>条件</th><th>说明</th></tr>
+        <tr><td>角速度绝对值 &gt; 1</td><td>腿部正在快速运动</td></tr>
+        <tr><td>腿角度绝对值 &gt; 0.3（带球时 &gt; 0.15）</td><td>腿部有足够摆幅</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">5.2 踢球方向计算</div>
+    <div class="card">
+      <div class="code-block">
+<span class="comment">// 力度由角速度驱动</span>
+<span class="func">力度</span> = DEFAULT_KICK_POWER × <span class="num">0.5</span> + DEFAULT_KICK_POWER × <span class="num">1.5</span> × min(1, |legAngVel|/<span class="num">15</span>)
+<span class="func">forwardFactor</span> = legAngle < <span class="num">0</span> ? <span class="num">1</span> : <span class="num">-0.5</span>  <span class="comment">// 前摆=正向，后摆=弱反向</span>
+<span class="func">sideFactor</span> = zAngle > <span class="num">0</span> ? <span class="num">-1</span> : (<span class="num">zAngle</span> < <span class="num">0</span> ? <span class="num">1</span> : <span class="num">0</span>)
+<span class="func">kickDirX</span> = sin(facing) × forwardFactor + cos(facing) × sideFactor × <span class="num">0.5</span>
+<span class="func">kickDirZ</span> = cos(facing) × forwardFactor - sin(facing) × sideFactor × <span class="num">0.5</span>
+kickDirX += ballDirX × <span class="num">0.3</span>  <span class="comment">// 叠加球相对脚的方向偏移</span>
+kickDirZ += ballDirZ × <span class="num">0.3</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">5.3 击人计算</div>
+    <div class="card">
+      <div style="text-align:center;padding:8px 0 16px;font-size:0.9rem;color:var(--text-dim);">击退力度 = DEFAULT_KICK_POWER × 0.3 × min(1, |legAngVel|/15)</div>
+      <table>
+        <tr><th>hitPower</th><th>击退力</th><th>倒地时间</th></tr>
+        <tr><td><span class="tag tag-cyan">&lt; 2</span></td><td>1 m</td><td>1.5 秒</td></tr>
+        <tr><td><span class="tag tag-orange">2 ~ 5</span></td><td>3 m</td><td>1.5 秒</td></tr>
+        <tr><td><span class="tag tag-red">&gt; 5</span></td><td>5 m</td><td>3 秒</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 六、带球系统 ============ -->
+<section class="chapter" id="ch6">
+  <div class="chapter-header">
+    <div class="chapter-num" style="background:rgba(255,215,0,0.15);color:var(--gold);">06</div>
+    <div class="chapter-title">带球系统</div>
+  </div>
+  <p class="chapter-desc">粘滞机制 · 球锁定角色前方 0.55m · 自动朝向球门</p>
+
+  <div class="section">
+    <div class="stat-row">
+      <div class="stat-pill"><div class="val" style="color:var(--gold);">0.8m</div><div class="label">粘滞进入距离</div></div>
+      <div class="stat-pill"><div class="val" style="color:var(--orange);">0.55m</div><div class="label">球在角色前方</div></div>
+      <div class="stat-pill"><div class="val" style="color:var(--cyan);">3 m/s</div><div class="label">带球速度上限</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title"><span class="icon">📥</span> 进入条件</div>
+        <table>
+          <tr><th>参数</th><th>值</th></tr>
+          <tr><td>粘滞距离</td><td><code>0.8 m</code></td></tr>
+          <tr><td>进入条件</td><td>距离 &lt; 0.8m 且踢球冷却已过</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="icon">📤</span> 解除条件</div>
+        <table>
+          <tr><th>条件</th><th>说明</th></tr>
+          <tr><td>腿部踢球</td><td>玩家主动踢球</td></tr>
+          <tr><td>AI 抢球</td><td>AI 球员触碰球</td></tr>
+          <tr><td>守门员飞扑</td><td>飞扑击中球</td></tr>
+          <tr><td>被击倒</td><td>倒地时自动失去球</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="card">
+      <div class="card-title"><span class="icon">⚽</span> 带球状态行为</div>
+      <table>
+        <tr><th>行为</th><th>设定</th><th>说明</th></tr>
+        <tr><td>移动方向</td><td>自动朝对方球门中点</td><td>锁定进攻方向</td></tr>
+        <tr><td>朝向</td><td>平滑朝向球门（差值×0.15）</td><td></td></tr>
+        <tr><td>速度上限</td><td><code>3 m/s</code>（未加速）/ <code>6 m/s</code>（加速）</td><td>加速不中断带球</td></tr>
+        <tr><td>球位置</td><td>角色正前方 <code>0.55 m</code></td><td>DRIBBLE_BALL_OFFSET</td></tr>
+        <tr><td>球位置更新</td><td><code>ball.x += (targetX - ball.x) × 0.3</code></td><td>平滑跟随</td></tr>
+        <tr><td>球 Y 坐标</td><td>固定 BALL_R</td><td>不弹跳</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 七、守门员飞扑系统 ============ -->
+<section class="chapter" id="ch7">
+  <div class="chapter-header">
+    <div class="chapter-num" style="background:rgba(188,140,255,0.15);color:var(--purple);">07</div>
+    <div class="chapter-title">守门员飞扑系统</div>
+  </div>
+  <p class="chapter-desc">3 阶段飞扑 · 5 秒冷却 · 碰撞半径 1.2m · 击球力度 10~15</p>
+
+  <div class="section">
+    <div class="stat-row">
+      <div class="stat-pill"><div class="val" style="color:var(--purple);">8 m/s</div><div class="label">飞扑速度</div></div>
+      <div class="stat-pill"><div class="val" style="color:var(--orange);">1.2m</div><div class="label">飞扑碰撞半径</div></div>
+      <div class="stat-pill"><div class="val" style="color:var(--red);">5s</div><div class="label">冷却时间</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">7.1 飞扑阶段</div>
+    <div class="diagram-container">
+      <div class="flow" style="justify-content:center;gap:16px;">
+        <div style="text-align:center;">
+          <div class="flow-node" style="border-color:var(--purple);color:var(--purple);background:rgba(188,140,255,0.08);padding:12px 20px;">
+            🤿 飞扑中<br><span style="font-size:0.7rem;color:var(--text-dim);">0.3秒 · 8m/s · 侧倾67.5°</span>
+          </div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div style="text-align:center;">
+          <div class="flow-node" style="border-color:var(--orange);color:var(--orange);background:rgba(240,136,62,0.08);padding:12px 20px;">
+            💥 落地<br><span style="font-size:0.7rem;color:var(--text-dim);">0.6秒 · 趴地 · 碰撞1.0m</span>
+          </div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div style="text-align:center;">
+          <div class="flow-node" style="border-color:var(--cyan);color:var(--cyan);background:rgba(57,210,192,0.08);padding:12px 20px;">
+            🧍 起身<br><span style="font-size:0.7rem;color:var(--text-dim);">0.5秒 · 线性恢复站立</span>
+          </div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div style="text-align:center;">
+          <div class="flow-node" style="border-color:var(--text-dim);color:var(--text-dim);padding:12px 20px;">
+            ⏳ 冷却<br><span style="font-size:0.7rem;color:var(--text-dim);">5秒</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">7.2 飞扑击球</div>
+    <div class="card">
+      <table>
+        <tr><th>参数</th><th>设定值</th><th>说明</th></tr>
+        <tr><td>飞扑碰撞半径</td><td><code>1.2 m</code> / <code>1.0 m</code></td><td>飞扑中 / 落地</td></tr>
+        <tr><td>击球力度</td><td><code>10 ~ 15 m/s</code></td><td>随机</td></tr>
+        <tr><td>击球方向</td><td>远离己方球门</td><td>强制 Z 分量至少 50%</td></tr>
+        <tr><td>球 Y 速度</td><td><code>2+rand×2</code> / <code>1.5+rand</code></td><td>飞扑中 / 落地</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">7.3 守门员待机动画</div>
+    <div class="card">
+      <table>
+        <tr><th>行为</th><th>设定</th></tr>
+        <tr><td>半蹲姿势</td><td>大腿前倾 -0.4 rad，膝盖弯曲 0.8 rad</td></tr>
+        <tr><td>双臂张开</td><td>左臂 rotation.z=-1.2，右臂 rotation.z=1.2</td></tr>
+        <tr><td>呼吸微动</td><td>sin(time×2)×0.05 叠加</td></tr>
+        <tr><td>整体下移</td><td>Y=-0.15 模拟半蹲</td></tr>
+        <tr><td>移动时腿微摆</td><td>sin(time×speed×3)×0.15</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 八、AI球员系统 ============ -->
+<section class="chapter" id="ch8">
+  <div class="chapter-header">
+    <div class="chapter-num" style="background:rgba(68,136,255,0.15);color:var(--blue);">08</div>
+    <div class="chapter-title">AI 球员系统</div>
+  </div>
+  <p class="chapter-desc">单难度 · 角色-行为映射 · 精度随机偏移 · 不攻击球员</p>
+
+  <div class="section">
+    <div class="section-title">8.1 AI 行为规则</div>
+    <div class="card" style="overflow-x:auto;">
+      <table>
+        <tr><th>角色</th><th>球在己方半场</th><th>球在对方半场</th><th>速度</th><th>踢球力度</th></tr>
+        <tr><td><span class="tag tag-orange">守门员</span></td><td>退守球门线，X跟随球</td><td>禁区边缘站位</td><td>2.5~3.5</td><td>14（解围）</td></tr>
+        <tr><td><span class="tag tag-gold">前锋</span></td><td>追球</td><td>站位进攻方向6m</td><td>2.5 / 1.0</td><td>8</td></tr>
+        <tr><td><span class="tag tag-green">中场</span></td><td>追球（距离&lt;12m）</td><td>跟随球偏移</td><td>2.0 / 1.0</td><td>8</td></tr>
+        <tr><td><span class="tag tag-cyan">后卫</span></td><td>追球</td><td>站位防守方向6m</td><td>2.5 / 1.0</td><td>12（解围）</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">8.2 AI 踢球逻辑</div>
+    <div class="card">
+      <table>
+        <tr><th>角色</th><th>踢球方向</th><th>力度</th><th>精度</th></tr>
+        <tr><td>守门员</td><td>远离己方球门大脚解围</td><td>14</td><td><span class="tag tag-orange">0.5</span></td></tr>
+        <tr><td>后卫（己方半场）</td><td>朝对方球门</td><td>12</td><td><span class="tag tag-orange">0.5</span></td></tr>
+        <tr><td>其他</td><td>朝对方球门</td><td>8</td><td><span class="tag tag-green">0.7</span></td></tr>
+      </table>
+      <div class="code-block" style="margin-top:12px;">
+<span class="comment">// 精度计算</span>
+目标偏移 = random(-0.5, 0.5) × <span class="num">4</span> × (1 - accuracy)   <span class="comment">// X方向</span>
+目标偏移 += random(-0.5, 0.5) × <span class="num">2</span> × (1 - accuracy)  <span class="comment">// Z方向</span>
+踢球冷却 = <span class="num">0.5秒</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">8.3 AI 行为约束</div>
+    <div class="card">
+      <div class="callout callout-warn">
+        <span class="callout-icon">⚠️</span>
+        <div>
+          <div>• AI 球员<strong>仅对球</strong>进行踢球判定</div>
+          <div>• AI <strong>不会攻击</strong>其他球员</div>
+          <div>• AI 之间有基础碰撞回避（重叠推离）</div>
+          <div>• 守门员始终正面朝向球（己方半场时）</div>
+          <div>• AI 踢球时自动解除玩家带球状态</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 九、碰撞系统 ============ -->
+<section class="chapter" id="ch9">
+  <div class="chapter-header">
+    <div class="chapter-num" style="background:rgba(57,210,192,0.15);color:var(--cyan);">09</div>
+    <div class="chapter-title">碰撞系统</div>
+  </div>
+  <p class="chapter-desc">球与球员 · 球员之间 · 边界约束</p>
+
+  <div class="section">
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title"><span class="icon">⚽</span> 球与球员碰撞</div>
+        <table>
+          <tr><th>情况</th><th>行为</th></tr>
+          <tr><td>球触碰玩家（&lt;0.8m）</td><td>进入带球状态</td></tr>
+          <tr><td>球触碰非带球球员</td><td>弹开（1.5× 法线冲量）</td></tr>
+          <tr><td>玩家带球时</td><td>球由带球逻辑控制</td></tr>
+          <tr><td>AI 触碰带球中的球</td><td>解除带球</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="icon">👥</span> 球员之间碰撞</div>
+        <table>
+          <tr><th>情况</th><th>处理</th></tr>
+          <tr><td>两个站立球员重叠</td><td>各推离 50%</td></tr>
+          <tr><td>飞扑守门员 vs 站立球员</td><td>站立球员推离 100%</td></tr>
+          <tr><td>飞扑方 vs 站立方</td><td>飞扑方不推离</td></tr>
+          <tr><td>倒地球员</td><td>不参与碰撞推离</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">球员边界约束</div>
+    <div class="card">
+      <div class="code-block">
+<span class="func">margin</span> = PLAYER_W/<span class="num">2</span> + <span class="num">0.1</span> = <span class="num">0.35</span>
+x = clamp(x, -FIELD_W/<span class="num">2</span> + margin, FIELD_W/<span class="num">2</span> - margin)
+z = clamp(z, -FIELD_L/<span class="num">2</span> + margin, FIELD_L/<span class="num">2</span> - margin)
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 十、比赛规则 ============ -->
+<section class="chapter" id="ch10">
+  <div class="chapter-header">
+    <div class="chapter-num" style="background:rgba(247,120,186,0.15);color:var(--pink);">10</div>
+    <div class="chapter-title">比赛规则</div>
+  </div>
+  <p class="chapter-desc">无犯规 · 无越位 · 无出界 · 封闭场地</p>
+
+  <div class="section">
+    <div class="section-title">10.1 核心规则</div>
+    <div class="grid-3">
+      <div class="card" style="text-align:center;">
+        <div style="font-size:2rem;">🚫</div>
+        <div style="font-weight:700;margin-top:8px;">无犯规</div>
+        <div style="font-size:0.8rem;color:var(--text-dim);">可踢球也可踢人</div>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div style="font-size:2rem;">🚫</div>
+        <div style="font-weight:700;margin-top:8px;">无越位</div>
+        <div style="font-size:0.8rem;color:var(--text-dim);">不设越位规则</div>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div style="font-size:2rem;">🧱</div>
+        <div style="font-weight:700;margin-top:8px;">无出界</div>
+        <div style="font-size:0.8rem;color:var(--text-dim);">球撞墙反弹</div>
+      </div>
+    </div>
+    <div class="callout callout-success" style="margin-top:12px;">
+      <span class="callout-icon">🥅</span>
+      <span>进球判定：球中心越过球门线 且 |X| &lt; GOAL_W/2 且 Y &lt; GOAL_H</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">10.2 比赛时长</div>
+    <div class="grid-3">
+      <div class="card" style="text-align:center;">
+        <div class="val" style="font-size:1.8rem;font-weight:800;color:var(--text-dim);">1:30</div>
+        <div style="font-size:0.8rem;color:var(--text-dim);">短 · 90秒</div>
+      </div>
+      <div class="card" style="text-align:center;border-color:rgba(88,166,255,0.3);">
+        <div class="val" style="font-size:1.8rem;font-weight:800;color:var(--accent);">3:00</div>
+        <div style="font-size:0.8rem;color:var(--accent);">中（默认）· 180秒</div>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div class="val" style="font-size:1.8rem;font-weight:800;color:var(--text-dim);">5:00</div>
+        <div style="font-size:0.8rem;color:var(--text-dim);">长 · 300秒</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">10.3 开球流程</div>
+    <div class="card">
+      <div class="flow" style="justify-content:center;">
+        <div class="flow-node">点击开始</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">选择时长</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">3-2-1 倒计时</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node highlight">开踢！</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node active">比赛开始</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">10.4 进球后重置</div>
+    <div class="card">
+      <div class="flow" style="justify-content:center;">
+        <div class="flow-node highlight">🥅 进球</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">比分更新</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">暂停 2 秒</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">球员回位</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">球回中线</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node active">继续</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">10.5 结算</div>
+    <div class="grid-3">
+      <div class="card" style="text-align:center;border-color:rgba(255,68,68,0.3);">
+        <div style="font-size:2rem;">🎉</div>
+        <div style="font-weight:700;color:var(--red);margin-top:6px;">红队获胜！</div>
+      </div>
+      <div class="card" style="text-align:center;border-color:rgba(68,136,255,0.3);">
+        <div style="font-size:2rem;">😢</div>
+        <div style="font-weight:700;color:var(--blue);margin-top:6px;">蓝队获胜</div>
+      </div>
+      <div class="card" style="text-align:center;border-color:rgba(255,215,0,0.3);">
+        <div style="font-size:2rem;">🤝</div>
+        <div style="font-weight:700;color:var(--gold);margin-top:6px;">平局</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 附录 ============ -->
+<section class="chapter" id="appendix">
+  <div class="chapter-header">
+    <div class="chapter-num" style="background:rgba(139,148,158,0.15);color:var(--text-dim);">⭐</div>
+    <div class="chapter-title">附录：参数速查表</div>
+  </div>
+
+  <div class="appendix-grid">
+    <div class="appendix-item"><div class="sys">球场</div><div class="param">尺寸</div><div class="val">25 × 16 m</div></div>
+    <div class="appendix-item"><div class="sys">球门</div><div class="param">尺寸</div><div class="val">5 × 1.5 m</div></div>
+    <div class="appendix-item"><div class="sys">球门</div><div class="param">深度</div><div class="val">1.8 m</div></div>
+    <div class="appendix-item"><div class="sys">球</div><div class="param">半径</div><div class="val">0.11 m</div></div>
+    <div class="appendix-item"><div class="sys">球</div><div class="param">弹性系数</div><div class="val">0.7</div></div>
+    <div class="appendix-item"><div class="sys">球</div><div class="param">最大速度</div><div class="val">30 m/s</div></div>
+    <div class="appendix-item"><div class="sys">球</div><div class="param">摩擦</div><div class="val">0.985/帧</div></div>
+    <div class="appendix-item"><div class="sys">移动</div><div class="param">自动追球</div><div class="val">1 m/s</div></div>
+    <div class="appendix-item"><div class="sys">移动</div><div class="param">加速上限</div><div class="val">6 m/s</div></div>
+    <div class="appendix-item"><div class="sys">移动</div><div class="param">衰减</div><div class="val">×0.92/帧</div></div>
+    <div class="appendix-item"><div class="sys">带球</div><div class="param">粘滞距离</div><div class="val">0.8 m</div></div>
+    <div class="appendix-item"><div class="sys">带球</div><div class="param">球偏移</div><div class="val">0.55 m</div></div>
+    <div class="appendix-item"><div class="sys">带球</div><div class="param">速度上限</div><div class="val">3 m/s</div></div>
+    <div class="appendix-item"><div class="sys">腿</div><div class="param">碰撞半径</div><div class="val">0.25 m</div></div>
+    <div class="appendix-item"><div class="sys">腿</div><div class="param">最大摆角</div><div class="val">72° / 30°</div></div>
+    <div class="appendix-item"><div class="sys">踢球</div><div class="param">默认力度</div><div class="val">10</div></div>
+    <div class="appendix-item"><div class="sys">踢球</div><div class="param">冷却</div><div class="val">0.15 秒</div></div>
+    <div class="appendix-item"><div class="sys">击人</div><div class="param">击退范围</div><div class="val">1/3/5 m</div></div>
+    <div class="appendix-item"><div class="sys">击人</div><div class="param">倒地时间</div><div class="val">1.5/3 秒</div></div>
+    <div class="appendix-item"><div class="sys">击人</div><div class="param">冷却</div><div class="val">0.3 秒</div></div>
+    <div class="appendix-item"><div class="sys">守门员</div><div class="param">飞扑速度</div><div class="val">8 m/s</div></div>
+    <div class="appendix-item"><div class="sys">守门员</div><div class="param">飞扑碰撞半径</div><div class="val">1.2 m</div></div>
+    <div class="appendix-item"><div class="sys">守门员</div><div class="param">飞扑冷却</div><div class="val">5 秒</div></div>
+    <div class="appendix-item"><div class="sys">守门员</div><div class="param">飞扑击球力度</div><div class="val">10~15</div></div>
+    <div class="appendix-item"><div class="sys">镜头</div><div class="param">FOV</div><div class="val">90°</div></div>
+    <div class="appendix-item"><div class="sys">镜头</div><div class="param">默认高度</div><div class="val">4.5 m</div></div>
+    <div class="appendix-item"><div class="sys">镜头</div><div class="param">高度范围</div><div class="val">2.05~14 m</div></div>
+    <div class="appendix-item"><div class="sys">镜头</div><div class="param">跟随平滑</div><div class="val">0.12</div></div>
+    <div class="appendix-item"><div class="sys">队伍</div><div class="param">每队人数</div><div class="val">4（含守门员）</div></div>
+    <div class="appendix-item"><div class="sys">比赛</div><div class="param">默认时长</div><div class="val">180 秒</div></div>
+    <div class="appendix-item"><div class="sys">骨骼</div><div class="param">对应映射</div><div class="val">左手→左腿</div></div>
+    <div class="appendix-item"><div class="sys">骨骼</div><div class="param">死区角度</div><div class="val">15°</div></div>
+    <div class="appendix-item"><div class="sys">骨骼</div><div class="param">最小置信度</div><div class="val">0.5</div></div>
+    <div class="appendix-item"><div class="sys">加速</div><div class="param">触发方式</div><div class="val">双手&lt;0.2</div></div>
+  </div>
+</section>
+
+</div><!-- container -->
+
+<footer>
+  <div>疯狂足球 · 核心机制详细需求文案 v2.1</div>
+  <div style="margin-top:4px;">谢华明 · 2026-04-27 · 关联文档：策划大纲 v1.0 / Web MVP 原型 football.html</div>
+</footer>
+
+<script>
+// ========== Draw Field Canvas ==========
+(function(){
+  const c = document.getElementById('fieldCanvas');
+  if(!c) return;
+  const ctx = c.getContext('2d');
+  const W = 520, H = 340;
+  const ox = W/2, oy = H/2;
+  // Scale: 25m -> 280px, 16m -> 180px
+  const sx = 280/25, sz = 180/16;
+
+  ctx.fillStyle = '#0d1117';
+  ctx.fillRect(0,0,W,H);
+
+  // Field
+  const fw = 25*sx, fh = 16*sz;
+  ctx.strokeStyle = '#3fb950';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(ox-fw/2, oy-fh/2, fw, fh);
+
+  // Grass stripes
+  ctx.fillStyle = 'rgba(63,185,80,0.03)';
+  for(let i=0;i<10;i++){
+    if(i%2===0) ctx.fillRect(ox-fw/2 + i*fw/10, oy-fh/2, fw/10, fh);
+  }
+
+  // Center line
+  ctx.beginPath();
+  ctx.moveTo(ox, oy-fh/2);
+  ctx.lineTo(ox, oy+fh/2);
+  ctx.stroke();
+
+  // Center circle
+  ctx.beginPath();
+  ctx.arc(ox, oy, 2*sx, 0, Math.PI*2);
+  ctx.stroke();
+
+  // Penalty areas (5m x 8m)
+  const pw = 5*sx, ph = 8*sz;
+  ctx.strokeRect(ox-fw/2, oy-ph/2, pw, ph);
+  ctx.strokeRect(ox+fw/2-pw, oy-ph/2, pw, ph);
+
+  // Goals (5m wide, 1.8m deep)
+  const gw = 5*sx, gd = 1.8*sx;
+  ctx.strokeStyle = '#ffd700';
+  ctx.lineWidth = 3;
+  // Left goal
+  ctx.strokeRect(ox-fw/2-gd, oy-gw/2, gd, gw);
+  // Right goal
+  ctx.strokeRect(ox+fw/2, oy-gw/2, gd, gw);
+
+  // Goal posts
+  ctx.fillStyle = '#ffd700';
+  ctx.beginPath(); ctx.arc(ox-fw/2, oy-gw/2, 3, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(ox-fw/2, oy+gw/2, 3, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(ox+fw/2, oy-gw/2, 3, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(ox+fw/2, oy+gw/2, 3, 0, Math.PI*2); ctx.fill();
+
+  // Labels
+  ctx.font = '11px sans-serif';
+  ctx.fillStyle = '#8b949e';
+  ctx.textAlign = 'center';
+  ctx.fillText('25m', ox, oy+fh/2+16);
+  ctx.save();
+  ctx.translate(ox-fw/2-16, oy);
+  ctx.rotate(-Math.PI/2);
+  ctx.fillText('16m', 0, 0);
+  ctx.restore();
+
+  ctx.font = '10px sans-serif';
+  ctx.fillStyle = '#ff4444';
+  ctx.fillText('红队球门', ox-fw/2-gd/2, oy+gw/2+14);
+  ctx.fillStyle = '#4488ff';
+  ctx.fillText('蓝队球门', ox+fw/2+gd/2, oy+gw/2+14);
+
+  // Goal dimensions
+  ctx.font = '9px sans-serif';
+  ctx.fillStyle = '#ffd700';
+  ctx.fillText('5m', ox-fw/2-gd/2, oy-2);
+  ctx.fillText('1.8m深', ox-fw/2-gd/2, oy+10);
+})();
+
+// ========== Draw HUD Canvas ==========
+(function(){
+  const c = document.getElementById('hudCanvas');
+  if(!c) return;
+  const ctx = c.getContext('2d');
+  const W = 640, H = 360;
+
+  ctx.fillStyle = '#0d1117';
+  ctx.fillRect(0,0,W,H);
+
+  // Screen outline
+  ctx.strokeStyle = '#30363d';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(10, 10, W-20, H-20);
+
+  // Score board (top center)
+  ctx.fillStyle = 'rgba(22,27,34,0.9)';
+  ctx.fillRect(W/2-90, 16, 180, 36);
+  ctx.strokeStyle = '#30363d';
+  ctx.strokeRect(W/2-90, 16, 180, 36);
+  ctx.font = 'bold 20px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#ff4444';
+  ctx.fillText('2', W/2-40, 42);
+  ctx.fillStyle = '#8b949e';
+  ctx.fillText(':', W/2, 42);
+  ctx.fillStyle = '#4488ff';
+  ctx.fillText('1', W/2+40, 42);
+
+  // Timer (top right)
+  ctx.font = '14px monospace';
+  ctx.fillStyle = '#8b949e';
+  ctx.textAlign = 'right';
+  ctx.fillText('2:34', W-24, 34);
+
+  // Minimap (top right, below timer)
+  const mx = W-24-50, my = 46, mw = 50, mh = 78;
+  ctx.fillStyle = 'rgba(0,0,0,0.5)';
+  ctx.fillRect(mx, my, mw, mh);
+  ctx.strokeStyle = '#30363d';
+  ctx.strokeRect(mx, my, mw, mh);
+  // minimap dots
+  ctx.fillStyle = '#44ff44'; ctx.beginPath(); ctx.arc(mx+25, my+50, 2.5, 0, Math.PI*2); ctx.fill(); // player
+  ctx.fillStyle = '#ff4444'; ctx.beginPath(); ctx.arc(mx+20, my+45, 2, 0, Math.PI*2); ctx.fill(); // red AI
+  ctx.fillStyle = '#ff4444'; ctx.beginPath(); ctx.arc(mx+22, my+60, 2, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#4488ff'; ctx.beginPath(); ctx.arc(mx+30, my+30, 2, 0, Math.PI*2); ctx.fill(); // blue
+  ctx.fillStyle = '#4488ff'; ctx.beginPath(); ctx.arc(mx+28, my+18, 2, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(mx+26, my+52, 2, 0, Math.PI*2); ctx.fill(); // ball
+
+  // Speed bar (bottom center)
+  const bw = 160, bh = 6;
+  const bx = W/2-bw/2, by = H-30;
+  ctx.fillStyle = 'rgba(22,27,34,0.8)';
+  ctx.fillRect(bx-2, by-2, bw+4, bh+4);
+  const grad = ctx.createLinearGradient(bx, by, bx+bw, by);
+  grad.addColorStop(0, '#44ff44');
+  grad.addColorStop(0.5, '#ffd700');
+  grad.addColorStop(1, '#ff4444');
+  ctx.fillStyle = grad;
+  ctx.fillRect(bx, by, bw*0.65, bh);
+
+  // Camera mode badge (top left)
+  ctx.fillStyle = 'rgba(88,166,255,0.1)';
+  ctx.fillRect(18, 18, 90, 24);
+  ctx.strokeStyle = 'rgba(88,166,255,0.3)';
+  ctx.strokeRect(18, 18, 90, 24);
+  ctx.font = '11px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#58a6ff';
+  ctx.fillText('📷 体感模式', 26, 35);
+
+  // Ball indicator arrow (right edge)
+  ctx.fillStyle = '#ffd700';
+  ctx.beginPath();
+  ctx.moveTo(W-20, H/2-8);
+  ctx.lineTo(W-10, H/2);
+  ctx.lineTo(W-20, H/2+8);
+  ctx.fill();
+  ctx.font = '10px sans-serif';
+  ctx.textAlign = 'right';
+  ctx.fillStyle = '#ffd700';
+  ctx.fillText('8m', W-24, H/2+4);
+
+  // Dribble indicator
+  ctx.font = '12px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#ffd700';
+  ctx.fillText('⚽ 带球中', W/2, 72);
+
+  // Labels
+  ctx.font = '9px sans-serif';
+  ctx.fillStyle = '#58a6ff';
+  ctx.textAlign = 'left';
+  ctx.fillText('比分板', W/2-20, 60);
+  ctx.fillText('速度条', W/2-16, H-16);
+  ctx.fillText('小地图', mx+10, my+mh+12);
+})();
+
+// ========== Draw Stickman Canvas ==========
+(function(){
+  const c = document.getElementById('stickmanCanvas');
+  if(!c) return;
+  const ctx = c.getContext('2d');
+  const W = 400, H = 400;
+  const cx = W/2, base = H-60;
+
+  ctx.fillStyle = '#0d1117';
+  ctx.fillRect(0,0,W,H);
+
+  // Ground line
+  ctx.strokeStyle = '#30363d';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(40, base);
+  ctx.lineTo(W-40, base);
+  ctx.stroke();
+
+  // Scale: 1m = 160px
+  const s = 160;
+
+  function drawStickman(x, color, label, isPlayer){
+    const headY = base - 1.6*s;
+    const bodyTop = base - 1.45*s;
+    const bodyBot = base - 0.95*s;
+    const hipY = bodyBot;
+    const shoulderY = bodyTop + 10;
+    const kneeY = base - 0.35*s;
+
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = 3;
+
+    // Head
+    ctx.beginPath();
+    ctx.arc(x, headY, 0.15*s, 0, Math.PI*2);
+    ctx.stroke();
+
+    // Body
+    ctx.beginPath();
+    ctx.moveTo(x, bodyTop);
+    ctx.lineTo(x, bodyBot);
+    ctx.stroke();
+
+    // Left arm
+    ctx.beginPath();
+    ctx.moveTo(x, shoulderY);
+    ctx.lineTo(x-0.25*s, shoulderY+0.35*s);
+    ctx.stroke();
+
+    // Right arm
+    ctx.beginPath();
+    ctx.moveTo(x, shoulderY);
+    ctx.lineTo(x+0.25*s, shoulderY+0.35*s);
+    ctx.stroke();
+
+    // Left leg
+    ctx.beginPath();
+    ctx.moveTo(x-0.1*s, hipY);
+    ctx.lineTo(x-0.15*s, kneeY);
+    ctx.lineTo(x-0.15*s, base);
+    ctx.stroke();
+
+    // Right leg (kicking)
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(x+0.1*s, hipY);
+    ctx.lineTo(x+0.2*s, kneeY-5);
+    ctx.lineTo(x+0.35*s, base-0.15*s);
+    ctx.stroke();
+    ctx.lineWidth = 3;
+
+    // Player arrow
+    if(isPlayer){
+      ctx.fillStyle = '#44ff44';
+      ctx.beginPath();
+      ctx.moveTo(x, headY-0.15*s-6);
+      ctx.lineTo(x-6, headY-0.15*s-18);
+      ctx.lineTo(x+6, headY-0.15*s-18);
+      ctx.fill();
+    }
+
+    // Label
+    ctx.font = '11px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = color;
+    ctx.fillText(label, x, base+20);
+  }
+
+  drawStickman(cx-80, '#ff4444', '红队·玩家', true);
+  drawStickman(cx+80, '#4488ff', '蓝队·AI', false);
+
+  // Dimension annotations
+  ctx.strokeStyle = '#ffd700';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4,3]);
+  // Height
+  ctx.beginPath();
+  ctx.moveTo(cx-80+40, base);
+  ctx.lineTo(cx-80+40, base-1.6*s);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.font = '10px sans-serif';
+  ctx.fillStyle = '#ffd700';
+  ctx.textAlign = 'center';
+  ctx.fillText('1.6m', cx-80+55, base - 0.8*s);
+})();
+
+// ========== Nav active highlight ==========
+(function(){
+  const nav = document.getElementById('nav');
+  const links = nav.querySelectorAll('a');
+  const sections = [];
+  links.forEach(a => {
+    const id = a.getAttribute('href').slice(1);
+    const el = document.getElementById(id);
+    if(el) sections.push({id, el, link: a});
+  });
+
+  function update(){
+    const scrollY = window.scrollY + 80;
+    let current = sections[0];
+    sections.forEach(s => {
+      if(s.el.offsetTop <= scrollY) current = s;
+    });
+    links.forEach(l => l.classList.remove('active'));
+    if(current) current.link.classList.add('active');
+  }
+
+  window.addEventListener('scroll', update, {passive:true});
+  update();
+})();
+</script>
+</body>
+</html>

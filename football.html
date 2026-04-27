@@ -1,0 +1,2222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>疯狂足球 MVP</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0e1a;overflow:hidden;font-family:'Microsoft YaHei',sans-serif;color:#fff;width:100vw;height:100vh}
+canvas#gameCanvas{display:block;width:100vw;height:100vh}
+
+/* 开始界面 */
+#startScreen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#0a0e1a 0%,#1a1040 50%,#0a0e1a 100%);z-index:100}
+#startScreen h1{font-size:72px;background:linear-gradient(90deg,#ff4444,#ffaa00,#44ff44,#4488ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-shadow:none;margin-bottom:10px;letter-spacing:8px}
+#startScreen .sub{font-size:20px;color:#888;margin-bottom:30px}
+#startScreen .teams{display:flex;gap:60px;margin-bottom:30px}
+#startScreen .team-box{width:180px;height:100px;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:24px;font-weight:bold;border:3px solid}
+.team-red{border-color:#ff4444;background:rgba(255,68,68,.1);color:#ff4444}
+.team-blue{border-color:#4488ff;background:rgba(68,136,255,.1);color:#4488ff}
+.team-box span{font-size:14px;font-weight:normal;opacity:.7;margin-top:4px}
+
+/* 操作说明 */
+#controlsInfo{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:20px 32px;margin-bottom:30px;max-width:560px;width:90%}
+#controlsInfo h3{font-size:16px;color:#ffaa00;margin-bottom:12px;text-align:center;letter-spacing:2px}
+.ctrl-row{display:flex;gap:24px;justify-content:center;margin-bottom:10px}
+.ctrl-col{display:flex;flex-direction:column;align-items:center;gap:6px}
+.ctrl-col .ctrl-title{font-size:12px;color:#aaa;margin-bottom:2px;font-weight:bold}
+.ctrl-keys{display:flex;flex-direction:column;align-items:center;gap:3px}
+.ctrl-keyrow{display:flex;gap:3px;justify-content:center}
+.ck{min-width:30px;height:26px;padding:0 6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;border-radius:5px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#ccc}
+.ck.wide{min-width:100px}
+.ctrl-desc{font-size:11px;color:#777;text-align:center;line-height:1.6}
+
+#startBtn{padding:16px 64px;font-size:24px;border:none;border-radius:12px;background:linear-gradient(135deg,#ff4444,#ff8800);color:#fff;cursor:pointer;transition:transform .2s,box-shadow .2s;letter-spacing:4px}
+#startBtn:hover{transform:scale(1.05);box-shadow:0 0 30px rgba(255,68,68,.4)}
+#startBtn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.cam-status{margin-top:20px;font-size:14px;color:#888;display:none}
+.cam-status.ok{color:#44ff44}
+#camPreview{position:fixed;bottom:20px;left:20px;width:200px;height:150px;border-radius:12px;border:2px solid rgba(255,255,255,.2);z-index:50;object-fit:cover;display:none;background:#000}
+
+/* HUD */
+#hud{position:fixed;inset:0;pointer-events:none;z-index:10;display:none}
+#scoreBoard{position:absolute;top:20px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:20px;background:rgba(0,0,0,.6);padding:8px 24px;border-radius:30px;backdrop-filter:blur(8px)}
+.score-red{color:#ff4444;font-size:36px;font-weight:bold;min-width:40px;text-align:center}
+.score-blue{color:#4488ff;font-size:36px;font-weight:bold;min-width:40px;text-align:center}
+.score-vs{color:#fff;font-size:20px;opacity:.6}
+#timer{position:absolute;top:20px;right:20px;background:rgba(0,0,0,.6);padding:8px 16px;border-radius:20px;font-size:20px;backdrop-filter:blur(8px)}
+#minimap{position:absolute;top:70px;right:20px;width:108px;height:168px;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.2);border-radius:8px;backdrop-filter:blur(4px)}
+#ballIndicator{position:fixed;width:32px;height:32px;display:none;z-index:11}
+#ballIndicator svg{width:100%;height:100%}
+#speedBar{position:absolute;bottom:80px;left:50%;transform:translateX(-50%);width:200px;height:8px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden}
+#speedFill{height:100%;width:0%;background:linear-gradient(90deg,#44ff44,#ffaa00,#ff4444);border-radius:4px;transition:width .1s}
+#speedLabel{position:absolute;bottom:92px;left:50%;transform:translateX(-50%);font-size:12px;color:#aaa}
+
+/* 带球状态指示 */
+#dribbleIndicator{position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);font-size:18px;color:#ffaa00;font-weight:bold;opacity:0;transition:opacity .3s;pointer-events:none;z-index:15;text-shadow:0 0 10px rgba(255,170,0,.5)}
+#dribbleIndicator.active{opacity:1}
+
+/* 踢球力度调节条 */
+#powerControl{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:4px;pointer-events:auto;z-index:12}
+#powerLabel{font-size:13px;color:#aaa}
+#powerSlider{width:280px;accent-color:#ff8800;cursor:pointer}
+#powerValue{font-size:11px;color:#888}
+
+/* 按键提示 */
+#keyHints{position:fixed;top:50%;left:12px;transform:translateY(-50%);display:flex;flex-direction:column;gap:12px;z-index:12;pointer-events:none}
+.key-group{display:flex;flex-direction:column;align-items:center;gap:2px}
+.key-group .label{font-size:10px;color:#888;margin-bottom:2px}
+.key-row{display:flex;gap:2px}
+.key-btn{width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:bold;border-radius:4px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#aaa;transition:background .1s,color .1s}
+.key-btn.active{background:rgba(255,136,0,.5);color:#fff;border-color:rgba(255,136,0,.8)}
+
+/* 结算界面 */
+#resultScreen{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.85);z-index:100;backdrop-filter:blur(12px)}
+#resultScreen h2{font-size:48px;margin-bottom:30px}
+.result-score{display:flex;align-items:center;gap:30px;font-size:72px;font-weight:bold;margin-bottom:30px}
+.result-red{color:#ff4444}
+.result-blue{color:#4488ff}
+.result-vs{color:#fff;font-size:36px;opacity:.5}
+.result-label{font-size:16px;color:#888;margin-top:-10px;margin-bottom:20px}
+#replayBtn{padding:14px 48px;font-size:20px;border:none;border-radius:10px;background:linear-gradient(135deg,#4488ff,#44aaff);color:#fff;cursor:pointer;transition:transform .2s}
+#replayBtn:hover{transform:scale(1.05)}
+
+/* 倒计时 */
+#countdown{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:90;pointer-events:none}
+#countdown span{font-size:120px;font-weight:bold;color:#fff;text-shadow:0 0 40px rgba(255,255,255,.3);animation:countPulse .8s ease-out}
+@keyframes countPulse{0%{transform:scale(2);opacity:0}30%{opacity:1}100%{transform:scale(1);opacity:1}}
+
+/* 操作模式选择 */
+.mode-selector{display:flex;gap:10px;margin-bottom:20px;align-items:center;justify-content:center}
+.mode-selector span{font-size:14px;color:#aaa}
+.mode-btn{padding:8px 24px;font-size:14px;border:2px solid rgba(255,255,255,.2);border-radius:8px;background:rgba(255,255,255,.05);color:#aaa;cursor:pointer;transition:all .2s}
+.mode-btn.active{border-color:#ff8800;color:#ff8800;background:rgba(255,136,0,.1)}
+.mode-btn:hover{border-color:rgba(255,136,0,.5)}
+
+/* 比赛时间选择 */
+.time-selector{display:flex;gap:10px;margin-bottom:20px;align-items:center;justify-content:center}
+.time-selector span{font-size:14px;color:#aaa}
+.time-btn{padding:8px 24px;font-size:14px;border:2px solid rgba(255,255,255,.2);border-radius:8px;background:rgba(255,255,255,.05);color:#aaa;cursor:pointer;transition:all .2s;min-width:70px;text-align:center}
+.time-btn.active{border-color:#44ff44;color:#44ff44;background:rgba(68,255,68,.1)}
+.time-btn:hover{border-color:rgba(68,255,68,.5)}
+
+/* 摄像头操作说明 */
+#controlsInfoCamera{display:none;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:20px 32px;margin-bottom:30px;max-width:560px;width:90%}
+#controlsInfoCamera h3{font-size:16px;color:#ffaa00;margin-bottom:12px;text-align:center;letter-spacing:2px}
+.cam-zone{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.cam-zone-row{display:flex;align-items:center;gap:10px;font-size:12px;color:#aaa}
+.cam-zone-label{min-width:80px;font-weight:bold;color:#ccc}
+.cam-zone-left{color:#ff6666}
+.cam-zone-right{color:#6688ff}
+.cam-zone-desc{opacity:.7}
+
+/* 摄像头模式指示 */
+#camModeIndicator{position:fixed;top:70px;left:20px;padding:6px 14px;border-radius:8px;font-size:12px;z-index:12;display:none;pointer-events:none}
+#camModeIndicator.camera{background:rgba(255,136,0,.2);border:1px solid rgba(255,136,0,.4);color:#ff8800}
+</style>
+</head>
+<body>
+
+<!-- 开始界面 -->
+<div id="startScreen">
+  <h1>疯狂足球</h1>
+  <div class="sub" id="modeSubtitle">键盘操作 · 第三人称俯视角</div>
+  <div class="teams">
+    <div class="team-box team-red">🔴 红队<span>玩家控制</span></div>
+    <div class="team-box team-blue">🔵 蓝队<span>AI 控制</span></div>
+  </div>
+
+  <!-- 操作模式选择 -->
+  <div class="mode-selector">
+    <span>操作模式：</span>
+    <button class="mode-btn active" id="modeKeyboard">⌨ 键盘</button>
+    <button class="mode-btn" id="modeCamera">📷 摄像头</button>
+  </div>
+
+  <!-- 比赛时间选择 -->
+  <div class="time-selector">
+    <span>比赛时间：</span>
+    <button class="time-btn" data-time="90">1:30</button>
+    <button class="time-btn active" data-time="180">3:00</button>
+    <button class="time-btn" data-time="300">5:00</button>
+  </div>
+
+  <!-- 键盘操作说明 -->
+  <div id="controlsInfoKeyboard">
+    <div id="controlsInfo">
+    <h3>⌨ 操作说明</h3>
+    <div class="ctrl-row">
+      <div class="ctrl-col">
+        <div class="ctrl-title">右脚</div>
+        <div class="ctrl-keys">
+          <div class="ctrl-keyrow"><div class="ck">W</div></div>
+          <div class="ctrl-keyrow"><div class="ck">A</div><div class="ck">S</div><div class="ck">D</div></div>
+        </div>
+      </div>
+      <div class="ctrl-col">
+        <div class="ctrl-title">左脚</div>
+        <div class="ctrl-keys">
+          <div class="ctrl-keyrow"><div class="ck">I</div></div>
+          <div class="ctrl-keyrow"><div class="ck">J</div><div class="ck">K</div><div class="ck">L</div></div>
+        </div>
+      </div>
+      <div class="ctrl-col">
+        <div class="ctrl-title">加速</div>
+        <div class="ctrl-keys">
+          <div class="ctrl-keyrow"><div class="ck wide">Space</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="ctrl-desc">
+      角色自动追球 · 点击 WASD 控制右脚 / IJKL 控制左脚踢腿<br>
+      球触碰角色 = 带球（自动冲向对方球门）· 腿部踢球解除带球<br>
+      腿触碰球员 = 击倒 · 空格切换加速（带球时也可加速）
+    </div>
+    </div>
+  </div>
+
+  <!-- 摄像头操作说明 -->
+  <div id="controlsInfoCamera">
+    <h3>📷 摄像头操作说明</h3>
+    <div class="cam-zone">
+      <div class="cam-zone-row"><span class="cam-zone-label cam-zone-left">左手向左举起 90°~120°</span><span>→ 左脚向左踢</span></div>
+      <div class="cam-zone-row"><span class="cam-zone-label cam-zone-left">左手向左上举起 120°~150°</span><span>→ 左脚向左上踢</span></div>
+      <div class="cam-zone-row"><span class="cam-zone-label cam-zone-left">左手向上方举起 150°~180°</span><span>→ 左脚向前踢</span></div>
+      <div class="cam-zone-row"><span class="cam-zone-label cam-zone-right">右手向右举起 90°~120°</span><span>→ 右脚向右踢</span></div>
+      <div class="cam-zone-row"><span class="cam-zone-label cam-zone-right">右手向右上举起 120°~150°</span><span>→ 右脚向右上踢</span></div>
+      <div class="cam-zone-row"><span class="cam-zone-label cam-zone-right">右手向上方举起 150°~180°</span><span>→ 右脚向前踢</span></div>
+      <div class="cam-zone-row"><span class="cam-zone-label">双手靠近</span><span>→ 加速</span></div>
+    </div>
+    <div class="ctrl-desc">
+      角色自动追球 · 举手触发踢腿动画 · 角度决定踢球方向<br>
+      需要摄像头权限 · 球触碰角色 = 带球 · 腿部踢球解除带球
+    </div>
+  </div>
+
+  <button id="startBtn">开始比赛</button>
+  <div class="cam-status" id="camStatus"></div>
+</div>
+
+<!-- HUD -->
+<div id="hud">
+  <div id="scoreBoard">
+    <span class="score-red" id="redScore">0</span>
+    <span class="score-vs">VS</span>
+    <span class="score-blue" id="blueScore">0</span>
+  </div>
+  <div id="timer">03:00</div>
+  <canvas id="minimap" width="108" height="168"></canvas>
+  <div id="speedBar"><div id="speedFill"></div></div>
+  <div id="speedLabel">速度</div>
+  <div id="dribbleIndicator">⚽ 带球中</div>
+  <div id="camModeIndicator" class="camera">📷 摄像头模式</div>
+  <div id="camHeightCtrl" style="position:absolute;bottom:20px;right:20px;display:flex;flex-direction:column;align-items:center;gap:4px;pointer-events:auto">
+    <span style="font-size:11px;color:#aaa">镜头高度</span>
+    <input type="range" id="camHeightSlider" min="205" max="1400" value="450" style="width:120px;accent-color:#4488ff;writing-mode:vertical-lr;direction:rtl;height:100px">
+    <span id="camHeightVal" style="font-size:10px;color:#888">4.5</span>
+  </div>
+</div>
+
+<!-- 球方向指示器 -->
+<div id="ballIndicator">
+  <svg viewBox="0 0 32 32"><polygon points="16,4 28,28 4,28" fill="#FFD700" opacity="0.8"/></svg>
+</div>
+
+<!-- 摄像头预览（隐藏） -->
+<video id="camPreview" autoplay playsinline></video>
+
+<!-- 踢球力度调节条 -->
+<div id="powerControl">
+  <span id="powerLabel">踢球力度</span>
+  <input type="range" id="powerSlider" min="3" max="25" value="10" step="0.5">
+  <span id="powerValue">10.0</span>
+</div>
+
+<!-- 按键提示 -->
+<div id="keyHints">
+  <div class="key-group">
+    <div class="label">右脚 WASD</div>
+    <div class="key-row"><div class="key-btn" id="kW">W</div></div>
+    <div class="key-row"><div class="key-btn" id="kA">A</div><div class="key-btn" id="kS">S</div><div class="key-btn" id="kD">D</div></div>
+  </div>
+  <div class="key-group">
+    <div class="label">左脚 IJKL</div>
+    <div class="key-row"><div class="key-btn" id="kI">I</div></div>
+    <div class="key-row"><div class="key-btn" id="kJ">J</div><div class="key-btn" id="kK">K</div><div class="key-btn" id="kL">L</div></div>
+  </div>
+  <div class="key-group">
+    <div class="label">加速</div>
+    <div class="key-row"><div class="key-btn" id="kSpace" style="width:60px">Space</div></div>
+  </div>
+</div>
+
+<!-- 倒计时 -->
+<div id="countdown"><span></span></div>
+
+<!-- 结算界面 -->
+<div id="resultScreen">
+  <h2 id="resultTitle">比赛结束</h2>
+  <div class="result-score">
+    <span class="result-red" id="resultRed">0</span>
+    <span class="result-vs">:</span>
+    <span class="result-blue" id="resultBlue">0</span>
+  </div>
+  <div class="result-label">红队 : 蓝队</div>
+  <button id="replayBtn">再来一局</button>
+</div>
+
+<!-- MediaPipe Pose -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+
+<!-- Three.js -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+
+// ============ 常量 ============
+const FIELD_W = 16, FIELD_L = 25;
+const GOAL_W = 5, GOAL_H = 1.5, GOAL_D = 1.8;
+const WALL_H = 1;
+const BALL_R = 0.11;
+const PLAYER_H = 1.6, PLAYER_W = 0.5;
+const KICK_RADIUS = 0.9, KICK_ANGLE = Math.PI * 2 / 3;
+const MAX_BALL_SPEED = 30;
+const BALL_FRICTION = 0.985, BALL_AIR_DRAG = 0.998;
+const BALL_BOUNCE = 0.7, WALL_BOUNCE = 0.8;
+const AUTO_SPEED = 1, MAX_SPEED = 6;
+let MATCH_TIME = 180; // 可通过界面选择修改
+const DRIBBLE_R = 1.2, DRIBBLE_MAX_SPEED = 3;
+const DRIBBLE_STICKY_R = 0.8; // 球触碰角色时粘滞的距离阈值
+const DRIBBLE_BALL_OFFSET = 0.55; // 带球时球在角色正前方的距离
+const KNOCKBACK_MIN = 1, KNOCKBACK_MID = 3, KNOCKBACK_MAX = 5;
+// 腿部碰撞相关常量
+const LEG_LENGTH = 0.70;
+const LEG_HIT_R = 0.25; // 腿部碰撞半径（增大以匹配脚部实际范围）
+// 踢球力度范围
+const KICK_POWER_MIN = 3;
+const KICK_POWER_MAX = 25;
+const DEFAULT_KICK_POWER = 10;
+
+// ============ 游戏状态 ============
+let gameState = 'start';
+let redScore = 0, blueScore = 0;
+let matchTimer = MATCH_TIME;
+let lastTime = 0;
+let poseData = null;
+let controlMode = 'keyboard'; // 'keyboard' 或 'camera'
+let lastPoseResults = null;
+let prevLeftArmAngle = 0;
+let prevRightArmAngle = 0;
+let cameraReady = false;
+let mpPose = null;
+let mpCamera = null;
+
+// ============ 骨骼绑定系统（摄像头模式连续驱动） ============
+const BONE_BINDING = {
+  smoothFactorMin: 6,
+  smoothFactorMax: 40,
+  armSpeedMax: 300,
+  armAngleMin: 10,
+  armAngleMax: 170,
+  legSwingMax: Math.PI / 2.5,
+  legSideMax: Math.PI / 6,
+  kneeBendRatio: 0.6,
+  deadZone: 15,
+  minConfidence: 0.5,
+};
+const boundAngles = {
+  leftLegX: 0, leftLegZ: 0, leftKneeX: 0,
+  rightLegX: 0, rightLegZ: 0, rightKneeX: 0,
+};
+let camArmAngVelLeft = 0, camArmAngVelRight = 0;
+let camPrevArmAngleLeft = 0, camPrevArmAngleRight = 0;
+
+function computeArmAngles(shoulder, elbow, wrist, hip) {
+  const confidence = Math.min(shoulder.visibility || 0, wrist.visibility || 0, hip.visibility || 0);
+  const bodyDx = hip.x - shoulder.x, bodyDy = hip.y - shoulder.y;
+  const armDx = wrist.x - shoulder.x, armDy = wrist.y - shoulder.y;
+  const bodyLen = Math.sqrt(bodyDx * bodyDx + bodyDy * bodyDy);
+  const armLen = Math.sqrt(armDx * armDx + armDy * armDy);
+  if (bodyLen < 0.001 || armLen < 0.001) return { swingAngle: 0, sideAngle: 0, confidence: 0 };
+  const dot = bodyDx * armDx + bodyDy * armDy;
+  const cosA = Math.max(-1, Math.min(1, dot / (bodyLen * armLen)));
+  const swingAngle = Math.acos(cosA) * 180 / Math.PI;
+  const sideAngle = wrist.x - shoulder.x;
+  return { swingAngle, sideAngle, confidence };
+}
+
+function mapArmToLeg(armAngle, sideOffset) {
+  const cfg = BONE_BINDING;
+  if (armAngle < cfg.deadZone) return { legX: 0, legZ: 0, kneeX: 0 };
+  const t = Math.max(0, Math.min(1, (armAngle - cfg.deadZone) / (cfg.armAngleMax - cfg.deadZone)));
+  const easedT = 1 - Math.pow(1 - t, 2);
+  const legX = -easedT * cfg.legSwingMax;
+  const normalizedSide = Math.max(-1, Math.min(1, sideOffset * 5));
+  const legZ = normalizedSide * cfg.legSideMax;
+  const kneeX = Math.max(0, -legX) * cfg.kneeBendRatio;
+  return { legX, legZ, kneeX };
+}
+
+function updateBoneBinding(dt) {
+  if (!lastPoseResults || !lastPoseResults.poseLandmarks) {
+    const decay = Math.min(1, dt * BONE_BINDING.smoothFactorMin);
+    for (const key of Object.keys(boundAngles)) boundAngles[key] *= (1 - decay);
+    return;
+  }
+  const lm = lastPoseResults.poseLandmarks;
+  const lShoulder = lm[11], rShoulder = lm[12];
+  const lElbow = lm[13], rElbow = lm[14];
+  const lWrist = lm[15], rWrist = lm[16];
+  const lHip = lm[23], rHip = lm[24];
+
+  const leftArm = computeArmAngles(lShoulder, lElbow, lWrist, lHip);
+  const rightArm = computeArmAngles(rShoulder, rElbow, rWrist, rHip);
+
+  // 交叉映射：左手→右腿，右手→左腿
+  const rightLegTarget = leftArm.confidence > BONE_BINDING.minConfidence
+    ? mapArmToLeg(leftArm.swingAngle, leftArm.sideAngle) : { legX: 0, legZ: 0, kneeX: 0 };
+  const leftLegTarget = rightArm.confidence > BONE_BINDING.minConfidence
+    ? mapArmToLeg(rightArm.swingAngle, rightArm.sideAngle) : { legX: 0, legZ: 0, kneeX: 0 };
+
+  // 手臂角速度
+  if (dt > 0.001) {
+    camArmAngVelLeft = Math.abs(leftArm.swingAngle - camPrevArmAngleLeft) / dt;
+    camArmAngVelRight = Math.abs(rightArm.swingAngle - camPrevArmAngleRight) / dt;
+  }
+  camPrevArmAngleLeft = leftArm.swingAngle;
+  camPrevArmAngleRight = rightArm.swingAngle;
+
+  // 动态平滑系数
+  const cfg = BONE_BINDING;
+  const leftSpeedRatio = Math.min(1, camArmAngVelRight / cfg.armSpeedMax);
+  const rightSpeedRatio = Math.min(1, camArmAngVelLeft / cfg.armSpeedMax);
+  const alphaLeft  = Math.min(1, dt * (cfg.smoothFactorMin + (cfg.smoothFactorMax - cfg.smoothFactorMin) * leftSpeedRatio));
+  const alphaRight = Math.min(1, dt * (cfg.smoothFactorMin + (cfg.smoothFactorMax - cfg.smoothFactorMin) * rightSpeedRatio));
+
+  boundAngles.leftLegX   += (leftLegTarget.legX   - boundAngles.leftLegX)   * alphaLeft;
+  boundAngles.leftLegZ   += (leftLegTarget.legZ   - boundAngles.leftLegZ)   * alphaLeft;
+  boundAngles.leftKneeX  += (leftLegTarget.kneeX  - boundAngles.leftKneeX)  * alphaLeft;
+  boundAngles.rightLegX  += (rightLegTarget.legX  - boundAngles.rightLegX)  * alphaRight;
+  boundAngles.rightLegZ  += (rightLegTarget.legZ  - boundAngles.rightLegZ)  * alphaRight;
+  boundAngles.rightKneeX += (rightLegTarget.kneeX - boundAngles.rightKneeX) * alphaRight;
+
+  // 双手靠近 → 加速
+  const handDist = Math.hypot(lWrist.x - rWrist.x, lWrist.y - rWrist.y);
+  speedBoost = handDist < 0.2;
+}
+
+// ============ DOM ============
+const startScreen = document.getElementById('startScreen');
+const startBtn = document.getElementById('startBtn');
+const camStatus = document.getElementById('camStatus');
+const hud = document.getElementById('hud');
+const timerEl = document.getElementById('timer');
+const redScoreEl = document.getElementById('redScore');
+const blueScoreEl = document.getElementById('blueScore');
+const resultScreen = document.getElementById('resultScreen');
+const countdownEl = document.getElementById('countdown');
+const camPreview = document.getElementById('camPreview');
+const ballIndicator = document.getElementById('ballIndicator');
+const speedFill = document.getElementById('speedFill');
+const minimapCanvas = document.getElementById('minimap');
+const minimapCtx = minimapCanvas.getContext('2d');
+const powerSlider = document.getElementById('powerSlider');
+const powerValue = document.getElementById('powerValue');
+const dribbleIndicator = document.getElementById('dribbleIndicator');
+const modeKeyboardBtn = document.getElementById('modeKeyboard');
+const modeCameraBtn = document.getElementById('modeCamera');
+const controlsInfoKeyboard = document.getElementById('controlsInfoKeyboard');
+const controlsInfoCamera = document.getElementById('controlsInfoCamera');
+const modeSubtitle = document.getElementById('modeSubtitle');
+const camModeIndicator = document.getElementById('camModeIndicator');
+const keyHintsEl = document.getElementById('keyHints');
+const powerControlEl = document.getElementById('powerControl');
+
+// 力度调节条事件
+powerSlider.addEventListener('input', () => {
+  powerValue.textContent = parseFloat(powerSlider.value).toFixed(1);
+});
+
+// ============ 操作模式切换 ============
+function switchControlMode(mode) {
+  controlMode = mode;
+  modeKeyboardBtn.classList.toggle('active', mode === 'keyboard');
+  modeCameraBtn.classList.toggle('active', mode === 'camera');
+  controlsInfoKeyboard.style.display = mode === 'keyboard' ? 'block' : 'none';
+  controlsInfoCamera.style.display = mode === 'camera' ? 'block' : 'none';
+  modeSubtitle.textContent = mode === 'keyboard' ? '键盘操作 · 第三人称俯视角' : '摄像头操作 · 第三人称俯视角';
+  keyHintsEl.style.display = mode === 'keyboard' ? 'flex' : 'none';
+  powerControlEl.style.display = mode === 'keyboard' ? 'flex' : 'none';
+  camModeIndicator.style.display = mode === 'camera' ? 'block' : 'none';
+
+  if (mode === 'camera') {
+    initCamera();
+  } else {
+    camPreview.style.display = 'none';
+    speedBoost = false;
+  }
+}
+
+modeKeyboardBtn.addEventListener('click', () => switchControlMode('keyboard'));
+modeCameraBtn.addEventListener('click', () => switchControlMode('camera'));
+
+// ============ 比赛时间选择 ============
+document.querySelectorAll('.time-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    MATCH_TIME = parseInt(btn.dataset.time);
+  });
+});
+
+// ============ 摄像头初始化 ============
+async function initCamera() {
+  if (cameraReady) { camPreview.style.display = 'block'; return; }
+
+  const MPPose = window.Pose;
+  const MPCamera = window.Camera;
+  if (!MPPose || !MPCamera) {
+    camStatus.style.display = 'block';
+    camStatus.textContent = '⚠ MediaPipe 未加载，请刷新重试';
+    camStatus.className = 'cam-status';
+    switchControlMode('keyboard');
+    return;
+  }
+
+  camStatus.style.display = 'block';
+  camStatus.textContent = '正在初始化摄像头...';
+  camStatus.className = 'cam-status';
+
+  try {
+    if (!mpPose) {
+      mpPose = new MPPose({
+        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+      });
+      mpPose.setOptions({
+        modelComplexity: 1,
+        smoothLandmarks: true,
+        enableSegmentation: false,
+        minDetectionConfidence: 0.5,
+        minTrackingConfidence: 0.5
+      });
+      mpPose.onResults((results) => {
+        lastPoseResults = results;
+      });
+    }
+
+    camPreview.style.display = 'block';
+    if (!mpCamera) {
+      mpCamera = new MPCamera(camPreview, {
+        onFrame: async () => {
+          if (mpPose) await mpPose.send({ image: camPreview });
+        },
+        width: 640,
+        height: 480
+      });
+    }
+    await mpCamera.start();
+
+    cameraReady = true;
+    camStatus.textContent = '✓ 摄像头已就绪';
+    camStatus.className = 'cam-status ok';
+  } catch (e) {
+    console.error('Camera init failed:', e);
+    camStatus.textContent = '✗ 摄像头初始化失败: ' + e.message;
+    camStatus.className = 'cam-status';
+    switchControlMode('keyboard');
+  }
+}
+
+// ============ 姿态角度计算 ============
+function calcArmBodyAngle(shoulder, wrist, hip) {
+  const bodyDx = hip.x - shoulder.x;
+  const bodyDy = hip.y - shoulder.y;
+  const armDx = wrist.x - shoulder.x;
+  const armDy = wrist.y - shoulder.y;
+  const dot = bodyDx * armDx + bodyDy * armDy;
+  const bodyLen = Math.sqrt(bodyDx * bodyDx + bodyDy * bodyDy);
+  const armLen = Math.sqrt(armDx * armDx + armDy * armDy);
+  if (bodyLen < 0.001 || armLen < 0.001) return 0;
+  const cosA = Math.max(-1, Math.min(1, dot / (bodyLen * armLen)));
+  return Math.acos(cosA) * 180 / Math.PI;
+}
+
+// ============ 摄像头踢腿触发 ============
+function handleCameraKickTrigger(LEG_SWING_MAX, LEG_SIDE_MAX) {
+  if (!lastPoseResults || !lastPoseResults.poseLandmarks) {
+    speedBoost = false;
+    prevLeftArmAngle = 0;
+    prevRightArmAngle = 0;
+    return;
+  }
+
+  const lm = lastPoseResults.poseLandmarks;
+  const lShoulder = lm[11], rShoulder = lm[12];
+  const lWrist = lm[15], rWrist = lm[16];
+  const lHip = lm[23], rHip = lm[24];
+
+  // 计算手臂与身体夹角
+  const leftAngle = calcArmBodyAngle(lShoulder, lWrist, lHip);
+  const rightAngle = calcArmBodyAngle(rShoulder, rWrist, rHip);
+
+  // 双手靠近 → 加速
+  const handDist = Math.hypot(lWrist.x - rWrist.x, lWrist.y - rWrist.y);
+  speedBoost = handDist < 0.2;
+
+  // 边缘检测：手臂从下方越过90°时触发
+  const leftJustRaised = leftAngle >= 90 && prevLeftArmAngle < 90;
+  const rightJustRaised = rightAngle >= 90 && prevRightArmAngle < 90;
+
+  // 左手 → 右脚踢腿（交叉映射）
+  if (kickAnim.right.phase === 'idle' && leftJustRaised) {
+    if (leftAngle < 120) {
+      kickAnim.right.targetX = 0;
+      kickAnim.right.targetZ = -LEG_SIDE_MAX;
+    } else if (leftAngle < 150) {
+      kickAnim.right.targetX = -LEG_SWING_MAX * 0.5;
+      kickAnim.right.targetZ = -LEG_SIDE_MAX * 0.7;
+    } else {
+      kickAnim.right.targetX = -LEG_SWING_MAX;
+      kickAnim.right.targetZ = 0;
+    }
+    kickAnim.right.phase = 'out';
+    kickAnim.right.timer = 0;
+  }
+
+  // 右手 → 左脚踢腿（交叉映射）
+  if (kickAnim.left.phase === 'idle' && rightJustRaised) {
+    if (rightAngle < 120) {
+      kickAnim.left.targetX = 0;
+      kickAnim.left.targetZ = LEG_SIDE_MAX;
+    } else if (rightAngle < 150) {
+      kickAnim.left.targetX = -LEG_SWING_MAX * 0.5;
+      kickAnim.left.targetZ = LEG_SIDE_MAX * 0.7;
+    } else {
+      kickAnim.left.targetX = -LEG_SWING_MAX;
+      kickAnim.left.targetZ = 0;
+    }
+    kickAnim.left.phase = 'out';
+    kickAnim.left.timer = 0;
+  }
+
+  prevLeftArmAngle = leftAngle;
+  prevRightArmAngle = rightAngle;
+}
+
+// ============ Three.js 初始化 ============
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x1a2040);
+scene.fog = new THREE.Fog(0x1a2040, 40, 80);
+
+const camera = new THREE.PerspectiveCamera(90, 1920 / 1080, 0.1, 80);
+camera.rotation.order = 'YXZ';
+camera.up.set(0, 0, 1);
+camera.position.set(0, 4.5, 0);
+camera.lookAt(0, 0, 0);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(1920, 1080);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.prepend(renderer.domElement);
+
+// ============ 灯光 ============
+const ambLight = new THREE.AmbientLight(0x404060, 0.6);
+scene.add(ambLight);
+const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
+dirLight.position.set(5, 15, 5);
+dirLight.castShadow = true;
+dirLight.shadow.mapSize.set(1024, 1024);
+dirLight.shadow.camera.near = 0.5;
+dirLight.shadow.camera.far = 50;
+dirLight.shadow.camera.left = -15;
+dirLight.shadow.camera.right = 15;
+dirLight.shadow.camera.top = 15;
+dirLight.shadow.camera.bottom = -15;
+scene.add(dirLight);
+
+const hemiLight = new THREE.HemisphereLight(0x8888ff, 0x444422, 0.4);
+scene.add(hemiLight);
+
+// ============ 球场 ============
+function createField() {
+  const groundGeo = new THREE.PlaneGeometry(FIELD_W, FIELD_L);
+  const groundMat = new THREE.MeshStandardMaterial({ color: 0x2d8040, roughness: 0.9 });
+  const ground = new THREE.Mesh(groundGeo, groundMat);
+  ground.rotation.x = -Math.PI / 2;
+  ground.receiveShadow = true;
+  scene.add(ground);
+
+  const lineMat = new THREE.LineBasicMaterial({ color: 0xffffff, opacity: 0.6, transparent: true });
+  const centerLineGeo = new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(-FIELD_W / 2, 0.01, 0), new THREE.Vector3(FIELD_W / 2, 0.01, 0)
+  ]);
+  scene.add(new THREE.Line(centerLineGeo, lineMat));
+  const circleGeo = new THREE.BufferGeometry();
+  const circlePts = [];
+  for (let i = 0; i <= 64; i++) {
+    const a = (i / 64) * Math.PI * 2;
+    circlePts.push(new THREE.Vector3(Math.cos(a) * 2, 0.01, Math.sin(a) * 2));
+  }
+  circleGeo.setFromPoints(circlePts);
+  scene.add(new THREE.Line(circleGeo, lineMat));
+
+  const penaltyW = 8, penaltyL = 5;
+  [-1, 1].forEach(side => {
+    const z = side * (FIELD_L / 2 - penaltyL);
+    const pts = [
+      new THREE.Vector3(-penaltyW / 2, 0.01, z + side * penaltyL),
+      new THREE.Vector3(-penaltyW / 2, 0.01, z),
+      new THREE.Vector3(penaltyW / 2, 0.01, z),
+      new THREE.Vector3(penaltyW / 2, 0.01, z + side * penaltyL),
+    ];
+    const geo = new THREE.BufferGeometry().setFromPoints(pts);
+    scene.add(new THREE.Line(geo, lineMat));
+  });
+
+  [-1, 1].forEach(side => {
+    const goalGroup = new THREE.Group();
+    const postMat = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.6, roughness: 0.3 });
+    const postR = 0.06;
+    const lpGeo = new THREE.CylinderGeometry(postR, postR, GOAL_H, 8);
+    const lp = new THREE.Mesh(lpGeo, postMat);
+    lp.position.set(-GOAL_W / 2, GOAL_H / 2, 0);
+    goalGroup.add(lp);
+    const rp = lp.clone();
+    rp.position.set(GOAL_W / 2, GOAL_H / 2, 0);
+    goalGroup.add(rp);
+    const barGeo = new THREE.CylinderGeometry(postR, postR, GOAL_W, 8);
+    const bar = new THREE.Mesh(barGeo, postMat);
+    bar.rotation.z = Math.PI / 2;
+    bar.position.set(0, GOAL_H, 0);
+    goalGroup.add(bar);
+    [-1, 1].forEach(s => {
+      const bpGeo = new THREE.CylinderGeometry(postR * 0.7, postR * 0.7, GOAL_H, 8);
+      const bp = new THREE.Mesh(bpGeo, postMat);
+      bp.position.set(s * GOAL_W / 2, GOAL_H / 2, side * GOAL_D);
+      goalGroup.add(bp);
+    });
+    const bbarGeo = new THREE.CylinderGeometry(postR * 0.7, postR * 0.7, GOAL_W, 8);
+    const bbar = new THREE.Mesh(bbarGeo, postMat);
+    bbar.rotation.z = Math.PI / 2;
+    bbar.position.set(0, GOAL_H, side * GOAL_D);
+    goalGroup.add(bbar);
+
+    const netMat = new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.15, side: THREE.DoubleSide, wireframe: true });
+    const backNetGeo = new THREE.PlaneGeometry(GOAL_W, GOAL_H, 6, 3);
+    const backNet = new THREE.Mesh(backNetGeo, netMat);
+    backNet.position.set(0, GOAL_H / 2, side * GOAL_D);
+    goalGroup.add(backNet);
+    const topNetGeo = new THREE.PlaneGeometry(GOAL_W, GOAL_D, 6, 2);
+    const topNet = new THREE.Mesh(topNetGeo, netMat);
+    topNet.rotation.x = Math.PI / 2;
+    topNet.position.set(0, GOAL_H, side * GOAL_D / 2);
+    goalGroup.add(topNet);
+    [-1, 1].forEach(s => {
+      const sideNetGeo = new THREE.PlaneGeometry(GOAL_D, GOAL_H, 2, 3);
+      const sideNet = new THREE.Mesh(sideNetGeo, netMat);
+      sideNet.rotation.y = Math.PI / 2;
+      sideNet.position.set(s * GOAL_W / 2, GOAL_H / 2, side * GOAL_D / 2);
+      goalGroup.add(sideNet);
+    });
+
+    goalGroup.position.z = side * FIELD_L / 2;
+    scene.add(goalGroup);
+  });
+}
+
+// ============ 火柴人 ============
+function createStickman(color) {
+  const group = new THREE.Group();
+  const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.5 });
+  const headR = 0.15;
+  const bodyH = 0.5;
+  const limbR = 0.04;
+  const thighH = 0.35;
+  const shinH = 0.35;
+  const totalLegH = thighH + shinH;
+
+  const bodyY = totalLegH + bodyH / 2;
+  const headY = totalLegH + bodyH + headR;
+
+  // 头
+  const headGeo = new THREE.SphereGeometry(headR, 12, 8);
+  const head = new THREE.Mesh(headGeo, mat);
+  head.position.y = headY;
+  head.castShadow = true;
+  group.add(head);
+
+  // 身体
+  const bodyGeo = new THREE.CylinderGeometry(limbR * 1.5, limbR * 1.5, bodyH, 8);
+  const body = new THREE.Mesh(bodyGeo, mat);
+  body.position.y = bodyY;
+  body.castShadow = true;
+  group.add(body);
+
+  // 左臂、右臂
+  let leftArm, rightArm;
+  [-1, 1].forEach(s => {
+    const armGeo = new THREE.CylinderGeometry(limbR, limbR, thighH, 6);
+    const arm = new THREE.Mesh(armGeo, mat);
+    arm.position.set(s * 0.2, bodyY, 0);
+    arm.rotation.z = s * 0.3;
+    arm.castShadow = true;
+    group.add(arm);
+    if (s === -1) leftArm = arm;
+    else rightArm = arm;
+  });
+
+  // 左腿：髋关节 → 大腿 → 膝关节 → 小腿
+  const leftHipPivot = new THREE.Group();
+  leftHipPivot.position.set(-0.1, totalLegH, 0);
+
+  const leftThigh = new THREE.Mesh(new THREE.CylinderGeometry(limbR, limbR, thighH, 6), mat);
+  leftThigh.position.y = -thighH / 2;
+  leftThigh.castShadow = true;
+  leftHipPivot.add(leftThigh);
+
+  const leftKneePivot = new THREE.Group();
+  leftKneePivot.position.y = -thighH;
+  leftHipPivot.add(leftKneePivot);
+
+  const leftShin = new THREE.Mesh(new THREE.CylinderGeometry(limbR, limbR, shinH, 6), mat);
+  leftShin.position.y = -shinH / 2;
+  leftShin.castShadow = true;
+  leftKneePivot.add(leftShin);
+
+  group.add(leftHipPivot);
+
+  // 右腿：髋关节 → 大腿 → 膝关节 → 小腿
+  const rightHipPivot = new THREE.Group();
+  rightHipPivot.position.set(0.1, totalLegH, 0);
+
+  const rightThigh = new THREE.Mesh(new THREE.CylinderGeometry(limbR, limbR, thighH, 6), mat);
+  rightThigh.position.y = -thighH / 2;
+  rightThigh.castShadow = true;
+  rightHipPivot.add(rightThigh);
+
+  const rightKneePivot = new THREE.Group();
+  rightKneePivot.position.y = -thighH;
+  rightHipPivot.add(rightKneePivot);
+
+  const rightShin = new THREE.Mesh(new THREE.CylinderGeometry(limbR, limbR, shinH, 6), mat);
+  rightShin.position.y = -shinH / 2;
+  rightShin.castShadow = true;
+  rightKneePivot.add(rightShin);
+
+  group.add(rightHipPivot);
+
+  group.userData = {
+    leftThigh, rightThigh, leftShin, rightShin,
+    leftHipPivot, rightHipPivot, leftKneePivot, rightKneePivot,
+    leftArm, rightArm, head, body
+  };
+  return group;
+}
+
+// ============ 足球 ============
+function createBall() {
+  const geo = new THREE.SphereGeometry(BALL_R, 16, 12);
+  const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4, metalness: 0.1 });
+  const ball = new THREE.Mesh(geo, mat);
+  ball.castShadow = true;
+  ball.position.y = BALL_R;
+
+  const decalGeo = new THREE.SphereGeometry(BALL_R + 0.001, 6, 4);
+  const decalMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.5 });
+  for (let i = 0; i < 5; i++) {
+    const decal = new THREE.Mesh(decalGeo, decalMat);
+    const phi = Math.acos(1 - 2 * (i + 0.5) / 5);
+    const theta = Math.PI * (1 + Math.sqrt(5)) * i;
+    decal.position.set(
+      BALL_R * Math.sin(phi) * Math.cos(theta) * 0.5,
+      BALL_R * Math.cos(phi) * 0.5,
+      BALL_R * Math.sin(phi) * Math.sin(theta) * 0.5
+    );
+    decal.scale.setScalar(0.3);
+    ball.add(decal);
+  }
+
+  scene.add(ball);
+  return ball;
+}
+
+// ============ 球员类 ============
+class Player {
+  constructor(isRed, isPlayer, position, role) {
+    this.isRed = isRed;
+    this.isPlayer = isPlayer;
+    this.role = role;
+    this.mesh = createStickman(isRed ? 0xff4444 : 0x4488ff);
+
+    if (isPlayer) {
+      const arrowGeo = new THREE.ConeGeometry(0.12, 0.25, 4);
+      const arrowMat = new THREE.MeshStandardMaterial({ color: 0x44ff44, emissive: 0x22aa22 });
+      const arrow = new THREE.Mesh(arrowGeo, arrowMat);
+      arrow.position.y = 1.65;
+      this.mesh.add(arrow);
+    }
+
+    this.spawnPos = position.clone();
+    this.mesh.position.copy(position);
+    scene.add(this.mesh);
+
+    this.vx = 0; this.vz = 0;
+    this.speed = 0;
+    this.facing = isRed ? 0 : Math.PI;
+    this.state = 'idle';
+    this.downTimer = 0;
+    this.kickCooldown = 0;
+    this.animTime = 0;
+    this.playerLegAngVelLeft = 0;
+    this.playerLegAngVelRight = 0;
+    this.hasBall = false; // 带球状态
+    // 守门员飞扑状态
+    this.diveState = 'idle'; // 'idle' | 'diving' | 'diving_land' | 'diving_getup'
+    this.diveTimer = 0;
+    this.diveDirX = 0;
+    this.diveDirZ = 0;
+    this.diveHitBall = false;
+    this.diveCooldown = 0; // 飞扑冷却计时器
+  }
+
+  get x() { return this.mesh.position.x; }
+  get z() { return this.mesh.position.z; }
+  set x(v) { this.mesh.position.x = v; }
+  set z(v) { this.mesh.position.z = v; }
+
+  reset(position) {
+    this.mesh.position.copy(position || this.spawnPos);
+    this.vx = 0; this.vz = 0;
+    this.speed = 0;
+    this.state = 'idle';
+    this.downTimer = 0;
+    this.kickCooldown = 0;
+    this.hasBall = false;
+    this.diveState = 'idle';
+    this.diveTimer = 0;
+    this.diveHitBall = false;
+    this.diveCooldown = 0;
+  }
+
+  knockback(dirX, dirZ, force) {
+    this.vx = dirX * force / 0.5;
+    this.vz = dirZ * force / 0.5;
+    this.state = 'down';
+    this.hasBall = false;
+    this.downTimer = force > 3 ? 3.0 : 1.5;
+  }
+
+  update(dt, ball) {
+    if (this.kickCooldown > 0) this.kickCooldown -= dt;
+    if (this.diveCooldown > 0) this.diveCooldown -= dt;
+    this.animTime += dt;
+
+    // ---- 守门员飞扑状态机 ----
+    if (this.diveState === 'diving') {
+      this.diveTimer -= dt;
+      // 飞扑过程中移动（抛物线感）
+      this.x += this.vx * dt;
+      this.z += this.vz * dt;
+      this.clampToField();
+      // 飞扑方向朝向
+      this.mesh.rotation.y = Math.atan2(this.diveDirX, this.diveDirZ);
+      // 飞扑动画：身体侧倾 + 前倾
+      const progress = 1 - Math.max(0, this.diveTimer / 0.3);
+      const tiltAngle = progress * (Math.PI / 2 * 0.75);
+      // 根据扑救方向决定侧倾方向
+      const sideSign = this.diveDirX >= 0 ? -1 : 1;
+      this.mesh.rotation.z = sideSign * tiltAngle;
+      this.mesh.rotation.x = tiltAngle * 0.3;
+      this.mesh.position.y = -0.3 * progress;
+      // 飞扑碰撞检测：扩大碰撞范围击球
+      if (!this.diveHitBall) {
+        const dx = ball.x - this.x;
+        const dz = ball.z - this.z;
+        const dist = Math.sqrt(dx * dx + dz * dz);
+        const diveHitR = 1.2; // 飞扑时碰撞范围更大
+        if (dist < diveHitR) {
+          // 强制将球向非球门线方向击飞（远离己方球门）
+          const attackDir = this.isRed ? 1 : -1;
+          // 基于球相对守门员的方向，叠加远离球门的偏移
+          let hitDirX = ball.x - this.x;
+          let hitDirZ = ball.z - this.z;
+          // 强制z分量远离球门（至少50%的远离球门分量）
+          if (hitDirZ * (-attackDir) < 0) {
+            hitDirZ = -attackDir * Math.max(Math.abs(hitDirZ), 0.5);
+          }
+          // 确保z分量中有足够远离球门的成分
+          hitDirZ += -attackDir * 0.5;
+          const hitLen = Math.sqrt(hitDirX * hitDirX + hitDirZ * hitDirZ);
+          if (hitLen > 0) { hitDirX /= hitLen; hitDirZ /= hitLen; }
+          // 击飞力度严格控制在 10~15
+          const divePower = 10 + Math.random() * 5;
+          ball.vx = hitDirX * divePower;
+          ball.vz = hitDirZ * divePower;
+          ball.vy = 2 + Math.random() * 2;
+          // 球速限制
+          const bSpeed = Math.sqrt(ball.vx * ball.vx + ball.vz * ball.vz);
+          if (bSpeed > MAX_BALL_SPEED) {
+            ball.vx *= MAX_BALL_SPEED / bSpeed;
+            ball.vz *= MAX_BALL_SPEED / bSpeed;
+          }
+          this.diveHitBall = true;
+          this.kickCooldown = 0.5;
+          if (playerChar.hasBall) playerChar.hasBall = false;
+        }
+      }
+      if (this.diveTimer <= 0) {
+        this.diveState = 'diving_land';
+        this.diveTimer = 0.6; // 落地停顿
+        this.vx = 0; this.vz = 0;
+      }
+      return;
+    }
+    if (this.diveState === 'diving_land') {
+      this.diveTimer -= dt;
+      // 保持趴地姿势
+      this.mesh.rotation.y = Math.atan2(this.diveDirX, this.diveDirZ);
+      this.mesh.rotation.z = this.diveDirX >= 0 ? -(Math.PI / 2 * 0.75) : (Math.PI / 2 * 0.75);
+      this.mesh.rotation.x = (Math.PI / 2 * 0.75) * 0.3;
+      this.mesh.position.y = -0.3;
+      // 落地后仍然检测击球
+      if (!this.diveHitBall) {
+        const dx = ball.x - this.x;
+        const dz = ball.z - this.z;
+        const dist = Math.sqrt(dx * dx + dz * dz);
+        if (dist < 1.0) {
+          // 强制将球向非球门线方向击飞
+          const attackDir = this.isRed ? 1 : -1;
+          let hitDirX = ball.x - this.x;
+          let hitDirZ = ball.z - this.z;
+          if (hitDirZ * (-attackDir) < 0) {
+            hitDirZ = -attackDir * Math.max(Math.abs(hitDirZ), 0.5);
+          }
+          hitDirZ += -attackDir * 0.5;
+          const hitLen = Math.sqrt(hitDirX * hitDirX + hitDirZ * hitDirZ);
+          if (hitLen > 0) { hitDirX /= hitLen; hitDirZ /= hitLen; }
+          // 击飞力度严格控制在 10~15
+          const divePower = 10 + Math.random() * 5;
+          ball.vx = hitDirX * divePower;
+          ball.vz = hitDirZ * divePower;
+          ball.vy = 1.5 + Math.random();
+          this.diveHitBall = true;
+          this.kickCooldown = 0.5;
+          if (playerChar.hasBall) playerChar.hasBall = false;
+        }
+      }
+      if (this.diveTimer <= 0) {
+        this.diveState = 'diving_getup';
+        this.diveTimer = 0.5;
+      }
+      return;
+    }
+    if (this.diveState === 'diving_getup') {
+      this.diveTimer -= dt;
+      const t = 1 - this.diveTimer / 0.5;
+      // 从趴地恢复到站立
+      const sideSign = this.diveDirX >= 0 ? -1 : 1;
+      this.mesh.rotation.z = sideSign * (Math.PI / 2 * 0.75) * (1 - t);
+      this.mesh.rotation.x = (Math.PI / 2 * 0.75) * 0.3 * (1 - t);
+      this.mesh.position.y = -0.3 * (1 - t);
+      // 恢复朝向球的方向
+      this.mesh.rotation.y = Math.atan2(ball.x - this.x, ball.z - this.z);
+      if (this.diveTimer <= 0) {
+        this.diveState = 'idle';
+        this.diveCooldown = 5; // 飞扑冷却5秒
+        this.mesh.rotation.z = 0;
+        this.mesh.rotation.x = 0;
+        this.mesh.position.y = 0;
+      }
+      return;
+    }
+
+    if (this.state === 'down') {
+      this.downTimer -= dt;
+      this.vx *= 0.9; this.vz *= 0.9;
+      this.x += this.vx * dt;
+      this.z += this.vz * dt;
+      this.clampToField();
+      this.mesh.rotation.x = Math.PI / 2 * 0.8;
+      this.mesh.position.y = 0.15;
+      if (this.downTimer <= 0) {
+        this.state = 'getting_up';
+        this.downTimer = 0.3;
+      }
+      return;
+    }
+    if (this.state === 'getting_up') {
+      this.downTimer -= dt;
+      this.mesh.rotation.x = Math.PI / 2 * 0.8 * (this.downTimer / 0.3);
+      this.mesh.position.y = 0.15 * (this.downTimer / 0.3);
+      if (this.downTimer <= 0) {
+        this.state = 'idle';
+        this.mesh.rotation.x = 0;
+        this.mesh.position.y = 0;
+      }
+      return;
+    }
+
+    this.mesh.rotation.x = 0;
+    this.mesh.position.y = 0;
+
+    if (!this.isPlayer) {
+      this.updateAI(dt, ball);
+    }
+
+    this.x += this.vx * dt;
+    this.z += this.vz * dt;
+    this.clampToField();
+
+    this.vx *= 0.92;
+    this.vz *= 0.92;
+    if (Math.abs(this.vx) < 0.1 && Math.abs(this.vz) < 0.1) {
+      this.vx = 0; this.vz = 0;
+    }
+
+    if (Math.abs(this.vx) > 0.3 || Math.abs(this.vz) > 0.3) {
+      this.facing = Math.atan2(this.vx, this.vz);
+    }
+    // 守门员始终正面朝向球
+    if (!this.isPlayer && this.role === 'goalkeeper') {
+      const attackDir = this.isRed ? 1 : -1;
+      const ballInOwnHalf = (ball.z * attackDir) < 0;
+      if (ballInOwnHalf) {
+        this.facing = Math.atan2(ball.x - this.x, ball.z - this.z);
+      }
+    }
+    this.mesh.rotation.y = this.facing;
+
+    // 腿部动画
+    if (this.isPlayer) {
+      if (this.mesh.userData.leftHipPivot) {
+        if (controlMode === 'camera') {
+          // 摄像头模式：连续骨骼绑定驱动
+          this.mesh.userData.leftHipPivot.rotation.x = boundAngles.leftLegX;
+          this.mesh.userData.rightHipPivot.rotation.x = boundAngles.rightLegX;
+          this.mesh.userData.leftHipPivot.rotation.z = boundAngles.leftLegZ;
+          this.mesh.userData.rightHipPivot.rotation.z = boundAngles.rightLegZ;
+          this.mesh.userData.leftKneePivot.rotation.x = boundAngles.leftKneeX;
+          this.mesh.userData.rightKneePivot.rotation.x = boundAngles.rightKneeX;
+        } else {
+          // 键盘模式：原有逻辑不变
+          this.mesh.userData.leftHipPivot.rotation.x = leftLegAngle;
+          this.mesh.userData.rightHipPivot.rotation.x = rightLegAngle;
+          this.mesh.userData.leftHipPivot.rotation.z = leftLegZAngle;
+          this.mesh.userData.rightHipPivot.rotation.z = rightLegZAngle;
+          const kneeBendL = Math.max(0, leftLegAngle * 0.6);
+          const kneeBendR = Math.max(0, rightLegAngle * 0.6);
+          this.mesh.userData.leftKneePivot.rotation.x = kneeBendL;
+          this.mesh.userData.rightKneePivot.rotation.x = kneeBendR;
+        }
+      }
+      this.playerLegAngVelLeft = leftLegAngVel;
+      this.playerLegAngVelRight = rightLegAngVel;
+    } else {
+      const spd = Math.sqrt(this.vx * this.vx + this.vz * this.vz);
+      if (this.role === 'goalkeeper' && this.mesh.userData.leftHipPivot) {
+        // 守门员：半蹲姿势，微动待机
+        const breathe = Math.sin(this.animTime * 2) * 0.05;
+        // 大腿前倾（半蹲）
+        this.mesh.userData.leftHipPivot.rotation.x = -0.4 + breathe;
+        this.mesh.userData.rightHipPivot.rotation.x = -0.4 + breathe;
+        // 膝盖弯曲
+        this.mesh.userData.leftKneePivot.rotation.x = 0.8;
+        this.mesh.userData.rightKneePivot.rotation.x = 0.8;
+        // 双臂张开
+        if (this.mesh.userData.leftArm) {
+          this.mesh.userData.leftArm.rotation.z = -1.2 + breathe;   // 左臂向左张开
+          this.mesh.userData.leftArm.rotation.x = -0.3;             // 略前伸
+        }
+        if (this.mesh.userData.rightArm) {
+          this.mesh.userData.rightArm.rotation.z = 1.2 + breathe;   // 右臂向右张开
+          this.mesh.userData.rightArm.rotation.x = -0.3;            // 略前伸
+        }
+        // 整体下移模拟半蹲
+        this.mesh.position.y = -0.15;
+        // 移动时腿部微摆
+        if (spd > 0.5) {
+          const legSwing = Math.sin(this.animTime * spd * 3) * 0.15;
+          this.mesh.userData.leftHipPivot.rotation.x += legSwing;
+          this.mesh.userData.rightHipPivot.rotation.x -= legSwing;
+        }
+      } else if (spd > 0.5 && this.mesh.userData.leftHipPivot) {
+        const legSwing = Math.sin(this.animTime * spd * 3) * 0.4;
+        this.mesh.userData.leftHipPivot.rotation.x = legSwing;
+        this.mesh.userData.rightHipPivot.rotation.x = -legSwing;
+        this.mesh.userData.leftHipPivot.rotation.z = 0;
+        this.mesh.userData.rightHipPivot.rotation.z = 0;
+        const kneeBendL = Math.max(0, -legSwing * 0.6);
+        const kneeBendR = Math.max(0, legSwing * 0.6);
+        this.mesh.userData.leftKneePivot.rotation.x = kneeBendL;
+        this.mesh.userData.rightKneePivot.rotation.x = kneeBendR;
+        // 非守门员手臂恢复默认
+        if (this.mesh.userData.leftArm) { this.mesh.userData.leftArm.rotation.z = -0.3; this.mesh.userData.leftArm.rotation.x = 0; }
+        if (this.mesh.userData.rightArm) { this.mesh.userData.rightArm.rotation.z = 0.3; this.mesh.userData.rightArm.rotation.x = 0; }
+      } else if (this.mesh.userData.leftHipPivot) {
+        this.mesh.userData.leftHipPivot.rotation.x = 0;
+        this.mesh.userData.rightHipPivot.rotation.x = 0;
+        this.mesh.userData.leftHipPivot.rotation.z = 0;
+        this.mesh.userData.rightHipPivot.rotation.z = 0;
+        this.mesh.userData.leftKneePivot.rotation.x = 0;
+        this.mesh.userData.rightKneePivot.rotation.x = 0;
+        // 非守门员手臂恢复默认
+        if (this.mesh.userData.leftArm) { this.mesh.userData.leftArm.rotation.z = -0.3; this.mesh.userData.leftArm.rotation.x = 0; }
+        if (this.mesh.userData.rightArm) { this.mesh.userData.rightArm.rotation.z = 0.3; this.mesh.userData.rightArm.rotation.x = 0; }
+      }
+    }
+  }
+
+  clampToField() {
+    const margin = PLAYER_W / 2 + 0.1;
+    this.x = Math.max(-FIELD_W / 2 + margin, Math.min(FIELD_W / 2 - margin, this.x));
+    this.z = Math.max(-FIELD_L / 2 + margin, Math.min(FIELD_L / 2 - margin, this.z));
+  }
+
+  updateAI(dt, ball) {
+    const attackDir = this.isRed ? 1 : -1;
+    const ballInOwnHalf = (ball.z * attackDir) < 0;
+    const distToBall = Math.sqrt((this.x - ball.x) ** 2 + (this.z - ball.z) ** 2);
+
+    let aiSpeed = AUTO_SPEED;
+    let aiKickPower = 8;
+    let aiAccuracy = 0.7;
+    let targetX = 0, targetZ = 0;
+
+    if (this.role === 'goalkeeper') {
+      const penaltyL = 5;
+      const goalLineZ = this.isRed ? -FIELD_L / 2 + 1 : FIELD_L / 2 - 1;
+      const penaltyEdgeZ = this.isRed ? -FIELD_L / 2 + penaltyL : FIELD_L / 2 - penaltyL;
+      // 球是否在禁区内
+      const ballInPenalty = ballInOwnHalf && Math.abs(ball.x) < 4 && (
+        this.isRed ? (ball.z < -FIELD_L / 2 + penaltyL) : (ball.z > FIELD_L / 2 - penaltyL)
+      );
+      if (ballInPenalty) {
+        // 球进入禁区 → 立即退守球门线
+        targetZ = goalLineZ;
+        targetX = Math.max(-GOAL_W / 2, Math.min(GOAL_W / 2, ball.x * 0.8));
+        aiSpeed = 3.5;
+      } else {
+        // 球在禁区外 → 按距离插值站位
+        const ballDistToGoalLine = this.isRed ? (ball.z - (-FIELD_L / 2)) : (FIELD_L / 2 - ball.z);
+        const maxDist = FIELD_L / 2;
+        const t = Math.max(0, Math.min(1, ballDistToGoalLine / maxDist));
+        targetZ = penaltyEdgeZ * t + goalLineZ * (1 - t);
+        targetX = Math.max(-GOAL_W / 2, Math.min(GOAL_W / 2, ball.x * 0.7));
+        aiSpeed = 2.5;
+      }
+
+      // ---- 飞扑触发逻辑 ----
+      // 前置条件：球在禁区内 + 球未被带球 + 守门员空闲 + 飞扑冷却结束
+      const ballDribbled = playerChar.hasBall;
+      if (this.diveState === 'idle' && this.diveCooldown <= 0 && ballInPenalty && !ballDribbled) {
+        // 飞扑判定范围 = 实际飞扑可达距离（飞扑移动距离 + 碰撞半径）
+        const DIVE_SPEED = 8;
+        const DIVE_DURATION = 0.3;
+        const DIVE_HIT_R = 1.2;
+        const DIVE_SENSE_R = DIVE_SPEED * DIVE_DURATION + DIVE_HIT_R; // 2.4 + 1.2 = 3.6
+        if (distToBall < DIVE_SENSE_R) {
+          // 立即触发飞扑
+          this.diveState = 'diving';
+          this.diveTimer = 0.3;
+          this.diveHitBall = false;
+          // 飞扑方向：朝球的位置
+          const ddx = ball.x - this.x;
+          const ddz = ball.z - this.z;
+          const ddLen = Math.sqrt(ddx * ddx + ddz * ddz);
+          if (ddLen > 0) {
+            this.diveDirX = ddx / ddLen;
+            this.diveDirZ = ddz / ddLen;
+          } else {
+            this.diveDirX = 0;
+            this.diveDirZ = this.isRed ? -1 : 1;
+          }
+          const diveSpeed = 8;
+          this.vx = this.diveDirX * diveSpeed;
+          this.vz = this.diveDirZ * diveSpeed;
+        }
+      }
+    } else if (this.role === 'forward') {
+      if ((ball.z * attackDir) > 0) {
+        aiSpeed = 2.5;
+        targetX = ball.x;
+        targetZ = ball.z;
+      } else {
+        aiSpeed = 1.0;
+        targetX = ball.x * 0.3;
+        targetZ = attackDir * 6 + ball.z * 0.15;
+      }
+    } else if (this.role === 'midfield') {
+      if (distToBall < 12) {
+        aiSpeed = 2.0;
+        targetX = ball.x;
+        targetZ = ball.z;
+      } else {
+        aiSpeed = 1.0;
+        targetX = ball.x * 0.3;
+        targetZ = ball.z * 0.2;
+      }
+    } else if (this.role === 'defense') {
+      if (ballInOwnHalf) {
+        aiSpeed = 2.5;
+        targetX = ball.x;
+        targetZ = ball.z;
+        aiKickPower = 12;
+        aiAccuracy = 0.5;
+      } else {
+        aiSpeed = 1.0;
+        targetX = ball.x * 0.2;
+        targetZ = -attackDir * 6 + ball.z * 0.15;
+      }
+    }
+
+    const dx = targetX - this.x;
+    const dz = targetZ - this.z;
+    const dist = Math.sqrt(dx * dx + dz * dz);
+    if (dist > 0.5) {
+      this.vx = (dx / dist) * aiSpeed;
+      this.vz = (dz / dist) * aiSpeed;
+    } else {
+      this.vx *= 0.8;
+      this.vz *= 0.8;
+    }
+
+    if (distToBall < KICK_RADIUS && this.kickCooldown <= 0) {
+      let goalX = 0, goalZ = 0;
+      if (this.role === 'goalkeeper') {
+        // 守门员开球：沿球门线反方向大脚解围
+        goalX = (Math.random() - 0.5) * 6;
+        goalZ = -attackDir * FIELD_L / 2; // 远离己方球门
+        aiKickPower = 14;
+        aiAccuracy = 0.5;
+      } else if (this.role === 'defense' && ballInOwnHalf) {
+        goalX = (Math.random() - 0.5) * 4;
+        goalZ = attackDir * FIELD_L / 2;
+      } else {
+        goalX = (Math.random() - 0.5) * 2;
+        goalZ = attackDir * FIELD_L / 2;
+      }
+      const toGoalX = goalX - this.x + (Math.random() - 0.5) * 4 * (1 - aiAccuracy);
+      const toGoalZ = goalZ - this.z + (Math.random() - 0.5) * 2 * (1 - aiAccuracy);
+      const toGoalDist = Math.sqrt(toGoalX * toGoalX + toGoalZ * toGoalZ);
+      if (toGoalDist > 0) {
+        ball.vx = (toGoalX / toGoalDist) * aiKickPower;
+        ball.vz = (toGoalZ / toGoalDist) * aiKickPower;
+        ball.vy = Math.random() * 2;
+        this.kickCooldown = 0.5;
+        // AI踢球时解除玩家带球状态
+        if (playerChar.hasBall) playerChar.hasBall = false;
+      }
+    }
+  }
+
+  getFootWorldPos(side) {
+    const hipPivot = side === 'left' ? this.mesh.userData.leftHipPivot : this.mesh.userData.rightHipPivot;
+    const kneePivot = side === 'left' ? this.mesh.userData.leftKneePivot : this.mesh.userData.rightKneePivot;
+    if (!hipPivot || !kneePivot) return { x: this.x, z: this.z, y: 0 };
+
+    const thighAngle = hipPivot.rotation.x || 0;
+    const kneeAngle = kneePivot.rotation.x || 0;
+    const hipZAngle = hipPivot.rotation.z || 0;
+    const thighH = 0.35;
+    const shinH = 0.35;
+
+    // 大腿末端在髋关节局部坐标系中的位置
+    const kneeLocalZ = -Math.sin(thighAngle) * thighH;
+    const kneeLocalY = -Math.cos(thighAngle) * thighH;
+
+    // 小腿末端
+    const shinTotalAngle = thighAngle + kneeAngle;
+    const shinLocalZ = -Math.sin(shinTotalAngle) * shinH;
+    const shinLocalY = -Math.cos(shinTotalAngle) * shinH;
+
+    const footLocalZ = kneeLocalZ + shinLocalZ;
+    const footLocalY = kneeLocalY + shinLocalY;
+    // 横向偏移受 z 轴旋转影响
+    const footLocalX = Math.sin(hipZAngle) * Math.abs(footLocalY) * 0.5;
+
+    const sinF = Math.sin(this.facing);
+    const cosF = Math.cos(this.facing);
+    const hipOffsetX = hipPivot.position.x;
+
+    const worldX = this.x + sinF * footLocalZ + (hipOffsetX + footLocalX) * cosF;
+    const worldZ = this.z + cosF * footLocalZ - (hipOffsetX + footLocalX) * sinF;
+    const worldY = this.mesh.position.y + footLocalY;
+
+    return { x: worldX, z: worldZ, y: worldY };
+  }
+}
+
+// ============ 球物理 ============
+class Ball {
+  constructor(mesh) {
+    this.mesh = mesh;
+    this.vx = 0; this.vy = 0; this.vz = 0;
+  }
+  get x() { return this.mesh.position.x; }
+  get z() { return this.mesh.position.z; }
+  set x(v) { this.mesh.position.x = v; }
+  set z(v) { this.mesh.position.z = v; }
+
+  update(dt) {
+    this.x += this.vx * dt;
+    this.z += this.vz * dt;
+    this.mesh.position.y += this.vy * dt;
+
+    this.vy -= 9.8 * dt;
+
+    if (this.mesh.position.y < BALL_R) {
+      this.mesh.position.y = BALL_R;
+      this.vy = Math.abs(this.vy) * BALL_BOUNCE;
+      if (Math.abs(this.vy) < 0.5) this.vy = 0;
+    }
+
+    this.vx *= BALL_FRICTION;
+    this.vz *= BALL_FRICTION;
+    if (this.mesh.position.y > BALL_R + 0.1) {
+      this.vx *= BALL_AIR_DRAG;
+      this.vz *= BALL_AIR_DRAG;
+    }
+
+    const spd = Math.sqrt(this.vx * this.vx + this.vz * this.vz);
+    if (spd > MAX_BALL_SPEED) {
+      this.vx = (this.vx / spd) * MAX_BALL_SPEED;
+      this.vz = (this.vz / spd) * MAX_BALL_SPEED;
+    }
+
+    const halfW = FIELD_W / 2;
+    if (this.x < -halfW + BALL_R) { this.x = -halfW + BALL_R; this.vx = Math.abs(this.vx) * WALL_BOUNCE; }
+    if (this.x > halfW - BALL_R) { this.x = halfW - BALL_R; this.vx = -Math.abs(this.vx) * WALL_BOUNCE; }
+
+    const halfL = FIELD_L / 2;
+    const inGoalX = Math.abs(this.x) < GOAL_W / 2;
+
+    if (this.z < -halfL + BALL_R) {
+      if (inGoalX) {
+        if (this.z < -halfL - GOAL_D + BALL_R) {
+          this.z = -halfL - GOAL_D + BALL_R;
+          this.vz = Math.abs(this.vz) * 0.3;
+        }
+        if (Math.abs(this.x) > GOAL_W / 2 - BALL_R) {
+          this.x = Math.sign(this.x) * (GOAL_W / 2 - BALL_R);
+          this.vx = -this.vx * 0.5;
+        }
+      } else {
+        this.z = -halfL + BALL_R;
+        this.vz = Math.abs(this.vz) * WALL_BOUNCE;
+      }
+    }
+    if (this.z > halfL - BALL_R) {
+      if (inGoalX) {
+        if (this.z > halfL + GOAL_D - BALL_R) {
+          this.z = halfL + GOAL_D - BALL_R;
+          this.vz = -Math.abs(this.vz) * 0.3;
+        }
+        if (Math.abs(this.x) > GOAL_W / 2 - BALL_R) {
+          this.x = Math.sign(this.x) * (GOAL_W / 2 - BALL_R);
+          this.vx = -this.vx * 0.5;
+        }
+      } else {
+        this.z = halfL - BALL_R;
+        this.vz = -Math.abs(this.vz) * WALL_BOUNCE;
+      }
+    }
+
+    [-1, 1].forEach(side => {
+      const gz = side * halfL;
+      [-1, 1].forEach(s2 => {
+        const px = s2 * GOAL_W / 2;
+        const dx = this.x - px, dz = this.z - gz;
+        const dist = Math.sqrt(dx * dx + dz * dz);
+        if (dist < BALL_R + 0.06 && this.mesh.position.y < GOAL_H) {
+          const nx = dx / dist, nz = dz / dist;
+          this.x = px + nx * (BALL_R + 0.07);
+          this.z = gz + nz * (BALL_R + 0.07);
+          const dot = this.vx * nx + this.vz * nz;
+          this.vx -= 2 * dot * nx * 0.6;
+          this.vz -= 2 * dot * nz * 0.6;
+        }
+      });
+    });
+
+    if (spd > 0.5) {
+      this.mesh.rotation.x += this.vz * dt * 5;
+      this.mesh.rotation.z -= this.vx * dt * 5;
+    }
+  }
+
+  reset() {
+    this.mesh.position.set(0, BALL_R, 0);
+    this.vx = 0; this.vy = 0; this.vz = 0;
+  }
+}
+
+// ============ 游戏对象 ============
+createField();
+const ballMesh = createBall();
+const ball = new Ball(ballMesh);
+
+const redPlayers = [
+  new Player(true, true, new THREE.Vector3(0, 0, -2), 'forward'),
+  new Player(true, false, new THREE.Vector3(-2, 0, -5), 'midfield'),
+  new Player(true, false, new THREE.Vector3(-2, 0, -9), 'defense'),
+  new Player(true, false, new THREE.Vector3(0, 0, -11.5), 'goalkeeper'),
+];
+
+const bluePlayers = [
+  new Player(false, false, new THREE.Vector3(0, 0, 2), 'forward'),
+  new Player(false, false, new THREE.Vector3(-2, 0, 5), 'midfield'),
+  new Player(false, false, new THREE.Vector3(-2, 0, 9), 'defense'),
+  new Player(false, false, new THREE.Vector3(0, 0, 11.5), 'goalkeeper'),
+];
+
+const allPlayers = [...redPlayers, ...bluePlayers];
+const playerChar = redPlayers[0];
+
+// ============ 键盘控制 ============
+const keys = {};
+const justPressed = {};
+window.addEventListener('keydown', e => { if (!keys[e.code]) justPressed[e.code] = true; keys[e.code] = true; e.preventDefault(); });
+window.addEventListener('keyup', e => { keys[e.code] = false; });
+
+// 腿部状态
+let leftLegAngle = 0, rightLegAngle = 0;     // 前后摆动角度（x轴旋转）
+let leftLegZAngle = 0, rightLegZAngle = 0;   // 左右摆动角度（z轴旋转）
+let leftLegAngVel = 0, rightLegAngVel = 0;   // 角速度
+let speedBoost = false;                        // 空格加速状态
+
+// 踢腿动画状态（点击触发，非按住蓄力）
+const KICK_OUT_TIME = 0.05;   // 踢出到最高点时间
+const KICK_BACK_TIME = 0.15;  // 收回时间
+const kickAnim = {
+  left: { phase: 'idle', timer: 0, targetX: 0, targetZ: 0 },
+  right: { phase: 'idle', timer: 0, targetX: 0, targetZ: 0 }
+};
+
+// 按键到UI元素映射
+const keyUIMap = {
+  'KeyW': document.getElementById('kW'),
+  'KeyA': document.getElementById('kA'),
+  'KeyS': document.getElementById('kS'),
+  'KeyD': document.getElementById('kD'),
+  'KeyI': document.getElementById('kI'),
+  'KeyJ': document.getElementById('kJ'),
+  'KeyK': document.getElementById('kK'),
+  'KeyL': document.getElementById('kL'),
+  'Space': document.getElementById('kSpace'),
+};
+
+function updateKeyUI() {
+  Object.entries(keyUIMap).forEach(([code, el]) => {
+    if (el) el.classList.toggle('active', !!keys[code]);
+  });
+}
+
+function handleKeyboardControl(dt) {
+  if (gameState !== 'playing' || playerChar.state === 'down' || playerChar.state === 'getting_up') {
+    Object.keys(justPressed).forEach(k => delete justPressed[k]);
+    if (controlMode === 'camera') speedBoost = false;
+    return;
+  }
+
+  const p = playerChar;
+  const kickPower = controlMode === 'keyboard' ? parseFloat(powerSlider.value) : DEFAULT_KICK_POWER;
+
+  // ========== 踢腿角度常量 ==========
+  const LEG_SWING_MAX = Math.PI / 2.5; // 约72°最大摆动
+  const LEG_SIDE_MAX = Math.PI / 6;    // 约30°侧摆
+
+  // ========== 踢腿触发（根据模式） ==========
+  if (controlMode === 'keyboard') {
+    // ========== 边缘检测：刚按下的方向键触发踢腿 ==========
+    const leftJustPressed = justPressed['KeyI'] || justPressed['KeyJ'] || justPressed['KeyK'] || justPressed['KeyL'];
+    const rightJustPressed = justPressed['KeyW'] || justPressed['KeyA'] || justPressed['KeyS'] || justPressed['KeyD'];
+
+    // 左脚：空闲时点击触发踢腿
+    if (kickAnim.left.phase === 'idle' && leftJustPressed) {
+      let ldx = 0, ldz = 0;
+      if (keys['KeyJ']) ldx -= 1;
+      if (keys['KeyL']) ldx += 1;
+      if (keys['KeyI']) ldz += 1;
+      if (keys['KeyK']) ldz -= 1;
+      const len = Math.sqrt(ldx * ldx + ldz * ldz);
+      if (len > 0) {
+        const nx = ldx / len, nz = ldz / len;
+        kickAnim.left.targetX = -nz * LEG_SWING_MAX;
+        kickAnim.left.targetZ = -nx * LEG_SIDE_MAX;
+        kickAnim.left.phase = 'out';
+        kickAnim.left.timer = 0;
+      }
+    }
+
+    // 右脚：空闲时点击触发踢腿
+    if (kickAnim.right.phase === 'idle' && rightJustPressed) {
+      let rdx = 0, rdz = 0;
+      if (keys['KeyA']) rdx -= 1;
+      if (keys['KeyD']) rdx += 1;
+      if (keys['KeyW']) rdz += 1;
+      if (keys['KeyS']) rdz -= 1;
+      const len = Math.sqrt(rdx * rdx + rdz * rdz);
+      if (len > 0) {
+        const nx = rdx / len, nz = rdz / len;
+        kickAnim.right.targetX = -nz * LEG_SWING_MAX;
+        kickAnim.right.targetZ = -nx * LEG_SIDE_MAX;
+        kickAnim.right.phase = 'out';
+        kickAnim.right.timer = 0;
+      }
+    }
+  } else {
+    // 摄像头模式：连续骨骼绑定驱动，替代离散触发
+    updateBoneBinding(dt);
+  }
+
+  // ========== 更新踢腿动画 ==========
+  const prevLeftX = leftLegAngle;
+  const prevRightX = rightLegAngle;
+
+  if (controlMode === 'keyboard') {
+    // 键盘模式：保持原有离散踢腿动画
+    ['left', 'right'].forEach(side => {
+      const ks = kickAnim[side];
+      if (ks.phase === 'idle') return;
+      ks.timer += dt;
+      if (ks.phase === 'out') {
+        const t = Math.min(1, ks.timer / KICK_OUT_TIME);
+        if (side === 'left') {
+          leftLegAngle = ks.targetX * t;
+          leftLegZAngle = ks.targetZ * t;
+        } else {
+          rightLegAngle = ks.targetX * t;
+          rightLegZAngle = ks.targetZ * t;
+        }
+        if (t >= 1) { ks.phase = 'back'; ks.timer = 0; }
+      } else if (ks.phase === 'back') {
+        const t = Math.min(1, ks.timer / KICK_BACK_TIME);
+        const factor = 1 - t;
+        if (side === 'left') {
+          leftLegAngle = ks.targetX * factor;
+          leftLegZAngle = ks.targetZ * factor;
+        } else {
+          rightLegAngle = ks.targetX * factor;
+          rightLegZAngle = ks.targetZ * factor;
+        }
+        if (t >= 1) {
+          ks.phase = 'idle';
+          if (side === 'left') { leftLegAngle = 0; leftLegZAngle = 0; }
+          else { rightLegAngle = 0; rightLegZAngle = 0; }
+        }
+      }
+    });
+  } else {
+    // 摄像头模式：直接使用骨骼绑定角度
+    leftLegAngle = boundAngles.leftLegX;
+    leftLegZAngle = boundAngles.leftLegZ;
+    rightLegAngle = boundAngles.rightLegX;
+    rightLegZAngle = boundAngles.rightLegZ;
+  }
+
+  // 角速度
+  leftLegAngVel = (leftLegAngle - prevLeftX) / dt;
+  rightLegAngVel = (rightLegAngle - prevRightX) / dt;
+
+  // 清除本帧边缘检测标记（仅键盘模式）
+  if (controlMode === 'keyboard') {
+    Object.keys(justPressed).forEach(k => delete justPressed[k]);
+  }
+
+  // ========== 加速 ==========
+  if (controlMode === 'keyboard') {
+    speedBoost = !!keys['Space'];
+  }
+  // 摄像头模式：speedBoost 由 updateBoneBinding 设置
+
+  // ========== 角色自动移动 ==========
+  let moveDirX = 0, moveDirZ = 0;
+  let moveSpeed = speedBoost ? MAX_SPEED : AUTO_SPEED;
+
+  if (p.hasBall) {
+    // ========== 带球状态：锁定对方球门线中点 ==========
+    const goalZ = p.isRed ? FIELD_L / 2 : -FIELD_L / 2;
+    const toGoalX = -p.x; // 目标x=0（球门中点）
+    const toGoalZ = goalZ - p.z;
+    const distToGoal = Math.sqrt(toGoalX * toGoalX + toGoalZ * toGoalZ);
+    if (distToGoal > 1) {
+      moveDirX = toGoalX / distToGoal;
+      moveDirZ = toGoalZ / distToGoal;
+    }
+    // 带球朝向：面向球门方向
+    const targetFacing = Math.atan2(toGoalX, toGoalZ);
+    let angleDiff = targetFacing - p.facing;
+    while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+    while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+    p.facing += angleDiff * 0.15;
+
+    // 带球速度上限（加速不中断带球）
+    if (!speedBoost && moveSpeed > DRIBBLE_MAX_SPEED) {
+      moveSpeed = DRIBBLE_MAX_SPEED;
+    }
+
+    // 球粘滞在角色前脚附近（优先跟随抬起的脚）
+    ball.vx = 0; ball.vy = 0; ball.vz = 0;
+    const leftFoot = p.getFootWorldPos('left');
+    const rightFoot = p.getFootWorldPos('right');
+    // 选择更靠前的脚作为带球锚点
+    const leftFootFwd = Math.sin(p.facing) * leftFoot.x + Math.cos(p.facing) * leftFoot.z;
+    const rightFootFwd = Math.sin(p.facing) * rightFoot.x + Math.cos(p.facing) * rightFoot.z;
+    const anchorFoot = leftFootFwd > rightFootFwd ? leftFoot : rightFoot;
+    // 球位置：角色正前方（以角色中心为基准，朝向方向偏移）
+    const ballTargetX = p.x + Math.sin(p.facing) * DRIBBLE_BALL_OFFSET;
+    const ballTargetZ = p.z + Math.cos(p.facing) * DRIBBLE_BALL_OFFSET;
+    // 平滑过渡避免球跳跃
+    ball.x += (ballTargetX - ball.x) * 0.3;
+    ball.z += (ballTargetZ - ball.z) * 0.3;
+    ball.mesh.position.y = BALL_R;
+  } else {
+    // ========== 无球状态：追球 ==========
+    const toBallX = ball.x - p.x;
+    const toBallZ = ball.z - p.z;
+    const distToBall = Math.sqrt(toBallX * toBallX + toBallZ * toBallZ);
+
+    if (distToBall > 0.8) {
+      moveDirX = toBallX / distToBall;
+      moveDirZ = toBallZ / distToBall;
+    }
+
+    // 自动朝向球
+    if (distToBall > 0.5) {
+      const targetFacing = Math.atan2(toBallX, toBallZ);
+      let angleDiff = targetFacing - p.facing;
+      while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+      while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+      p.facing += angleDiff * 0.15;
+    }
+
+    // 带球减速
+    if (distToBall < DRIBBLE_R && moveSpeed > DRIBBLE_MAX_SPEED) {
+      moveSpeed = DRIBBLE_MAX_SPEED;
+    }
+  }
+
+  const targetVx = moveDirX * moveSpeed;
+  const targetVz = moveDirZ * moveSpeed;
+  p.vx += (targetVx - p.vx) * Math.min(1, dt * 8);
+  p.vz += (targetVz - p.vz) * Math.min(1, dt * 8);
+
+  // ========== 腿部碰撞检测 ==========
+  handleLegCollisions(kickPower);
+
+  // ========== 更新UI ==========
+  if (controlMode === 'keyboard') {
+    updateKeyUI();
+  }
+  const currentSpeed = Math.sqrt(p.vx * p.vx + p.vz * p.vz);
+  const speedPct = Math.min(100, (currentSpeed / MAX_SPEED) * 100);
+  speedFill.style.width = speedPct + '%';
+  // 带球状态指示
+  dribbleIndicator.classList.toggle('active', p.hasBall);
+}
+
+// ============ 腿部碰撞检测 ============
+// 键盘模式：基于力度条和动画角度
+// 摄像头模式：基于碰撞瞬间腿部移动方向和速度
+function handleLegCollisions(kickPower) {
+  const p = playerChar;
+  if (p.state === 'down' || p.state === 'getting_up') return;
+
+  const leftFoot = p.getFootWorldPos('left');
+  const rightFoot = p.getFootWorldPos('right');
+
+  const absLeftVel = Math.abs(leftLegAngVel);
+  const absRightVel = Math.abs(rightLegAngVel);
+  // 摄像头模式下降低激活阈值（连续绑定角速度较低）
+  // 带球时进一步降低阈值：只要腿明显抬起即算激活，保证能触发踢球
+  const legActiveThreshold = controlMode === 'camera' ? (p.hasBall ? 0.15 : 0.3) : 0.1;
+  const leftActive = absLeftVel > 1 || Math.abs(leftLegAngle) > legActiveThreshold;
+  const rightActive = absRightVel > 1 || Math.abs(rightLegAngle) > legActiveThreshold;
+
+  // ===== 腿碰球 =====
+  if (p.kickCooldown <= 0) {
+    [
+      { foot: leftFoot, active: leftActive, side: 'left', angle: leftLegAngle, zAngle: leftLegZAngle, angVel: leftLegAngVel },
+      { foot: rightFoot, active: rightActive, side: 'right', angle: rightLegAngle, zAngle: rightLegZAngle, angVel: rightLegAngVel }
+    ].forEach(leg => {
+      if (!leg.active) return;
+      if (p.kickCooldown > 0) return;
+
+      const dx = ball.x - leg.foot.x;
+      const dz = ball.z - leg.foot.z;
+      const dist = Math.sqrt(dx * dx + dz * dz);
+
+      // 带球时扩大碰撞范围（球紧贴脚部，需要更大判定区域）
+      const hitR = p.hasBall ? LEG_HIT_R + BALL_R + 0.15 : LEG_HIT_R + BALL_R + 0.05;
+
+      if (dist < hitR) {
+        let kickDirX, kickDirZ, power;
+
+        if (controlMode === 'camera') {
+          // 摄像头模式：踢球方向由碰撞瞬间腿部运动方向决定
+          // legX 角速度 < 0 表示前摆（踢向前方）
+          // legZ 角速度表示侧向摆动
+          const legXVel = leg.angVel;  // 前后角速度
+          const forwardFactor = legXVel < 0 ? 1 : -0.5;
+          // 使用 zAngle 的符号判断侧向
+          const sideFactor = leg.zAngle > 0 ? -1 : (leg.zAngle < 0 ? 1 : 0);
+
+          kickDirX = Math.sin(p.facing) * forwardFactor + Math.cos(p.facing) * sideFactor * 0.5;
+          kickDirZ = Math.cos(p.facing) * forwardFactor - Math.sin(p.facing) * sideFactor * 0.5;
+
+          // 力度与腿部角速度成正比
+          const speedRatio = Math.min(1, Math.abs(legXVel) / 15);
+          power = DEFAULT_KICK_POWER * 0.5 + DEFAULT_KICK_POWER * 1.5 * speedRatio;
+
+          // 加入球相对角色的方向偏移
+          if (dist > 0.01) {
+            kickDirX += dx / dist * 0.3;
+            kickDirZ += dz / dist * 0.3;
+          }
+        } else {
+          // 键盘模式：保持原有逻辑
+          power = kickPower;
+          const forwardFactor = leg.angle < 0 ? 1 : -0.5;
+          const sideFactor = leg.zAngle > 0 ? -1 : (leg.zAngle < 0 ? 1 : 0);
+          kickDirX = Math.sin(p.facing) * forwardFactor + Math.cos(p.facing) * sideFactor * 0.5;
+          kickDirZ = Math.cos(p.facing) * forwardFactor - Math.sin(p.facing) * sideFactor * 0.5;
+          if (dist > 0.01) {
+            kickDirX += dx / dist * 0.3;
+            kickDirZ += dz / dist * 0.3;
+          }
+        }
+
+        const kickDirLen = Math.sqrt(kickDirX * kickDirX + kickDirZ * kickDirZ);
+        if (kickDirLen > 0.01) {
+          ball.vx = (kickDirX / kickDirLen) * power;
+          ball.vz = (kickDirZ / kickDirLen) * power;
+          ball.vy = power * 0.08;
+          p.kickCooldown = 0.15;
+          p.hasBall = false;
+        }
+      }
+    });
+  }
+
+  // ===== 腿碰其他球员 =====
+  if (p.kickCooldown <= 0) {
+    [
+      { foot: leftFoot, active: leftActive, side: 'left', angle: leftLegAngle, zAngle: leftLegZAngle, angVel: leftLegAngVel },
+      { foot: rightFoot, active: rightActive, side: 'right', angle: rightLegAngle, zAngle: rightLegZAngle, angVel: rightLegAngVel }
+    ].forEach(leg => {
+      if (!leg.active) return;
+      if (p.kickCooldown > 0) return;
+
+      allPlayers.forEach(other => {
+        if (other === p) return;
+        if (other.state === 'down') return;
+
+        const dx = other.x - leg.foot.x;
+        const dz = other.z - leg.foot.z;
+        const dist = Math.sqrt(dx * dx + dz * dz);
+
+        if (dist < LEG_HIT_R + PLAYER_W / 2) {
+          let dirX, dirZ, knockForce;
+
+          if (controlMode === 'camera') {
+            // 摄像头模式：击飞方向由腿部运动方向决定
+            const legXVel = leg.angVel;
+            const forwardFactor = legXVel < 0 ? 1 : -0.5;
+            const sideFactor = leg.zAngle > 0 ? -1 : (leg.zAngle < 0 ? 1 : 0);
+            dirX = Math.sin(p.facing) * forwardFactor + Math.cos(p.facing) * sideFactor * 0.5;
+            dirZ = Math.cos(p.facing) * forwardFactor - Math.sin(p.facing) * sideFactor * 0.5;
+
+            // 击倒力度与角速度成正比
+            const hitPower = DEFAULT_KICK_POWER * 0.3 * Math.min(1, Math.abs(legXVel) / 15);
+            knockForce = hitPower < 2 ? KNOCKBACK_MIN : hitPower < 5 ? KNOCKBACK_MID : KNOCKBACK_MAX;
+          } else {
+            // 键盘模式：保持原有逻辑
+            const hitPower = kickPower * 0.3;
+            knockForce = hitPower < 2 ? KNOCKBACK_MIN : hitPower < 5 ? KNOCKBACK_MID : KNOCKBACK_MAX;
+            const forwardFactor = leg.angle < 0 ? 1 : -0.5;
+            const sideFactor = leg.zAngle > 0 ? -1 : (leg.zAngle < 0 ? 1 : 0);
+            dirX = Math.sin(p.facing) * forwardFactor + Math.cos(p.facing) * sideFactor * 0.5;
+            dirZ = Math.cos(p.facing) * forwardFactor - Math.sin(p.facing) * sideFactor * 0.5;
+          }
+
+          const dirLen = Math.sqrt(dirX * dirX + dirZ * dirZ);
+          if (dirLen > 0.01) {
+            dirX /= dirLen;
+            dirZ /= dirLen;
+          }
+
+          other.knockback(dirX, dirZ, knockForce);
+          p.kickCooldown = 0.3;
+        }
+      });
+    });
+  }
+}
+
+// ============ 进球检测 ============
+function checkGoal() {
+  const halfL = FIELD_L / 2;
+  if (ball.z > halfL && Math.abs(ball.x) < GOAL_W / 2 && ball.mesh.position.y < GOAL_H) {
+    redScore++;
+    onGoal('red');
+    return true;
+  }
+  if (ball.z < -halfL && Math.abs(ball.x) < GOAL_W / 2 && ball.mesh.position.y < GOAL_H) {
+    blueScore++;
+    onGoal('blue');
+    return true;
+  }
+  return false;
+}
+
+function onGoal(scoringTeam) {
+  gameState = 'goal';
+  redScoreEl.textContent = redScore;
+  blueScoreEl.textContent = blueScore;
+
+  setTimeout(() => {
+    resetPositions();
+    ball.reset();
+    gameState = 'playing';
+  }, 2000);
+}
+
+function resetPositions() {
+  redPlayers.forEach(p => p.reset());
+  bluePlayers.forEach(p => p.reset());
+}
+
+// ============ 玩家控制（保留兼容，实际由键盘控制） ============
+function updatePlayerControl(dt) {
+  // 键盘控制在 handleKeyboardControl 中处理
+  // 此函数保留为空以兼容主循环
+}
+
+// ============ 摄像机 ============
+let cameraSmoothX = 0, cameraSmoothZ = 0;
+
+function updateCamera() {
+  if (gameState === 'ended') return;
+
+  const p = playerChar;
+
+  if (cameraSmoothX === 0 && cameraSmoothZ === 0) {
+    cameraSmoothX = p.x;
+    cameraSmoothZ = p.z;
+  }
+
+  const followSpeed = 0.12;
+  cameraSmoothX += (p.x - cameraSmoothX) * followSpeed;
+  cameraSmoothZ += (p.z - cameraSmoothZ) * followSpeed;
+
+  const camX = cameraSmoothX;
+  const camY = parseFloat(document.getElementById('camHeightSlider').value) / 100;
+  const camZ = cameraSmoothZ;
+
+  camera.position.set(camX, camY, camZ);
+  camera.up.set(0, 0, 1);
+  camera.lookAt(camX, 0, camZ);
+}
+
+// ============ 球方向指示器 ============
+function updateBallIndicator() {
+  const ballPos = ball.mesh.position.clone();
+  ballPos.y += 0.5;
+  const projected = ballPos.project(camera);
+
+  const sx = (projected.x + 1) / 2 * 1920;
+  const sy = (-projected.y + 1) / 2 * 1080;
+
+  const onScreen = projected.z > 0 && projected.z < 1 &&
+    sx > 0 && sx < 1920 && sy > 0 && sy < 1080;
+
+  if (onScreen) {
+    ballIndicator.style.display = 'none';
+  } else {
+    ballIndicator.style.display = 'block';
+    const cx = 1920 / 2, cy = 1080 / 2;
+    const dx = sx - cx, dy = sy - cy;
+    const angle = Math.atan2(dy, dx);
+    const edgeX = cx + Math.cos(angle) * (cx - 40);
+    const edgeY = cy + Math.sin(angle) * (cy - 40);
+    ballIndicator.style.left = Math.max(10, Math.min(1890, edgeX)) + 'px';
+    ballIndicator.style.top = Math.max(10, Math.min(1060, edgeY)) + 'px';
+    ballIndicator.style.transform = `rotate(${angle + Math.PI / 2}rad)`;
+
+    const dist = Math.sqrt((playerChar.x - ball.x) ** 2 + (playerChar.z - ball.z) ** 2);
+    ballIndicator.title = Math.round(dist) + 'm';
+  }
+}
+
+// ============ 小地图 ============
+function drawMinimap() {
+  const w = 108, h = 168;
+  minimapCtx.clearRect(0, 0, w, h);
+
+  minimapCtx.fillStyle = 'rgba(0,0,0,0.3)';
+  minimapCtx.fillRect(0, 0, w, h);
+
+  const margin = 6;
+  const fx = margin, fy = margin;
+  const fw = w - margin * 2, fh = h - margin * 2;
+  minimapCtx.strokeStyle = 'rgba(255,255,255,0.3)';
+  minimapCtx.lineWidth = 1;
+  minimapCtx.strokeRect(fx, fy, fw, fh);
+
+  minimapCtx.beginPath();
+  minimapCtx.moveTo(fx, fy + fh / 2);
+  minimapCtx.lineTo(fx + fw, fy + fh / 2);
+  minimapCtx.stroke();
+
+  const goalPxW = (GOAL_W / FIELD_W) * fw;
+  minimapCtx.strokeStyle = 'rgba(255,255,255,0.5)';
+  minimapCtx.lineWidth = 2;
+  [-1, 1].forEach(side => {
+    const gy = side === 1 ? fy : fy + fh;
+    minimapCtx.beginPath();
+    minimapCtx.moveTo(fx + fw / 2 - goalPxW / 2, gy);
+    minimapCtx.lineTo(fx + fw / 2 + goalPxW / 2, gy);
+    minimapCtx.stroke();
+  });
+
+  const toMx = (x) => fx + ((FIELD_W / 2 - x) / FIELD_W) * fw;
+  const toMz = (z) => fy + ((FIELD_L / 2 - z) / FIELD_L) * fh;
+
+  redPlayers.forEach(p => {
+    minimapCtx.fillStyle = p.isPlayer ? '#44ff44' : '#ff4444';
+    minimapCtx.beginPath();
+    minimapCtx.arc(toMx(p.x), toMz(p.z), p.isPlayer ? 4 : 3, 0, Math.PI * 2);
+    minimapCtx.fill();
+  });
+
+  bluePlayers.forEach(p => {
+    minimapCtx.fillStyle = '#4488ff';
+    minimapCtx.beginPath();
+    minimapCtx.arc(toMx(p.x), toMz(p.z), 3, 0, Math.PI * 2);
+    minimapCtx.fill();
+  });
+
+  minimapCtx.fillStyle = '#ffffff';
+  minimapCtx.beginPath();
+  minimapCtx.arc(toMx(ball.x), toMz(ball.z), 3, 0, Math.PI * 2);
+  minimapCtx.fill();
+}
+
+function handleCollisions() {
+  allPlayers.forEach(p => {
+    if (p.state === 'down' || p.state === 'getting_up') return;
+    // 飞扑中的守门员碰撞在 update 的状态机中已处理，此处跳过
+    if (p.diveState !== 'idle' && p.diveState !== undefined) return;
+    const dx = ball.x - p.x;
+    const dz = ball.z - p.z;
+    const dist = Math.sqrt(dx * dx + dz * dz);
+
+    // 玩家角色带球检测：球触碰角色身体时进入带球状态
+    // 踢球冷却期内不重新拾取，避免刚踢出的球立刻被吸回
+    if (p.isPlayer && !p.hasBall && dist < DRIBBLE_STICKY_R && p.kickCooldown <= 0) {
+      p.hasBall = true;
+    }
+
+    // 非带球状态下的球体碰撞推离（玩家带球时跳过所有球体碰撞，因为球位置由键盘控制管理）
+    if (!playerChar.hasBall && dist < PLAYER_W / 2 + BALL_R && dist > 0) {
+      const nx = dx / dist, nz = dz / dist;
+      ball.x = p.x + nx * (PLAYER_W / 2 + BALL_R + 0.01);
+      ball.z = p.z + nz * (PLAYER_W / 2 + BALL_R + 0.01);
+      const dot = ball.vx * nx + ball.vz * nz;
+      if (dot < 0) {
+        ball.vx -= 1.5 * dot * nx;
+        ball.vz -= 1.5 * dot * nz;
+      }
+    }
+
+    // AI球员触碰球时，解除玩家带球状态
+    if (!p.isPlayer && playerChar.hasBall && dist < PLAYER_W / 2 + BALL_R + 0.3) {
+      playerChar.hasBall = false;
+    }
+  });
+
+  for (let i = 0; i < allPlayers.length; i++) {
+    for (let j = i + 1; j < allPlayers.length; j++) {
+      const a = allPlayers[i], b = allPlayers[j];
+      if (a.state === 'down' || b.state === 'down') continue;
+      const dx = b.x - a.x;
+      const dz = b.z - a.z;
+      const dist = Math.sqrt(dx * dx + dz * dz);
+      // 飞扑中的守门员碰撞半径更大，防止穿模
+      const aDiving = a.diveState !== 'idle' && a.diveState !== undefined;
+      const bDiving = b.diveState !== 'idle' && b.diveState !== undefined;
+      const minDist = (aDiving || bDiving) ? PLAYER_W * 1.5 : PLAYER_W;
+      if (dist < minDist && dist > 0) {
+        const nx = dx / dist, nz = dz / dist;
+        const overlap = (minDist - dist) / 2;
+        // 飞扑中的守门员不被推离，另一方全退
+        if (aDiving && !bDiving) {
+          b.x += nx * overlap * 2;
+          b.z += nz * overlap * 2;
+        } else if (bDiving && !aDiving) {
+          a.x -= nx * overlap * 2;
+          a.z -= nz * overlap * 2;
+        } else {
+          a.x -= nx * overlap;
+          a.z -= nz * overlap;
+          b.x += nx * overlap;
+          b.z += nz * overlap;
+        }
+      }
+    }
+  }
+}
+
+// ============ 比赛计时 ============
+function updateTimer(dt) {
+  if (gameState !== 'playing') return;
+  matchTimer -= dt;
+  if (matchTimer <= 0) {
+    matchTimer = 0;
+    endMatch();
+  }
+  const mins = Math.floor(matchTimer / 60);
+  const secs = Math.floor(matchTimer % 60);
+  timerEl.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}
+
+// ============ 结束比赛 ============
+function endMatch() {
+  gameState = 'ended';
+  hud.style.display = 'none';
+  camPreview.style.display = 'none';
+  camModeIndicator.style.display = 'none';
+
+  document.getElementById('resultRed').textContent = redScore;
+  document.getElementById('resultBlue').textContent = blueScore;
+
+  let title;
+  if (redScore > blueScore) title = '🎉 红队获胜！';
+  else if (blueScore > redScore) title = '😢 蓝队获胜';
+  else title = '🤝 平局';
+  document.getElementById('resultTitle').textContent = title;
+
+  resultScreen.style.display = 'flex';
+}
+
+// ============ 开始比赛 ============
+async function startMatch() {
+  startScreen.style.display = 'none';
+  gameState = 'countdown';
+
+  // 立即设置比赛时间并刷新计时器显示
+  matchTimer = MATCH_TIME;
+  const initMins = Math.floor(matchTimer / 60);
+  const initSecs = Math.floor(matchTimer % 60);
+  timerEl.textContent = `${String(initMins).padStart(2, '0')}:${String(initSecs).padStart(2, '0')}`;
+
+  // 根据操作模式显示/隐藏UI
+  if (controlMode === 'camera') {
+    camPreview.style.display = 'block';
+    keyHintsEl.style.display = 'none';
+    powerControlEl.style.display = 'none';
+    camModeIndicator.style.display = 'block';
+  } else {
+    camPreview.style.display = 'none';
+    keyHintsEl.style.display = 'flex';
+    powerControlEl.style.display = 'flex';
+    camModeIndicator.style.display = 'none';
+  }
+
+  const countEl = countdownEl.querySelector('span');
+  countdownEl.style.display = 'flex';
+  hud.style.display = 'block';
+
+  for (let i = 3; i >= 1; i--) {
+    countEl.textContent = i;
+    countEl.style.animation = 'none';
+    void countEl.offsetWidth;
+    countEl.style.animation = 'countPulse 0.8s ease-out';
+    await new Promise(r => setTimeout(r, 1000));
+  }
+  countEl.textContent = '开踢!';
+  countEl.style.animation = 'none';
+  void countEl.offsetWidth;
+  countEl.style.animation = 'countPulse 0.8s ease-out';
+  await new Promise(r => setTimeout(r, 800));
+
+  countdownEl.style.display = 'none';
+  gameState = 'playing';
+  matchTimer = MATCH_TIME;
+  redScore = 0; blueScore = 0;
+  redScoreEl.textContent = '0';
+  blueScoreEl.textContent = '0';
+  resetPositions();
+  ball.reset();
+  lastTime = performance.now();
+}
+
+// ============ 事件绑定 ============
+startBtn.addEventListener('click', startMatch);
+document.getElementById('camHeightSlider').addEventListener('input', (e) => {
+  document.getElementById('camHeightVal').textContent = (e.target.value / 100).toFixed(1);
+});
+document.getElementById('replayBtn').addEventListener('click', () => {
+  resultScreen.style.display = 'none';
+  startMatch();
+});
+
+// ============ 窗口大小调整 ============
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ============ 主循环 ============
+function gameLoop() {
+  requestAnimationFrame(gameLoop);
+
+  const now = performance.now();
+  const dt = Math.min((now - (lastTime || now)) / 1000, 0.05);
+  lastTime = now;
+
+  if (gameState === 'playing' || gameState === 'goal') {
+    if (gameState === 'playing') {
+      updateTimer(dt);
+    }
+
+    updatePlayerControl(dt);
+    handleKeyboardControl(dt);
+
+    allPlayers.forEach(p => p.update(dt, ball));
+
+    ball.update(dt);
+
+    handleCollisions();
+
+    if (gameState === 'playing') {
+      checkGoal();
+    }
+
+    updateCamera();
+
+    updateBallIndicator();
+    drawMinimap();
+  }
+
+  renderer.render(scene, camera);
+}
+
+// ============ 启动 ============
+gameLoop();
+
+</script>
+</body>
+</html>

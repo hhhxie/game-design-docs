@@ -185,11 +185,12 @@ canvas#gameCanvas{display:block;width:100vw;height:100vh}
       <div class="cam-zone-row"><span class="cam-zone-label cam-zone-right">右手向右举起 90°~120°</span><span>→ 右脚向右踢</span></div>
       <div class="cam-zone-row"><span class="cam-zone-label cam-zone-right">右手向右上举起 120°~150°</span><span>→ 右脚向右上踢</span></div>
       <div class="cam-zone-row"><span class="cam-zone-label cam-zone-right">右手向上方举起 150°~180°</span><span>→ 右脚向前踢</span></div>
-      <div class="cam-zone-row"><span class="cam-zone-label">双手靠近</span><span>→ 加速</span></div>
+      <div class="cam-zone-row"><span class="cam-zone-label">双手肩膀以下快速摆臂</span><span>→ 加速（模拟跑步摆臂）</span></div>
     </div>
     <div class="ctrl-desc">
       角色自动追球 · 举手触发踢腿动画 · 角度决定踢球方向<br>
-      需要摄像头权限 · 球触碰角色 = 带球 · 腿部踢球解除带球
+      需要摄像头权限 · 球触碰角色 = 带球 · 腿部踢球解除带球<br>
+      肩膀以下摆臂 = 加速 · 肩膀以上举手 = 踢腿
     </div>
   </div>
 
@@ -339,6 +340,11 @@ const boundAngles = {
 };
 let camArmAngVelLeft = 0, camArmAngVelRight = 0;
 let camPrevArmAngleLeft = 0, camPrevArmAngleRight = 0;
+// 摄像头加速：手腕Y坐标追踪（检测摆臂）
+let camPrevLWristY = NaN, camPrevRWristY = NaN;
+let camLWristVelY = 0, camRWristVelY = 0;
+let camSwingEnergy = 0; // 摆臂能量（0~1）
+let camWristYReady = false; // 首帧标记
 
 function computeArmAngles(shoulder, elbow, wrist, hip) {
   const confidence = Math.min(shoulder.visibility || 0, wrist.visibility || 0, hip.visibility || 0);
@@ -370,6 +376,9 @@ function updateBoneBinding(dt) {
   if (!lastPoseResults || !lastPoseResults.poseLandmarks) {
     const decay = Math.min(1, dt * BONE_BINDING.smoothFactorMin);
     for (const key of Object.keys(boundAngles)) boundAngles[key] *= (1 - decay);
+    camSwingEnergy *= (1 - decay);
+    speedBoost = false;
+    camWristYReady = false;
     return;
   }
   const lm = lastPoseResults.poseLandmarks;
@@ -409,9 +418,45 @@ function updateBoneBinding(dt) {
   boundAngles.rightLegZ  += (rightLegTarget.legZ  - boundAngles.rightLegZ)  * alphaRight;
   boundAngles.rightKneeX += (rightLegTarget.kneeX - boundAngles.rightKneeX) * alphaRight;
 
-  // 双手靠近 → 加速
-  const handDist = Math.hypot(lWrist.x - rWrist.x, lWrist.y - rWrist.y);
-  speedBoost = handDist < 0.2;
+  // 加速判定：双手在肩膀以下范围内摆动 → 模拟跑步摆臂
+  // 关键区分：
+  //   - 肩膀以下小幅摆动 = 跑步摆臂 = 加速
+  //   - 肩膀水平或以上 = 举手 = 踢腿操作，不算加速
+  //   - 手臂静止张开 = 不是跑步，不算加速
+  const RUNNING_ZONE_TOP = lShoulder.y + 0.05; // 跑步区域上界：肩膀稍下方
+  const RUNNING_ZONE_BOTTOM = lShoulder.y + 0.5; // 跑步区域下界
+  // 双手必须都在肩膀以下（严格低于肩膀），才属于跑步区域
+  const lInRunningZone = lWrist.y > RUNNING_ZONE_TOP && lWrist.y < RUNNING_ZONE_BOTTOM;
+  const rInRunningZone = rWrist.y > RUNNING_ZONE_TOP && rWrist.y < RUNNING_ZONE_BOTTOM;
+
+  // 追踪手腕Y方向速度（摆臂检测）
+  // 首帧不计算速度（避免初始化为0导致的假速度）
+  if (!camWristYReady) {
+    camPrevLWristY = lWrist.y;
+    camPrevRWristY = rWrist.y;
+    camWristYReady = true;
+  } else if (dt > 0.001) {
+    camLWristVelY = (lWrist.y - camPrevLWristY) / dt;
+    camRWristVelY = (rWrist.y - camPrevRWristY) / dt;
+  }
+  camPrevLWristY = lWrist.y;
+  camPrevRWristY = rWrist.y;
+
+  // 摆臂检测：需要双手都有明显上下摆动（模拟跑步时双臂交替）
+  const lSwingSpeed = Math.abs(camLWristVelY);
+  const rSwingSpeed = Math.abs(camRWristVelY);
+  const SWING_THRESHOLD = 0.2; // 最低摆动速度
+  const bothSwinging = lSwingSpeed > SWING_THRESHOLD && rSwingSpeed > SWING_THRESHOLD;
+  const handsInZone = lInRunningZone && rInRunningZone;
+
+  // 平滑摆臂能量（避免闪烁）
+  // 上升快（0.5s到满），下降慢（1.5s归零），确保体验平滑
+  const swingTarget = (handsInZone && bothSwinging) ? 1 : 0;
+  const riseSpeed = 10;  // 上升速率
+  const fallSpeed = 4;   // 下降速率
+  const blendRate = swingTarget > camSwingEnergy ? riseSpeed : fallSpeed;
+  camSwingEnergy += (swingTarget - camSwingEnergy) * Math.min(1, dt * blendRate);
+  speedBoost = camSwingEnergy > 0.3;
 }
 
 // ============ DOM ============
@@ -553,7 +598,6 @@ function calcArmBodyAngle(shoulder, wrist, hip) {
 // ============ 摄像头踢腿触发 ============
 function handleCameraKickTrigger(LEG_SWING_MAX, LEG_SIDE_MAX) {
   if (!lastPoseResults || !lastPoseResults.poseLandmarks) {
-    speedBoost = false;
     prevLeftArmAngle = 0;
     prevRightArmAngle = 0;
     return;
@@ -568,13 +612,15 @@ function handleCameraKickTrigger(LEG_SWING_MAX, LEG_SIDE_MAX) {
   const leftAngle = calcArmBodyAngle(lShoulder, lWrist, lHip);
   const rightAngle = calcArmBodyAngle(rShoulder, rWrist, rHip);
 
-  // 双手靠近 → 加速
-  const handDist = Math.hypot(lWrist.x - rWrist.x, lWrist.y - rWrist.y);
-  speedBoost = handDist < 0.2;
+  // 加速判定：由 updateBoneBinding 统一管理，此处不再覆盖 speedBoost
+  // 仅在手明确超过肩膀以上时标记（用于踢腿判定）
 
-  // 边缘检测：手臂从下方越过90°时触发
-  const leftJustRaised = leftAngle >= 90 && prevLeftArmAngle < 90;
-  const rightJustRaised = rightAngle >= 90 && prevRightArmAngle < 90;
+  // 边缘检测：手臂从下方越过90°时触发踢腿
+  // 附加条件：手腕必须在肩膀以上（超过肩膀范围才视为踢腿操作，避免与摆臂加速冲突）
+  const leftAboveShoulder = lWrist.y <= lShoulder.y;
+  const rightAboveShoulder = rWrist.y <= rShoulder.y;
+  const leftJustRaised = leftAngle >= 90 && prevLeftArmAngle < 90 && leftAboveShoulder;
+  const rightJustRaised = rightAngle >= 90 && prevRightArmAngle < 90 && rightAboveShoulder;
 
   // 左手 → 右脚踢腿（交叉映射）
   if (kickAnim.right.phase === 'idle' && leftJustRaised) {
@@ -1525,7 +1571,16 @@ function updateKeyUI() {
 function handleKeyboardControl(dt) {
   if (gameState !== 'playing' || playerChar.state === 'down' || playerChar.state === 'getting_up') {
     Object.keys(justPressed).forEach(k => delete justPressed[k]);
-    if (controlMode === 'camera') speedBoost = false;
+    if (controlMode === 'camera') {
+      speedBoost = false;
+      // 重置摄像头追踪状态，避免恢复时因旧数据产生假速度
+      camSwingEnergy = 0;
+      camWristYReady = false;
+      camLWristVelY = 0;
+      camRWristVelY = 0;
+      prevLeftArmAngle = 0;
+      prevRightArmAngle = 0;
+    }
     return;
   }
 
@@ -1578,6 +1633,8 @@ function handleKeyboardControl(dt) {
   } else {
     // 摄像头模式：连续骨骼绑定驱动，替代离散触发
     updateBoneBinding(dt);
+    // 摄像头踢腿触发
+    handleCameraKickTrigger(LEG_SWING_MAX, LEG_SIDE_MAX);
   }
 
   // ========== 更新踢腿动画 ==========

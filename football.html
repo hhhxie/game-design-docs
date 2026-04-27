@@ -48,19 +48,33 @@ canvas#gameCanvas{display:block;width:100vw;height:100vh}
 #minimap{position:absolute;top:70px;right:20px;width:108px;height:168px;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.2);border-radius:8px;backdrop-filter:blur(4px)}
 #ballIndicator{position:fixed;width:32px;height:32px;display:none;z-index:11}
 #ballIndicator svg{width:100%;height:100%}
-#speedBar{position:absolute;bottom:80px;left:50%;transform:translateX(-50%);width:200px;height:8px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden}
+#speedBar{width:200px;height:8px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden}
 #speedFill{height:100%;width:0%;background:linear-gradient(90deg,#44ff44,#ffaa00,#ff4444);border-radius:4px;transition:width .1s}
-#speedLabel{position:absolute;bottom:92px;left:50%;transform:translateX(-50%);font-size:12px;color:#aaa}
+#speedLabel{font-size:11px;color:#aaa}
+
+/* 镜头控制面板 */
+.cam-ctrl-panel{display:flex;flex-direction:column;gap:6px;pointer-events:auto}
+.cam-ctrl-col{display:flex;align-items:center;gap:5px}
+.cam-ctrl-label{font-size:10px;color:#aaa;white-space:nowrap;min-width:44px;text-align:right}
+.cam-ctrl-val{font-size:9px;color:#888;min-width:28px;text-align:center}
+.cam-ctrl-panel input[type=range]{width:70px;accent-color:#4488ff;cursor:pointer}
+
+/* 底部控制栏 */
+#bottomBar{position:fixed;bottom:0;left:0;right:0;height:120px;background:rgba(0,0,0,.75);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:space-between;padding:0 16px;z-index:12;pointer-events:none;border-top:1px solid rgba(255,255,255,.08)}
+#bottomBar>*{pointer-events:auto}
+#bottomLeft{display:flex;align-items:center;gap:16px}
+#bottomCenter{display:flex;flex-direction:column;align-items:center;gap:2px}
+#bottomRight{display:flex;align-items:center;gap:16px}
 
 /* 带球状态指示 */
 #dribbleIndicator{position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);font-size:18px;color:#ffaa00;font-weight:bold;opacity:0;transition:opacity .3s;pointer-events:none;z-index:15;text-shadow:0 0 10px rgba(255,170,0,.5)}
 #dribbleIndicator.active{opacity:1}
 
 /* 踢球力度调节条 */
-#powerControl{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:4px;pointer-events:auto;z-index:12}
-#powerLabel{font-size:13px;color:#aaa}
-#powerSlider{width:280px;accent-color:#ff8800;cursor:pointer}
-#powerValue{font-size:11px;color:#888}
+#powerControl{display:flex;align-items:center;gap:6px;pointer-events:auto}
+#powerLabel{font-size:11px;color:#aaa}
+#powerSlider{width:140px;accent-color:#ff8800;cursor:pointer}
+#powerValue{font-size:10px;color:#888}
 
 /* 按键提示 */
 #keyHints{position:fixed;top:50%;left:12px;transform:translateY(-50%);display:flex;flex-direction:column;gap:12px;z-index:12;pointer-events:none}
@@ -207,14 +221,43 @@ canvas#gameCanvas{display:block;width:100vw;height:100vh}
   </div>
   <div id="timer">03:00</div>
   <canvas id="minimap" width="108" height="168"></canvas>
-  <div id="speedBar"><div id="speedFill"></div></div>
-  <div id="speedLabel">速度</div>
   <div id="dribbleIndicator">⚽ 带球中</div>
   <div id="camModeIndicator" class="camera">📷 摄像头模式</div>
-  <div id="camHeightCtrl" style="position:absolute;bottom:20px;right:20px;display:flex;flex-direction:column;align-items:center;gap:4px;pointer-events:auto">
-    <span style="font-size:11px;color:#aaa">镜头高度</span>
-    <input type="range" id="camHeightSlider" min="205" max="1400" value="450" style="width:120px;accent-color:#4488ff;writing-mode:vertical-lr;direction:rtl;height:100px">
-    <span id="camHeightVal" style="font-size:10px;color:#888">4.5</span>
+</div>
+
+<!-- 底部控制栏 -->
+<div id="bottomBar">
+  <div id="bottomLeft">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+      <div id="speedBar"><div id="speedFill"></div></div>
+      <span id="speedLabel">速度</span>
+    </div>
+  </div>
+  <div id="bottomCenter">
+    <div id="powerControl">
+      <span id="powerLabel">踢球力度</span>
+      <input type="range" id="powerSlider" min="3" max="25" value="10" step="0.5">
+      <span id="powerValue">10.0</span>
+    </div>
+  </div>
+  <div id="bottomRight">
+    <div class="cam-ctrl-panel" id="camCtrlPanel">
+      <div class="cam-ctrl-col">
+        <span class="cam-ctrl-label">水平旋转</span>
+        <input type="range" id="camYawSlider" min="-180" max="180" value="180" step="1">
+        <span class="cam-ctrl-val" id="camYawVal">180°</span>
+      </div>
+      <div class="cam-ctrl-col">
+        <span class="cam-ctrl-label">俯仰角度</span>
+        <input type="range" id="camPitchSlider" min="10" max="89" value="75" step="1">
+        <span class="cam-ctrl-val" id="camPitchVal">75°</span>
+      </div>
+      <div class="cam-ctrl-col">
+        <span class="cam-ctrl-label">镜头距离</span>
+        <input type="range" id="camDistSlider" min="200" max="2000" value="450" step="10">
+        <span class="cam-ctrl-val" id="camDistVal">4.5</span>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -225,13 +268,6 @@ canvas#gameCanvas{display:block;width:100vw;height:100vh}
 
 <!-- 摄像头预览（隐藏） -->
 <video id="camPreview" autoplay playsinline></video>
-
-<!-- 踢球力度调节条 -->
-<div id="powerControl">
-  <span id="powerLabel">踢球力度</span>
-  <input type="range" id="powerSlider" min="3" max="25" value="10" step="0.5">
-  <span id="powerValue">10.0</span>
-</div>
 
 <!-- 按键提示 -->
 <div id="keyHints">
@@ -670,7 +706,7 @@ camera.position.set(0, 4.5, 0);
 camera.lookAt(0, 0, 0);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(1920, 1080);
+renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -1945,6 +1981,8 @@ function onGoal(scoringTeam) {
   setTimeout(() => {
     resetPositions();
     ball.reset();
+    // 重置镜头追踪（保持滑块用户设置，仅重置平滑位置）
+    cameraSmoothX = 0; cameraSmoothZ = 0;
     gameState = 'playing';
   }, 2000);
 }
@@ -1977,13 +2015,24 @@ function updateCamera() {
   cameraSmoothX += (p.x - cameraSmoothX) * followSpeed;
   cameraSmoothZ += (p.z - cameraSmoothZ) * followSpeed;
 
-  const camX = cameraSmoothX;
-  const camY = parseFloat(document.getElementById('camHeightSlider').value) / 100;
-  const camZ = cameraSmoothZ;
+  // 目标点（玩家位置，地面高度）
+  const targetX = cameraSmoothX;
+  const targetY = 0;
+  const targetZ = cameraSmoothZ;
+
+  // 从滑块读取球面坐标参数
+  const yaw = parseFloat(document.getElementById('camYawSlider').value) * Math.PI / 180;   // 水平旋转角
+  const pitch = parseFloat(document.getElementById('camPitchSlider').value) * Math.PI / 180; // 俯仰角（从水平面量起）
+  const dist = parseFloat(document.getElementById('camDistSlider').value) / 100;            // 镜头到目标距离
+  // 球面坐标 → 笛卡尔坐标（Y轴朝上，Z轴为场地方向）
+  // pitch=0 → 水平，pitch=90 → 正上方
+  const camX = targetX + dist * Math.cos(pitch) * Math.sin(yaw);
+  const camY = dist * Math.sin(pitch);
+  const camZ = targetZ + dist * Math.cos(pitch) * Math.cos(yaw);
 
   camera.position.set(camX, camY, camZ);
-  camera.up.set(0, 0, 1);
-  camera.lookAt(camX, 0, camZ);
+  camera.up.set(0, 1, 0);
+  camera.lookAt(targetX, targetY, targetZ);
 }
 
 // ============ 球方向指示器 ============
@@ -2216,13 +2265,29 @@ async function startMatch() {
   blueScoreEl.textContent = '0';
   resetPositions();
   ball.reset();
+  // 重置镜头追踪和滑块到默认值（蓝色球门在屏幕上方）
+  cameraSmoothX = 0; cameraSmoothZ = 0;
+  document.getElementById('camYawSlider').value = 180;
+  document.getElementById('camYawVal').textContent = '180°';
+  document.getElementById('camPitchSlider').value = 75;
+  document.getElementById('camPitchVal').textContent = '75°';
+  document.getElementById('camDistSlider').value = 450;
+  document.getElementById('camDistVal').textContent = '4.5';
+
   lastTime = performance.now();
 }
 
 // ============ 事件绑定 ============
 startBtn.addEventListener('click', startMatch);
-document.getElementById('camHeightSlider').addEventListener('input', (e) => {
-  document.getElementById('camHeightVal').textContent = (e.target.value / 100).toFixed(1);
+// 镜头多轴控制滑块
+document.getElementById('camYawSlider').addEventListener('input', (e) => {
+  document.getElementById('camYawVal').textContent = e.target.value + '°';
+});
+document.getElementById('camPitchSlider').addEventListener('input', (e) => {
+  document.getElementById('camPitchVal').textContent = e.target.value + '°';
+});
+document.getElementById('camDistSlider').addEventListener('input', (e) => {
+  document.getElementById('camDistVal').textContent = (e.target.value / 100).toFixed(1);
 });
 document.getElementById('replayBtn').addEventListener('click', () => {
   resultScreen.style.display = 'none';

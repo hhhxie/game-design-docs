@@ -56,7 +56,7 @@ body{background:#0a0e1a;overflow:hidden;font-family:'Microsoft YaHei',sans-serif
 
 /* HUD */
 #hud{position:fixed;inset:0;pointer-events:none;z-index:10;display:none}
-#scoreBoard{position:absolute;top:20px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:20px;background:rgba(0,0,0,.6);padding:8px 24px;border-radius:30px;backdrop-filter:blur(8px)}
+#scoreBoard{position:absolute;top:20px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:12px;background:rgba(0,0,0,.6);padding:8px 24px;border-radius:30px;backdrop-filter:blur(8px)}
 .score-red{color:#ff4444;font-size:36px;font-weight:bold;min-width:40px;text-align:center}
 .score-blue{color:#4488ff;font-size:36px;font-weight:bold;min-width:40px;text-align:center}
 .score-vs{color:#fff;font-size:20px;opacity:.6}
@@ -88,10 +88,10 @@ body{background:#0a0e1a;overflow:hidden;font-family:'Microsoft YaHei',sans-serif
 #splitDivider{position:fixed;top:0;bottom:80px;left:50%;width:3px;background:linear-gradient(180deg,rgba(255,136,0,.8),rgba(255,136,0,.2),rgba(68,136,255,.2),rgba(68,136,255,.8));z-index:11;pointer-events:none;display:none}
 #splitLabel{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);writing-mode:vertical-rl;background:rgba(0,0,0,.7);padding:8px 4px;border-radius:6px;font-size:10px;color:#888;z-index:12;pointer-events:none;display:none;letter-spacing:2px}
 
-/* 分屏玩家标签 */
-.player-label{position:fixed;top:8px;font-size:14px;font-weight:bold;padding:4px 12px;border-radius:8px;z-index:12;pointer-events:none;display:none}
-#p1Label{left:8px;background:rgba(255,68,68,.2);border:1px solid rgba(255,68,68,.4);color:#ff4444}
-#p2Label{right:8px;background:rgba(68,136,255,.2);border:1px solid rgba(68,136,255,.4);color:#4488ff}
+/* 分屏玩家标签 - 嵌入比分牌两侧 */
+.player-label{font-size:13px;font-weight:bold;padding:3px 10px;border-radius:8px;white-space:nowrap;display:none;align-items:center}
+#p1Label{background:rgba(255,68,68,.2);border:1px solid rgba(255,68,68,.4);color:#ff4444}
+#p2Label{background:rgba(68,136,255,.2);border:1px solid rgba(68,136,255,.4);color:#4488ff}
 
 /* 带球状态指示 */
 .dribble-indicator{position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);font-size:16px;color:#ffaa00;font-weight:bold;opacity:0;transition:opacity .3s;pointer-events:none;z-index:15;text-shadow:0 0 10px rgba(255,170,0,.5)}
@@ -124,12 +124,33 @@ body{background:#0a0e1a;overflow:hidden;font-family:'Microsoft YaHei',sans-serif
 .key-btn{width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:bold;border-radius:4px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#aaa;transition:background .1s,color .1s}
 .key-btn.active{background:rgba(255,136,0,.5);color:#fff;border-color:rgba(255,136,0,.8)}
 
+/* 双人识别状态灯 */
+.pose-status-panel{position:fixed;z-index:55;display:none;pointer-events:none;padding:4px 8px;border-radius:6px;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);gap:6px;align-items:center;font-size:10px;font-family:'Microsoft YaHei',sans-serif}
+.pose-status-panel.show{display:flex}
+.pose-status-row{display:flex;align-items:center;gap:4px}
+.pose-dot{width:8px;height:8px;border-radius:50%;transition:background .3s,box-shadow .3s;flex-shrink:0}
+.pose-dot.off{background:#555}
+.pose-dot.ok{background:#44ff44;box-shadow:0 0 6px rgba(68,255,68,.6)}
+.pose-dot.warn{background:#ffaa00;box-shadow:0 0 6px rgba(255,170,0,.6)}
+.pose-dot.err{background:#ff4444;box-shadow:0 0 6px rgba(255,68,68,.6)}
+.pose-sep{width:1px;height:12px;background:rgba(255,255,255,.15);margin:0 2px}
+#p1StatusPanel{left:10px;bottom:258px;border:1px solid rgba(255,68,68,.3)}
+#p2StatusPanel{left:calc(50% + 10px);bottom:258px;border:1px solid rgba(68,136,255,.3)}
+.pose-status-label{opacity:.6}
+
 /* 镜头控制面板（单人模式） */
 .cam-ctrl-panel{display:flex;flex-direction:column;gap:6px;pointer-events:auto}
 .cam-ctrl-col{display:flex;align-items:center;gap:5px}
 .cam-ctrl-label{font-size:10px;color:#aaa;white-space:nowrap;min-width:44px;text-align:right}
 .cam-ctrl-val{font-size:9px;color:#888;min-width:28px;text-align:center}
 .cam-ctrl-panel input[type=range]{width:70px;accent-color:#4488ff;cursor:pointer}
+
+/* 双人模式镜头控制面板（居中） */
+#dualCamPanel{position:fixed;bottom:88px;left:50%;transform:translateX(-50%);z-index:13;display:none;flex-direction:row;gap:16px;align-items:center;background:rgba(0,0,0,.65);padding:6px 16px;border-radius:10px;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.08);pointer-events:auto}
+#dualCamPanel .cam-ctrl-col{gap:5px}
+#dualCamPanel .cam-ctrl-label{font-size:10px;min-width:44px}
+#dualCamPanel .cam-ctrl-val{font-size:9px;min-width:28px}
+#dualCamPanel input[type=range]{width:70px;accent-color:#ff8800;cursor:pointer}
 </style>
 </head>
 <body>
@@ -193,9 +214,11 @@ body{background:#0a0e1a;overflow:hidden;font-family:'Microsoft YaHei',sans-serif
 <!-- HUD -->
 <div id="hud">
   <div id="scoreBoard">
+    <span class="player-label" id="p1Label">1P 红队</span>
     <span class="score-red" id="redScore">0</span>
     <span class="score-vs">VS</span>
     <span class="score-blue" id="blueScore">0</span>
+    <span class="player-label" id="p2Label">2P 蓝队</span>
   </div>
   <div id="timer">03:00</div>
   <canvas id="minimap" width="108" height="168"></canvas>
@@ -207,9 +230,6 @@ body{background:#0a0e1a;overflow:hidden;font-family:'Microsoft YaHei',sans-serif
 <!-- 分屏元素 -->
 <div id="splitDivider"></div>
 <div id="splitLabel">VS</div>
-<div class="player-label" id="p1Label">1P 红队</div>
-<div class="player-label" id="p2Label">2P 蓝队</div>
-
 <!-- 底部控制栏 -->
 <div id="bottomBar">
   <div id="bottomLeft">
@@ -238,15 +258,39 @@ body{background:#0a0e1a;overflow:hidden;font-family:'Microsoft YaHei',sans-serif
       </div>
       <div class="cam-ctrl-col">
         <span class="cam-ctrl-label">俯仰角度</span>
-        <input type="range" id="camPitchSlider" min="10" max="89" value="75" step="1">
-        <span class="cam-ctrl-val" id="camPitchVal">75°</span>
+        <input type="range" id="camPitchSlider" min="10" max="89" value="65" step="1">
+        <span class="cam-ctrl-val" id="camPitchVal">65°</span>
       </div>
       <div class="cam-ctrl-col">
         <span class="cam-ctrl-label">镜头距离</span>
-        <input type="range" id="camDistSlider" min="200" max="2000" value="450" step="10">
-        <span class="cam-ctrl-val" id="camDistVal">4.5</span>
+        <input type="range" id="camDistSlider" min="200" max="2000" value="2000" step="10">
+        <span class="cam-ctrl-val" id="camDistVal">20.0</span>
+      </div>
+      <div class="cam-ctrl-col">
+        <span class="cam-ctrl-label">视场角</span>
+        <input type="range" id="camFovSlider" min="30" max="120" value="30" step="1">
+        <span class="cam-ctrl-val" id="camFovVal">30°</span>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- 双人模式镜头控制面板（居中） -->
+<div id="dualCamPanel">
+  <div class="cam-ctrl-col">
+    <span class="cam-ctrl-label">俯仰角度</span>
+    <input type="range" id="dualPitchSlider" min="10" max="89" value="65" step="1">
+    <span class="cam-ctrl-val" id="dualPitchVal">65°</span>
+  </div>
+  <div class="cam-ctrl-col">
+    <span class="cam-ctrl-label">镜头距离</span>
+    <input type="range" id="dualDistSlider" min="200" max="2000" value="2000" step="10">
+    <span class="cam-ctrl-val" id="dualDistVal">20.0</span>
+  </div>
+  <div class="cam-ctrl-col">
+    <span class="cam-ctrl-label">视场角</span>
+    <input type="range" id="dualFovSlider" min="30" max="120" value="30" step="1">
+    <span class="cam-ctrl-val" id="dualFovVal">30°</span>
   </div>
 </div>
 
@@ -259,6 +303,19 @@ body{background:#0a0e1a;overflow:hidden;font-family:'Microsoft YaHei',sans-serif
 <video id="camPreview" autoplay playsinline></video>
 <canvas id="p1CamPreview" class="dual-cam-preview" width="320" height="480"></canvas>
 <canvas id="p2CamPreview" class="dual-cam-preview" width="320" height="480"></canvas>
+<!-- 双人识别状态灯 -->
+<div id="p1StatusPanel" class="pose-status-panel">
+  <span style="color:#ff6666;font-weight:bold">1P</span>
+  <div class="pose-status-row"><div class="pose-dot off" id="p1RecDot"></div><span class="pose-status-label">识别</span></div>
+  <div class="pose-sep"></div>
+  <div class="pose-status-row"><div class="pose-dot off" id="p1CtrlDot"></div><span class="pose-status-label">控制</span></div>
+</div>
+<div id="p2StatusPanel" class="pose-status-panel">
+  <span style="color:#6699ff;font-weight:bold">2P</span>
+  <div class="pose-status-row"><div class="pose-dot off" id="p2RecDot"></div><span class="pose-status-label">识别</span></div>
+  <div class="pose-sep"></div>
+  <div class="pose-status-row"><div class="pose-dot off" id="p2CtrlDot"></div><span class="pose-status-label">控制</span></div>
+</div>
 
 <!-- 按键提示（单人键盘模式不使用，但保留结构） -->
 <div id="keyHints">
@@ -382,12 +439,120 @@ function resetTrackState(track) {
   track.kickAnim.left = { phase: 'idle', timer: 0, targetX: 0, targetZ: 0 };
   track.kickAnim.right = { phase: 'idle', timer: 0, targetX: 0, targetZ: 0 };
   track.lastPoseResults = null;
+  p1LastResultTime = 0; p1LastLandmarkTime = 0;
+  p2LastResultTime = 0; p2LastLandmarkTime = 0;
 }
 
 // 摄像头相关
 let cameraReady = false;
 let mpPose1 = null, mpPose2 = null; // 双人模式两个Pose实例
 let mpCamera = null;
+
+// 识别状态灯相关
+const p1RecDot = document.getElementById('p1RecDot');
+const p1CtrlDot = document.getElementById('p1CtrlDot');
+const p2RecDot = document.getElementById('p2RecDot');
+const p2CtrlDot = document.getElementById('p2CtrlDot');
+const p1StatusPanel = document.getElementById('p1StatusPanel');
+const p2StatusPanel = document.getElementById('p2StatusPanel');
+
+// 记录时间戳：区分"管线没跑"和"跑了但没识别人"
+let p1LastResultTime = 0, p1LastLandmarkTime = 0;  // onResults 回调时间 / 收到 landmarks 时间
+let p2LastResultTime = 0, p2LastLandmarkTime = 0;
+
+// 帧计数器：用于诊断 onFrame 是否在运行
+let onFrameCount = 0;
+let onFrameLastTime = 0;
+
+// 增强的 onResults 回调：同时记录管线回调时间和 landmarks 时间
+const origP1OnResults = (results) => {
+  p1LastResultTime = performance.now();
+  p1Track.lastPoseResults = results;
+  if (results.poseLandmarks && results.poseLandmarks.length > 0) p1LastLandmarkTime = p1LastResultTime;
+};
+const origP2OnResults = (results) => {
+  p2LastResultTime = performance.now();
+  p2Track.lastPoseResults = results;
+  if (results.poseLandmarks && results.poseLandmarks.length > 0) p2LastLandmarkTime = p2LastResultTime;
+};
+
+function updatePoseStatusLights() {
+  if (gameMode !== 'dual' || (gameState !== 'playing' && gameState !== 'goal')) {
+    p1StatusPanel.classList.remove('show');
+    p2StatusPanel.classList.remove('show');
+    return;
+  }
+  p1StatusPanel.classList.add('show');
+  p2StatusPanel.classList.add('show');
+
+  const now = performance.now();
+  const STALE_MS = 1200;  // 超过1.2秒未收到回调 → 管线断
+  const DEGRADE_MS = 600; // 超过600ms → 降级
+
+  // --- P1 识别状态（管线是否在跑 + 是否识别到人）---
+  const p1ResultAge = now - p1LastResultTime;
+  const p1LandmarkAge = now - p1LastLandmarkTime;
+  if (p1LastResultTime === 0) {
+    // onResults 从未被调用 → 管线完全没跑
+    p1RecDot.className = 'pose-dot off';
+  } else if (p1ResultAge > STALE_MS) {
+    // 管线曾经跑过但现在断了
+    p1RecDot.className = 'pose-dot err';
+  } else if (p1LastLandmarkTime === 0 || p1LandmarkAge > STALE_MS) {
+    // 管线在跑但从未识别人 / 识别人超时
+    p1RecDot.className = 'pose-dot warn';
+  } else if (p1LandmarkAge > DEGRADE_MS) {
+    // 识别到人但有延迟
+    p1RecDot.className = 'pose-dot warn';
+  } else {
+    p1RecDot.className = 'pose-dot ok';
+  }
+
+  // --- P1 控制映射状态 ---
+  const p1HasBinding = Math.abs(p1Track.boundAngles.leftLegX) > 0.01 ||
+                       Math.abs(p1Track.boundAngles.rightLegX) > 0.01 ||
+                       p1Track.speedBoost ||
+                       p1Track.kickAnim.left.phase !== 'idle' ||
+                       p1Track.kickAnim.right.phase !== 'idle';
+  if (p1LastLandmarkTime === 0 || p1LandmarkAge > STALE_MS) {
+    // 没有识别数据 → 无法判断控制映射
+    p1CtrlDot.className = 'pose-dot off';
+  } else if (p1HasBinding) {
+    p1CtrlDot.className = 'pose-dot ok';
+  } else {
+    // 有识别但无控制输出（手臂没动，正常待机）
+    p1CtrlDot.className = 'pose-dot warn';
+  }
+
+  // --- P2 识别状态 ---
+  const p2ResultAge = now - p2LastResultTime;
+  const p2LandmarkAge = now - p2LastLandmarkTime;
+  if (p2LastResultTime === 0) {
+    p2RecDot.className = 'pose-dot off';
+  } else if (p2ResultAge > STALE_MS) {
+    p2RecDot.className = 'pose-dot err';
+  } else if (p2LastLandmarkTime === 0 || p2LandmarkAge > STALE_MS) {
+    p2RecDot.className = 'pose-dot warn';
+  } else if (p2LandmarkAge > DEGRADE_MS) {
+    p2RecDot.className = 'pose-dot warn';
+  } else {
+    p2RecDot.className = 'pose-dot ok';
+  }
+
+  // --- P2 控制映射状态 ---
+  const p2HasBinding = Math.abs(p2Track.boundAngles.leftLegX) > 0.01 ||
+                       Math.abs(p2Track.boundAngles.rightLegX) > 0.01 ||
+                       p2Track.speedBoost ||
+                       p2Track.kickAnim.left.phase !== 'idle' ||
+                       p2Track.kickAnim.right.phase !== 'idle';
+  if (p2LastLandmarkTime === 0 || p2LandmarkAge > STALE_MS) {
+    p2CtrlDot.className = 'pose-dot off';
+  } else if (p2HasBinding) {
+    p2CtrlDot.className = 'pose-dot ok';
+  } else {
+    p2CtrlDot.className = 'pose-dot warn';
+  }
+}
 
 // 裁剪画布（用于双人模式将摄像头画面分左右两半）
 const cropCanvas1 = document.createElement('canvas');
@@ -578,6 +743,7 @@ const p2SpeedWrap = document.getElementById('p2SpeedWrap');
 const speedFill1 = document.getElementById('speedFill1');
 const speedFill2 = document.getElementById('speedFill2');
 const camCtrlPanel = document.getElementById('camCtrlPanel');
+const dualCamPanel = document.getElementById('dualCamPanel');
 const camModeIndicator = document.getElementById('camModeIndicator');
 const keyHintsEl = document.getElementById('keyHints');
 const dribbleIndicator1 = document.getElementById('dribbleIndicator1');
@@ -633,23 +799,45 @@ async function initCamera() {
       smoothLandmarks: true, enableSegmentation: false,
       minDetectionConfidence: 0.5, minTrackingConfidence: 0.5
     });
-    mpPose1.onResults((results) => { p1Track.lastPoseResults = results; });
   } else if (gameMode === 'dual') {
     // 切换到双人模式时更新模型复杂度
     mpPose1.setOptions({ modelComplexity: 0 });
   }
+  // 关键：每次 initCamera 都重新绑定 onResults，防止旧回调丢失时间戳更新
+  mpPose1.onResults(origP1OnResults);
 
   // 双人模式确保第二个 Pose 实例已创建
-  if (gameMode === 'dual' && !mpPose2) {
-    mpPose2 = new MPPose({
-      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
-    });
-    mpPose2.setOptions({
-      modelComplexity: 0,
-      smoothLandmarks: true, enableSegmentation: false,
-      minDetectionConfidence: 0.5, minTrackingConfidence: 0.5
-    });
-    mpPose2.onResults((results) => { p2Track.lastPoseResults = results; });
+  if (gameMode === 'dual') {
+    if (!mpPose2) {
+      mpPose2 = new MPPose({
+        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+      });
+      mpPose2.setOptions({
+        modelComplexity: 0,
+        smoothLandmarks: true, enableSegmentation: false,
+        minDetectionConfidence: 0.5, minTrackingConfidence: 0.5
+      });
+    }
+    // 同样每次重新绑定
+    mpPose2.onResults(origP2OnResults);
+  }
+
+  // 等待 Pose 模型加载完成（WASM + 模型权重下载）
+  // 如果不等待，send() 可能在模型未就绪时被调用，导致结果永远不返回
+  if (gameMode === 'dual') {
+    camStatus.style.display = 'block';
+    camStatus.textContent = '正在加载双人识别模型...';
+    camStatus.className = 'cam-status';
+    try {
+      await Promise.all([
+        mpPose1.initialize(),
+        mpPose2.initialize()
+      ]);
+    } catch (e) {
+      console.error('Pose model init failed:', e);
+    }
+  } else if (mpPose1.initialize) {
+    try { await mpPose1.initialize(); } catch (e) { /* 可能已初始化 */ }
   }
 
   if (!cameraReady) {
@@ -663,20 +851,37 @@ async function initCamera() {
     if (!mpCamera) {
       mpCamera = new MPCamera(camPreview, {
         onFrame: async () => {
+          onFrameCount++;
+          onFrameLastTime = performance.now();
           try {
             if (gameMode === 'dual') {
               // 双人模式：裁剪左右半屏分别发送给两个Pose实例
               const vw = camPreview.videoWidth || 640;
               const vh = camPreview.videoHeight || 480;
+              if (vw === 0 || vh === 0) return; // 视频未就绪，跳过本帧
               const halfW = Math.floor(vw / 2);
               // 右半 → P1
               cropCtx1.drawImage(camPreview, halfW, 0, halfW, vh, 0, 0, 320, 480);
               // 左半 → P2
               cropCtx2.drawImage(camPreview, 0, 0, halfW, vh, 0, 0, 320, 480);
-              const promises = [];
-              if (mpPose1) promises.push(mpPose1.send({ image: cropCanvas1 }));
-              if (mpPose2) promises.push(mpPose2.send({ image: cropCanvas2 }));
-              if (promises.length > 0) await Promise.all(promises);
+              // 串行发送：避免两个 Pose 实例共享 WASM/GPU 时的并发冲突
+              // 同时对每个 send 添加超时保护，防止某个实例挂起导致整个帧循环卡死
+              if (mpPose1) {
+                try {
+                  await Promise.race([
+                    mpPose1.send({ image: cropCanvas1 }),
+                    new Promise((_, rej) => setTimeout(() => rej(new Error('P1 pose timeout')), 3000))
+                  ]);
+                } catch (e) { /* 超时或错误，跳过本帧继续 */ }
+              }
+              if (mpPose2) {
+                try {
+                  await Promise.race([
+                    mpPose2.send({ image: cropCanvas2 }),
+                    new Promise((_, rej) => setTimeout(() => rej(new Error('P2 pose timeout')), 3000))
+                  ]);
+                } catch (e) { /* 超时或错误，跳过本帧继续 */ }
+              }
             } else {
               // 单人模式：整幅画面发给P1
               if (mpPose1) await mpPose1.send({ image: camPreview });
@@ -689,7 +894,17 @@ async function initCamera() {
         height: 480
       });
     }
-    await mpCamera.start();
+    // 只在首次创建时调用 start()，避免重复启动帧循环
+    // Camera.start() 每次调用都会 getUserMedia 并启动新的 rAF 循环
+    // 多次调用会导致 onFrame 被重复触发，引发 Pose 并发冲突
+    if (!cameraReady) {
+      await mpCamera.start();
+    } else {
+      // 摄像头已启动过，确保视频仍在播放（浏览器可能因不可见而暂停）
+      if (camPreview.paused && camPreview.srcObject) {
+        try { await camPreview.play(); } catch (e) { console.warn('Video play failed:', e); }
+      }
+    }
 
     cameraReady = true;
     camStatus.textContent = '✓ 摄像头已就绪' + (gameMode === 'dual' ? '（双人模式）' : '');
@@ -707,14 +922,14 @@ scene.background = new THREE.Color(0x1a2040);
 scene.fog = new THREE.Fog(0x1a2040, 40, 80);
 
 // 主摄像机（单人模式用）
-const camera1 = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 80);
+const camera1 = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 80);
 camera1.rotation.order = 'YXZ';
 camera1.up.set(0, 1, 0);
 camera1.position.set(0, 4.5, 0);
 camera1.lookAt(0, 0, 0);
 
 // 第二摄像机（双人模式用）
-const camera2 = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 80);
+const camera2 = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 80);
 camera2.rotation.order = 'YXZ';
 camera2.up.set(0, 1, 0);
 camera2.position.set(0, 4.5, 0);
@@ -1470,13 +1685,15 @@ function updateCamera() {
     cameraSmoothX1 = result.x; cameraSmoothZ1 = result.z;
   } else {
     // 双人模式：左屏跟随P1(红)，右屏跟随P2(蓝)
-    const result1 = updateCameraForPlayer(camera1, p1, cameraSmoothX1, cameraSmoothZ1, 180, 75, 450);
+    const dualPitch = parseFloat(document.getElementById('dualPitchSlider').value);
+    const dualDist = parseFloat(document.getElementById('dualDistSlider').value);
+    const result1 = updateCameraForPlayer(camera1, p1, cameraSmoothX1, cameraSmoothZ1, 180, dualPitch, dualDist);
     cameraSmoothX1 = result1.x; cameraSmoothZ1 = result1.z;
 
     const p2 = allHumanPlayers[1]; // 2P 蓝
     if (p2) {
       // P2摄像机：从+Z方向看向-Z（蓝队视角，红球门在上方）
-      const result2 = updateCameraForPlayer(camera2, p2, cameraSmoothX2, cameraSmoothZ2, 0, 75, 450);
+      const result2 = updateCameraForPlayer(camera2, p2, cameraSmoothX2, cameraSmoothZ2, 0, dualPitch, dualDist);
       cameraSmoothX2 = result2.x; cameraSmoothZ2 = result2.z;
     }
   }
@@ -1593,10 +1810,12 @@ function endMatch() {
   gameState = 'ended';
   hud.style.display = 'none'; camPreview.style.display = 'none';
   camPreview.style.opacity = '1'; camPreview.style.pointerEvents = 'auto';
+  camPreview.style.width = '160px'; camPreview.style.height = '120px';
+  camPreview.style.left = '10px'; camPreview.style.bottom = '130px';
   camModeIndicator.style.display = 'none';
   splitDivider.style.display = 'none'; splitLabel.style.display = 'none';
   p1Label.style.display = 'none'; p2Label.style.display = 'none';
-  p1CamPreviewEl.style.display = 'none'; p2CamPreviewEl.style.display = 'none';
+  dualCamPanel.style.display = 'none';  p1CamPreviewEl.style.display = 'none'; p2CamPreviewEl.style.display = 'none';
   document.getElementById('resultRed').textContent = redScore;
   document.getElementById('resultBlue').textContent = blueScore;
   let title;
@@ -1634,20 +1853,33 @@ async function startMatch() {
   const isDual = gameMode === 'dual';
   splitDivider.style.display = isDual ? 'block' : 'none';
   splitLabel.style.display = isDual ? 'block' : 'none';
-  p1Label.style.display = isDual ? 'block' : 'none';
-  p2Label.style.display = isDual ? 'block' : 'none';
+  p1Label.style.display = isDual ? 'inline-flex' : 'none';
+  p2Label.style.display = isDual ? 'inline-flex' : 'none';
   p2SpeedWrap.style.display = isDual ? 'flex' : 'none';
   camCtrlPanel.style.display = isDual ? 'none' : 'flex';
+  dualCamPanel.style.display = isDual ? 'flex' : 'none';
 
   // 双人模式分屏摄像头预览
   if (isDual) {
-    // 保持视频可见但透明，确保浏览器持续解码帧供drawImage使用
+    // 双人模式下隐藏原始视频元素，但保持其可解码状态
+    // 注意：不能使用 display:none（会停止解码），也不能仅用 opacity:0（某些浏览器仍可能暂停）
+    // 安全方案：缩小到 1x1 像素并移到屏幕外，同时保持 display:block
     camPreview.style.opacity = '0';
+    camPreview.style.width = '1px';
+    camPreview.style.height = '1px';
+    camPreview.style.position = 'fixed';
+    camPreview.style.left = '-10px';
+    camPreview.style.bottom = '-10px';
     camPreview.style.pointerEvents = 'none';
     p1CamPreviewEl.style.display = 'block';
     p2CamPreviewEl.style.display = 'block';
   } else {
     camPreview.style.opacity = '1';
+    camPreview.style.width = '160px';
+    camPreview.style.height = '120px';
+    camPreview.style.position = 'fixed';
+    camPreview.style.left = '10px';
+    camPreview.style.bottom = '130px';
     camPreview.style.pointerEvents = 'auto';
     p1CamPreviewEl.style.display = 'none';
     p2CamPreviewEl.style.display = 'none';
@@ -1689,10 +1921,20 @@ async function startMatch() {
   // 重置单人模式镜头滑块
   document.getElementById('camYawSlider').value = 180;
   document.getElementById('camYawVal').textContent = '180°';
-  document.getElementById('camPitchSlider').value = 75;
-  document.getElementById('camPitchVal').textContent = '75°';
-  document.getElementById('camDistSlider').value = 450;
-  document.getElementById('camDistVal').textContent = '4.5';
+  document.getElementById('camPitchSlider').value = 65;
+  document.getElementById('camPitchVal').textContent = '65°';
+  document.getElementById('camDistSlider').value = 2000;
+  document.getElementById('camDistVal').textContent = '20.0';
+  document.getElementById('camFovSlider').value = 30;
+  document.getElementById('camFovVal').textContent = '30°';
+  // 重置双人模式镜头滑块
+  document.getElementById('dualPitchSlider').value = 65;
+  document.getElementById('dualPitchVal').textContent = '65°';
+  document.getElementById('dualDistSlider').value = 2000;
+  document.getElementById('dualDistVal').textContent = '20.0';
+  document.getElementById('dualFovSlider').value = 30;
+  document.getElementById('dualFovVal').textContent = '30°';
+  camera1.fov = 30; camera2.fov = 30;
 
   lastTime = performance.now();
 }
@@ -1708,6 +1950,24 @@ document.getElementById('camPitchSlider').addEventListener('input', (e) => {
 });
 document.getElementById('camDistSlider').addEventListener('input', (e) => {
   document.getElementById('camDistVal').textContent = (e.target.value / 100).toFixed(1);
+});
+document.getElementById('camFovSlider').addEventListener('input', (e) => {
+  const fov = parseInt(e.target.value);
+  document.getElementById('camFovVal').textContent = fov + '°';
+  camera1.fov = fov;
+  camera2.fov = fov;
+});
+document.getElementById('dualPitchSlider').addEventListener('input', (e) => {
+  document.getElementById('dualPitchVal').textContent = e.target.value + '°';
+});
+document.getElementById('dualDistSlider').addEventListener('input', (e) => {
+  document.getElementById('dualDistVal').textContent = (e.target.value / 100).toFixed(1);
+});
+document.getElementById('dualFovSlider').addEventListener('input', (e) => {
+  const fov = parseInt(e.target.value);
+  document.getElementById('dualFovVal').textContent = fov + '°';
+  camera1.fov = fov;
+  camera2.fov = fov;
 });
 document.getElementById('replayBtn').addEventListener('click', () => {
   resultScreen.style.display = 'none'; startMatch();
@@ -1852,6 +2112,9 @@ function gameLoop() {
     camera1.updateProjectionMatrix();
     renderer.render(scene, camera1);
   }
+
+  // 更新识别状态灯（所有模式下都运行，内部判断是否显示）
+  updatePoseStatusLights();
 }
 
 // ============ 启动 ============

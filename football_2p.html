@@ -138,19 +138,12 @@ body{background:#0a0e1a;overflow:hidden;font-family:'Microsoft YaHei',sans-serif
 #p2StatusPanel{left:calc(50% + 10px);bottom:258px;border:1px solid rgba(68,136,255,.3)}
 .pose-status-label{opacity:.6}
 
-/* 镜头控制面板（单人模式） */
+/* 镜头控制面板 */
 .cam-ctrl-panel{display:flex;flex-direction:column;gap:6px;pointer-events:auto}
 .cam-ctrl-col{display:flex;align-items:center;gap:5px}
 .cam-ctrl-label{font-size:10px;color:#aaa;white-space:nowrap;min-width:44px;text-align:right}
 .cam-ctrl-val{font-size:9px;color:#888;min-width:28px;text-align:center}
 .cam-ctrl-panel input[type=range]{width:70px;accent-color:#4488ff;cursor:pointer}
-
-/* 双人模式镜头控制面板（居中） */
-#dualCamPanel{position:fixed;bottom:88px;left:50%;transform:translateX(-50%);z-index:13;display:none;flex-direction:row;gap:16px;align-items:center;background:rgba(0,0,0,.65);padding:6px 16px;border-radius:10px;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.08);pointer-events:auto}
-#dualCamPanel .cam-ctrl-col{gap:5px}
-#dualCamPanel .cam-ctrl-label{font-size:10px;min-width:44px}
-#dualCamPanel .cam-ctrl-val{font-size:9px;min-width:28px}
-#dualCamPanel input[type=range]{width:70px;accent-color:#ff8800;cursor:pointer}
 </style>
 </head>
 <body>
@@ -244,12 +237,6 @@ body{background:#0a0e1a;overflow:hidden;font-family:'Microsoft YaHei',sans-serif
       <input type="range" id="powerSlider" min="3" max="25" value="10" step="0.5">
       <span id="powerValue">10.0</span>
     </div>
-  </div>
-  <div id="bottomRight">
-    <div class="speed-bar-wrap" id="p2SpeedWrap" style="display:none">
-      <div class="speed-bar"><div class="speed-fill" id="speedFill2"></div></div>
-      <span class="speed-label" id="speedLabel2">2P 速度</span>
-    </div>
     <div class="cam-ctrl-panel" id="camCtrlPanel">
       <div class="cam-ctrl-col">
         <span class="cam-ctrl-label">水平旋转</span>
@@ -273,24 +260,11 @@ body{background:#0a0e1a;overflow:hidden;font-family:'Microsoft YaHei',sans-serif
       </div>
     </div>
   </div>
-</div>
-
-<!-- 双人模式镜头控制面板（居中） -->
-<div id="dualCamPanel">
-  <div class="cam-ctrl-col">
-    <span class="cam-ctrl-label">俯仰角度</span>
-    <input type="range" id="dualPitchSlider" min="10" max="89" value="65" step="1">
-    <span class="cam-ctrl-val" id="dualPitchVal">65°</span>
-  </div>
-  <div class="cam-ctrl-col">
-    <span class="cam-ctrl-label">镜头距离</span>
-    <input type="range" id="dualDistSlider" min="200" max="2000" value="2000" step="10">
-    <span class="cam-ctrl-val" id="dualDistVal">20.0</span>
-  </div>
-  <div class="cam-ctrl-col">
-    <span class="cam-ctrl-label">视场角</span>
-    <input type="range" id="dualFovSlider" min="30" max="120" value="30" step="1">
-    <span class="cam-ctrl-val" id="dualFovVal">30°</span>
+  <div id="bottomRight">
+    <div class="speed-bar-wrap" id="p2SpeedWrap" style="display:none">
+      <div class="speed-bar"><div class="speed-fill" id="speedFill2"></div></div>
+      <span class="speed-label" id="speedLabel2">2P 速度</span>
+    </div>
   </div>
 </div>
 
@@ -743,7 +717,6 @@ const p2SpeedWrap = document.getElementById('p2SpeedWrap');
 const speedFill1 = document.getElementById('speedFill1');
 const speedFill2 = document.getElementById('speedFill2');
 const camCtrlPanel = document.getElementById('camCtrlPanel');
-const dualCamPanel = document.getElementById('dualCamPanel');
 const camModeIndicator = document.getElementById('camModeIndicator');
 const keyHintsEl = document.getElementById('keyHints');
 const dribbleIndicator1 = document.getElementById('dribbleIndicator1');
@@ -1677,23 +1650,24 @@ function updateCamera() {
   const p1 = allHumanPlayers[0]; // 1P 红
   if (!p1) return;
 
+  const yaw = parseFloat(document.getElementById('camYawSlider').value);
+  const pitch = parseFloat(document.getElementById('camPitchSlider').value);
+  const dist = parseFloat(document.getElementById('camDistSlider').value);
+
   if (gameMode === 'single') {
-    const yaw = parseFloat(document.getElementById('camYawSlider').value);
-    const pitch = parseFloat(document.getElementById('camPitchSlider').value);
-    const dist = parseFloat(document.getElementById('camDistSlider').value);
     const result = updateCameraForPlayer(camera1, p1, cameraSmoothX1, cameraSmoothZ1, yaw, pitch, dist);
     cameraSmoothX1 = result.x; cameraSmoothZ1 = result.z;
   } else {
     // 双人模式：左屏跟随P1(红)，右屏跟随P2(蓝)
-    const dualPitch = parseFloat(document.getElementById('dualPitchSlider').value);
-    const dualDist = parseFloat(document.getElementById('dualDistSlider').value);
-    const result1 = updateCameraForPlayer(camera1, p1, cameraSmoothX1, cameraSmoothZ1, 180, dualPitch, dualDist);
+    // P1 使用滑块 yaw 值，P2 使用 yaw+180°（对面视角）
+    const p1Yaw = yaw;
+    const p2Yaw = yaw + 180;
+    const result1 = updateCameraForPlayer(camera1, p1, cameraSmoothX1, cameraSmoothZ1, p1Yaw, pitch, dist);
     cameraSmoothX1 = result1.x; cameraSmoothZ1 = result1.z;
 
     const p2 = allHumanPlayers[1]; // 2P 蓝
     if (p2) {
-      // P2摄像机：从+Z方向看向-Z（蓝队视角，红球门在上方）
-      const result2 = updateCameraForPlayer(camera2, p2, cameraSmoothX2, cameraSmoothZ2, 0, dualPitch, dualDist);
+      const result2 = updateCameraForPlayer(camera2, p2, cameraSmoothX2, cameraSmoothZ2, p2Yaw, pitch, dist);
       cameraSmoothX2 = result2.x; cameraSmoothZ2 = result2.z;
     }
   }
@@ -1814,8 +1788,7 @@ function endMatch() {
   camPreview.style.left = '10px'; camPreview.style.bottom = '130px';
   camModeIndicator.style.display = 'none';
   splitDivider.style.display = 'none'; splitLabel.style.display = 'none';
-  p1Label.style.display = 'none'; p2Label.style.display = 'none';
-  dualCamPanel.style.display = 'none';  p1CamPreviewEl.style.display = 'none'; p2CamPreviewEl.style.display = 'none';
+  p1Label.style.display = 'none'; p2Label.style.display = 'none';  p1CamPreviewEl.style.display = 'none'; p2CamPreviewEl.style.display = 'none';
   document.getElementById('resultRed').textContent = redScore;
   document.getElementById('resultBlue').textContent = blueScore;
   let title;
@@ -1856,8 +1829,7 @@ async function startMatch() {
   p1Label.style.display = isDual ? 'inline-flex' : 'none';
   p2Label.style.display = isDual ? 'inline-flex' : 'none';
   p2SpeedWrap.style.display = isDual ? 'flex' : 'none';
-  camCtrlPanel.style.display = isDual ? 'none' : 'flex';
-  dualCamPanel.style.display = isDual ? 'flex' : 'none';
+  camCtrlPanel.style.display = 'flex';
 
   // 双人模式分屏摄像头预览
   if (isDual) {
@@ -1927,13 +1899,6 @@ async function startMatch() {
   document.getElementById('camDistVal').textContent = '20.0';
   document.getElementById('camFovSlider').value = 30;
   document.getElementById('camFovVal').textContent = '30°';
-  // 重置双人模式镜头滑块
-  document.getElementById('dualPitchSlider').value = 65;
-  document.getElementById('dualPitchVal').textContent = '65°';
-  document.getElementById('dualDistSlider').value = 2000;
-  document.getElementById('dualDistVal').textContent = '20.0';
-  document.getElementById('dualFovSlider').value = 30;
-  document.getElementById('dualFovVal').textContent = '30°';
   camera1.fov = 30; camera2.fov = 30;
 
   lastTime = performance.now();
@@ -1954,18 +1919,6 @@ document.getElementById('camDistSlider').addEventListener('input', (e) => {
 document.getElementById('camFovSlider').addEventListener('input', (e) => {
   const fov = parseInt(e.target.value);
   document.getElementById('camFovVal').textContent = fov + '°';
-  camera1.fov = fov;
-  camera2.fov = fov;
-});
-document.getElementById('dualPitchSlider').addEventListener('input', (e) => {
-  document.getElementById('dualPitchVal').textContent = e.target.value + '°';
-});
-document.getElementById('dualDistSlider').addEventListener('input', (e) => {
-  document.getElementById('dualDistVal').textContent = (e.target.value / 100).toFixed(1);
-});
-document.getElementById('dualFovSlider').addEventListener('input', (e) => {
-  const fov = parseInt(e.target.value);
-  document.getElementById('dualFovVal').textContent = fov + '°';
   camera1.fov = fov;
   camera2.fov = fov;
 });

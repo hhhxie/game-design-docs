@@ -86,7 +86,6 @@ body{background:#0a0e1a;overflow:hidden;font-family:'Microsoft YaHei',sans-serif
 
 /* 分屏分割线 */
 #splitDivider{position:fixed;top:0;bottom:80px;left:50%;width:3px;background:linear-gradient(180deg,rgba(255,136,0,.8),rgba(255,136,0,.2),rgba(68,136,255,.2),rgba(68,136,255,.8));z-index:11;pointer-events:none;display:none}
-#splitLabel{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);writing-mode:vertical-rl;background:rgba(0,0,0,.7);padding:8px 4px;border-radius:6px;font-size:10px;color:#888;z-index:12;pointer-events:none;display:none;letter-spacing:2px}
 
 /* 分屏玩家标签 - 嵌入比分牌两侧 */
 .player-label{font-size:13px;font-weight:bold;padding:3px 10px;border-radius:8px;white-space:nowrap;display:none;align-items:center}
@@ -97,8 +96,6 @@ body{background:#0a0e1a;overflow:hidden;font-family:'Microsoft YaHei',sans-serif
 .dribble-indicator{position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);font-size:16px;color:#ffaa00;font-weight:bold;opacity:0;transition:opacity .3s;pointer-events:none;z-index:15;text-shadow:0 0 10px rgba(255,170,0,.5)}
 .dribble-indicator.active{opacity:1}
 
-/* 摄像头模式指示 */
-.cam-mode-indicator{position:fixed;top:70px;left:20px;padding:4px 10px;border-radius:6px;font-size:11px;z-index:12;display:none;pointer-events:none;background:rgba(255,136,0,.2);border:1px solid rgba(255,136,0,.4);color:#ff8800}
 
 /* 结算界面 */
 #resultScreen{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.85);z-index:100;backdrop-filter:blur(12px)}
@@ -217,12 +214,10 @@ body{background:#0a0e1a;overflow:hidden;font-family:'Microsoft YaHei',sans-serif
   <canvas id="minimap" width="108" height="168"></canvas>
   <div class="dribble-indicator" id="dribbleIndicator1">⚽ 带球中</div>
   <div class="dribble-indicator" id="dribbleIndicator2">⚽ 带球中</div>
-  <div class="cam-mode-indicator" id="camModeIndicator">📷 摄像头模式</div>
 </div>
 
 <!-- 分屏元素 -->
 <div id="splitDivider"></div>
-<div id="splitLabel">VS</div>
 <!-- 底部控制栏 -->
 <div id="bottomBar">
   <div id="bottomLeft">
@@ -255,8 +250,8 @@ body{background:#0a0e1a;overflow:hidden;font-family:'Microsoft YaHei',sans-serif
       </div>
       <div class="cam-ctrl-col">
         <span class="cam-ctrl-label">视场角</span>
-        <input type="range" id="camFovSlider" min="30" max="120" value="30" step="1">
-        <span class="cam-ctrl-val" id="camFovVal">30°</span>
+        <input type="range" id="camFovSlider" min="30" max="120" value="45" step="1">
+        <span class="cam-ctrl-val" id="camFovVal">45°</span>
       </div>
     </div>
   </div>
@@ -710,14 +705,12 @@ const modeSubtitle = document.getElementById('modeSubtitle');
 const redTeamLabel = document.getElementById('redTeamLabel');
 const blueTeamLabel = document.getElementById('blueTeamLabel');
 const splitDivider = document.getElementById('splitDivider');
-const splitLabel = document.getElementById('splitLabel');
 const p1Label = document.getElementById('p1Label');
 const p2Label = document.getElementById('p2Label');
 const p2SpeedWrap = document.getElementById('p2SpeedWrap');
 const speedFill1 = document.getElementById('speedFill1');
 const speedFill2 = document.getElementById('speedFill2');
 const camCtrlPanel = document.getElementById('camCtrlPanel');
-const camModeIndicator = document.getElementById('camModeIndicator');
 const keyHintsEl = document.getElementById('keyHints');
 const dribbleIndicator1 = document.getElementById('dribbleIndicator1');
 const dribbleIndicator2 = document.getElementById('dribbleIndicator2');
@@ -895,14 +888,14 @@ scene.background = new THREE.Color(0x1a2040);
 scene.fog = new THREE.Fog(0x1a2040, 40, 80);
 
 // 主摄像机（单人模式用）
-const camera1 = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 80);
+const camera1 = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 80);
 camera1.rotation.order = 'YXZ';
 camera1.up.set(0, 1, 0);
 camera1.position.set(0, 4.5, 0);
 camera1.lookAt(0, 0, 0);
 
 // 第二摄像机（双人模式用）
-const camera2 = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 80);
+const camera2 = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 80);
 camera2.rotation.order = 'YXZ';
 camera2.up.set(0, 1, 0);
 camera2.position.set(0, 4.5, 0);
@@ -1050,6 +1043,26 @@ function createBall() {
   return ball;
 }
 
+// ============ 射门提示精灵 ============
+function createShootIndicator() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256; canvas.height = 96;
+  const ctx = canvas.getContext('2d');
+  ctx.font = 'bold 52px sans-serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#ffdd00';
+  ctx.strokeStyle = 'rgba(0,0,0,0.7)'; ctx.lineWidth = 5;
+  ctx.strokeText('射门', 128, 48);
+  ctx.fillText('射门', 128, 48);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  const spriteMat = new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false });
+  const sprite = new THREE.Sprite(spriteMat);
+  sprite.scale.set(1.6, 0.6, 1);
+  sprite.visible = false;
+  return sprite;
+}
+
 // ============ 球员类 ============
 class Player {
   constructor(isRed, isPlayer, position, role) {
@@ -1068,6 +1081,11 @@ class Player {
       const arrow = new THREE.Mesh(arrowGeo, arrowMat);
       arrow.position.y = 1.65;
       this.mesh.add(arrow);
+
+      // 射门提示精灵（头顶闪烁）
+      this.shootIndicator = createShootIndicator();
+      this.shootIndicator.position.y = 2.0;
+      this.mesh.add(this.shootIndicator);
     }
 
     this.spawnPos = position.clone();
@@ -1541,14 +1559,22 @@ function handleLegCollisionsForPlayer(player, track, kickPower) {
   const rightFoot = player.getFootWorldPos('right');
   const absLeftVel = Math.abs(track.leftLegAngVel);
   const absRightVel = Math.abs(track.rightLegAngVel);
-  const legActiveThreshold = player.hasBall ? 0.15 : 0.3;
-  const leftActive = absLeftVel > 1 || Math.abs(track.leftLegAngle) > legActiveThreshold;
-  const rightActive = absRightVel > 1 || Math.abs(track.rightLegAngle) > legActiveThreshold;
+
+  // 带球+加速时，腿部位移来自手臂摆动映射（跑步动作），不是刻意踢球
+  // 此时仅靠举手触发的 kickAnim 才是真正的踢球，骨骼绑定的腿部动作不算
+  const dribblingAndSprinting = player.hasBall && track.speedBoost;
+  const legActiveThreshold = dribblingAndSprinting ? 999 : (player.hasBall ? 0.15 : 0.3);
+  const leftActive = !dribblingAndSprinting && (absLeftVel > 1 || Math.abs(track.leftLegAngle) > legActiveThreshold);
+  const rightActive = !dribblingAndSprinting && (absRightVel > 1 || Math.abs(track.rightLegAngle) > legActiveThreshold);
+
+  // kickAnim 触发的踢球：即使在带球加速中也允许（举手触发的刻意踢球）
+  const leftKickAnimActive = track.kickAnim.left.phase !== 'idle';
+  const rightKickAnimActive = track.kickAnim.right.phase !== 'idle';
 
   if (player.kickCooldown <= 0) {
     [
-      { foot: leftFoot, active: leftActive, angle: track.leftLegAngle, zAngle: track.leftLegZAngle, angVel: track.leftLegAngVel },
-      { foot: rightFoot, active: rightActive, angle: track.rightLegAngle, zAngle: track.rightLegZAngle, angVel: track.rightLegAngVel }
+      { foot: leftFoot, active: leftActive || leftKickAnimActive, angle: track.leftLegAngle, zAngle: track.leftLegZAngle, angVel: track.leftLegAngVel },
+      { foot: rightFoot, active: rightActive || rightKickAnimActive, angle: track.rightLegAngle, zAngle: track.rightLegZAngle, angVel: track.rightLegAngVel }
     ].forEach(leg => {
       if (!leg.active || player.kickCooldown > 0) return;
       const dx = ball.x - leg.foot.x, dz = ball.z - leg.foot.z;
@@ -1786,9 +1812,9 @@ function endMatch() {
   camPreview.style.opacity = '1'; camPreview.style.pointerEvents = 'auto';
   camPreview.style.width = '160px'; camPreview.style.height = '120px';
   camPreview.style.left = '10px'; camPreview.style.bottom = '130px';
-  camModeIndicator.style.display = 'none';
-  splitDivider.style.display = 'none'; splitLabel.style.display = 'none';
+  splitDivider.style.display = 'none';
   p1Label.style.display = 'none'; p2Label.style.display = 'none';  p1CamPreviewEl.style.display = 'none'; p2CamPreviewEl.style.display = 'none';
+  allHumanPlayers.forEach(p => { if (p.shootIndicator) p.shootIndicator.visible = false; });
   document.getElementById('resultRed').textContent = redScore;
   document.getElementById('resultBlue').textContent = blueScore;
   let title;
@@ -1820,12 +1846,10 @@ async function startMatch() {
 
   camPreview.style.display = 'block';
   keyHintsEl.style.display = 'none';
-  camModeIndicator.style.display = 'block';
 
   // 双人模式UI
   const isDual = gameMode === 'dual';
   splitDivider.style.display = isDual ? 'block' : 'none';
-  splitLabel.style.display = isDual ? 'block' : 'none';
   p1Label.style.display = isDual ? 'inline-flex' : 'none';
   p2Label.style.display = isDual ? 'inline-flex' : 'none';
   p2SpeedWrap.style.display = isDual ? 'flex' : 'none';
@@ -1897,9 +1921,9 @@ async function startMatch() {
   document.getElementById('camPitchVal').textContent = '65°';
   document.getElementById('camDistSlider').value = 2000;
   document.getElementById('camDistVal').textContent = '20.0';
-  document.getElementById('camFovSlider').value = 30;
-  document.getElementById('camFovVal').textContent = '30°';
-  camera1.fov = 30; camera2.fov = 30;
+  document.getElementById('camFovSlider').value = 45;
+  document.getElementById('camFovVal').textContent = '45°';
+  camera1.fov = 45; camera2.fov = 45;
 
   lastTime = performance.now();
 }
@@ -2022,6 +2046,17 @@ function gameLoop() {
       const spd1 = Math.sqrt(p1.vx * p1.vx + p1.vz * p1.vz);
       speedFill1.style.width = Math.min(100, (spd1 / MAX_SPEED) * 100) + '%';
       dribbleIndicator1.classList.toggle('active', p1.hasBall);
+      // 射门提示
+      if (p1.shootIndicator) {
+        const SHOOT_RANGE = 5; // 禁区外扩5米
+        const inShootZone = p1.isRed
+          ? (p1.z > FIELD_L / 2 - 5 - SHOOT_RANGE && Math.abs(p1.x) < 4 + SHOOT_RANGE)
+          : (p1.z < -FIELD_L / 2 + 5 + SHOOT_RANGE && Math.abs(p1.x) < 4 + SHOOT_RANGE);
+        const showShoot = p1.hasBall && inShootZone;
+        p1.shootIndicator.visible = showShoot;
+        if (showShoot) p1.shootIndicator.material.opacity = 0.5 + 0.5 * Math.sin(now / 125);
+        else p1.shootIndicator.material.opacity = 1;
+      }
     }
     if (gameMode === 'dual') {
       const p2 = allHumanPlayers[1];
@@ -2029,6 +2064,17 @@ function gameLoop() {
         const spd2 = Math.sqrt(p2.vx * p2.vx + p2.vz * p2.vz);
         speedFill2.style.width = Math.min(100, (spd2 / MAX_SPEED) * 100) + '%';
         dribbleIndicator2.classList.toggle('active', p2.hasBall);
+        // 射门提示
+        if (p2.shootIndicator) {
+          const SHOOT_RANGE = 5; // 禁区外扩5米
+          const inShootZone = p2.isRed
+            ? (p2.z > FIELD_L / 2 - 5 - SHOOT_RANGE && Math.abs(p2.x) < 4 + SHOOT_RANGE)
+            : (p2.z < -FIELD_L / 2 + 5 + SHOOT_RANGE && Math.abs(p2.x) < 4 + SHOOT_RANGE);
+          const showShoot = p2.hasBall && inShootZone;
+          p2.shootIndicator.visible = showShoot;
+          if (showShoot) p2.shootIndicator.material.opacity = 0.5 + 0.5 * Math.sin(now / 125);
+          else p2.shootIndicator.material.opacity = 1;
+        }
       }
     }
   }

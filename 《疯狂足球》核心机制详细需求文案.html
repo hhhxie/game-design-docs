@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>疯狂足球 · 核心机制详细需求文案 v3.1</title>
+<title>疯狂足球 · 核心机制详细需求文案 v3.2</title>
 <style>
   :root {
     --bg: #0d1117;
@@ -459,7 +459,7 @@
   </div>
   <h1>疯狂足球</h1>
   <p class="subtitle">核心机制详细需求文案 · 📷 摄像头体感操作 · 第三人称俯视角</p>
-  <span class="version-badge">v3.1 · 2026-05-03 · 谢华明</span>
+  <span class="version-badge">v3.2 · 2026-05-03 · 谢华明</span>
 </header>
 
 <!-- ============ NAV ============ -->
@@ -470,6 +470,7 @@
   <a href="#ch4">角色系统</a>
   <a href="#ch5">腿部踢球</a>
   <a href="#ch6">带球系统</a>
+  <a href="#ch7">球员切换</a>
   <a href="#ch8">AI球员</a>
   <a href="#ch9">碰撞系统</a>
   <a href="#ch10">比赛规则</a>
@@ -1136,6 +1137,124 @@ kickDirZ += ballDirZ × <span class="num">0.3</span>
   </div>
 </section>
 
+<!-- ============ 七、控制球员切换系统 ============ -->
+<section class="chapter" id="ch7">
+  <div class="chapter-header">
+    <div class="chapter-num" style="background:rgba(57,210,192,0.15);color:var(--cyan);">07</div>
+    <div class="chapter-title">控制球员切换系统</div>
+  </div>
+  <p class="chapter-desc">自动追球切换 · 冷却防抖 · 距离滞后阈值 · 箭头闪烁反馈</p>
+
+  <div class="section">
+    <div class="stat-row">
+      <div class="stat-pill"><div class="val" style="color:var(--cyan);">0.8s</div><div class="label">切换冷却</div></div>
+      <div class="stat-pill"><div class="val" style="color:var(--orange);">0.6</div><div class="label">距离滞后比</div></div>
+      <div class="stat-pill"><div class="val" style="color:var(--green);">3次</div><div class="label">箭头闪烁</div></div>
+      <div class="stat-pill"><div class="val" style="color:var(--red);">GK排除</div><div class="label">守门员不参与</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">7.1 切换核心参数</div>
+    <div class="card">
+      <table>
+        <tr><th>参数</th><th>设定值</th><th>说明</th></tr>
+        <tr><td>SWITCH_COOLDOWN</td><td><code>0.8 秒</code></td><td>切换冷却时间，防止频繁切换</td></tr>
+        <tr><td>SWITCH_DISTANCE_RATIO</td><td><code>0.6</code></td><td>距离滞后阈值：候选人距离² &lt; 当前球员距离² × 0.6 时触发</td></tr>
+        <tr><td>候选范围</td><td>同队所有非守门员球员</td><td>守门员永不被玩家控制</td></tr>
+        <tr><td>距离计算</td><td><code>dx²+dz²</code>（2D 平方距离）</td><td>避免开方运算</td></tr>
+      </table>
+    </div>
+    <div class="callout callout-info" style="margin-top:12px;">
+      <span class="callout-icon">💡</span>
+      <span>距离滞后阈值 0.6 的设计目的：防止两个球员距离接近时产生"乒乓切换"，只有候选人明显更近（不到当前的 60%）时才切换。</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">7.2 自动切换流程</div>
+    <div class="diagram-container" style="min-height:200px;">
+      <div class="flow" style="flex-direction:column;align-items:center;gap:8px;">
+        <div class="flow-node" style="border-color:var(--text-dim);padding:8px 24px;">
+          每帧检测（比赛进行中）
+        </div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node" style="border-color:var(--cyan);color:var(--cyan);background:rgba(57,210,192,0.08);padding:8px 24px;">
+          冷却计时 -= dt → 冷却已过？
+        </div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node" style="border-color:var(--accent);color:var(--accent);background:rgba(88,166,255,0.08);padding:8px 24px;">
+          findClosestToBall（候选非守门员）
+        </div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node" style="border-color:var(--orange);color:var(--orange);background:rgba(240,136,62,0.08);padding:8px 24px;">
+          候选人距离² &lt; 当前距离² × 0.6 ？
+        </div>
+        <div class="flow-arrow">↓ 是</div>
+        <div class="flow-node" style="border-color:var(--green);color:var(--green);background:rgba(68,255,68,0.08);padding:8px 24px;">
+          switchControl：旧球员降级AI + 新球员升级玩家 + 箭头闪烁
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">7.3 初始控制权分配</div>
+    <div class="card">
+      <table>
+        <tr><th>步骤</th><th>操作</th></tr>
+        <tr><td>1</td><td>所有球员初始 <code>isPlayer = false</code></td></tr>
+        <tr><td>2</td><td>红队非守门员中离球最近者 → 分配给 P1</td></tr>
+        <tr><td>3</td><td>双人模式：蓝队非守门员中离球最近者 → 分配给 P2</td></tr>
+        <tr><td>4</td><td>重置切换冷却计时为 0</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">7.4 视觉标记系统</div>
+    <div class="card">
+      <div class="card-title"><span class="icon">🔺</span> 控制箭头</div>
+      <table>
+        <tr><th>属性</th><th>设定值</th><th>说明</th></tr>
+        <tr><td>几何体</td><td><code>ConeGeometry(r=0.12, h=0.25, 4面)</code></td><td>四棱锥</td></tr>
+        <tr><td>Y 位置</td><td><code>1.65 m</code></td><td>头顶上方</td></tr>
+        <tr><td>红队玩家颜色</td><td>绿色 <code>#44ff44</code></td><td>emissive #22aa22</td></tr>
+        <tr><td>蓝队玩家颜色</td><td>橙色 <code>#ffaa00</code></td><td>emissive #886600</td></tr>
+        <tr><td>名称</td><td><code>controlArrow</code></td><td>供代码查找和移除</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="icon">✨</span> 切换闪烁反馈</div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;">
+        <div class="stat-pill"><div class="val" style="color:var(--gold);">3次</div><div class="label">闪烁次数</div></div>
+        <div class="stat-pill"><div class="val" style="color:var(--accent);">80ms</div><div class="label">闪烁间隔</div></div>
+        <div class="stat-pill"><div class="val" style="color:var(--text-dim);">480ms</div><div class="label">总时长</div></div>
+      </div>
+      <div class="code-block" style="margin-top:8px;"><code>setInterval(80ms): arrow.visible = !arrow.visible; count++;
+if count >= 6: arrow.visible = true, 停止</code></div>
+    </div>
+    <div class="callout callout-warn" style="margin-top:12px;">
+      <span class="callout-icon">⚠️</span>
+      <span><strong>带球状态不随控制权转移</strong>：旧球员的带球状态保留，新球员需重新拾球。切换可能导致短暂无人带球。</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">7.5 双人模式切换</div>
+    <div class="card">
+      <table>
+        <tr><th>玩家</th><th>控制队伍</th><th>候选范围</th><th>切换逻辑</th></tr>
+        <tr><td>P1</td><td>红队</td><td>redPlayers 中非守门员</td><td>独立冷却、独立检测</td></tr>
+        <tr><td>P2</td><td>蓝队</td><td>bluePlayers 中非守门员</td><td>独立冷却、独立检测</td></tr>
+      </table>
+    </div>
+    <div class="callout callout-info" style="margin-top:8px;">
+      <span class="callout-icon">🔄</span>
+      <span>P1 和 P2 各自维护独立的切换冷却计时，互不影响，可同时发生切换。P2 切换仅在双人模式下执行。</span>
+    </div>
+  </div>
+</section>
 
 <!-- ============ 八、AI球员系统 ============ -->
 <section class="chapter" id="ch8">
@@ -1395,7 +1514,7 @@ z = clamp(z, -FIELD_L/<span class="num">2</span> + margin, FIELD_L/<span class="
 </div><!-- container -->
 
 <footer>
-  <div>疯狂足球 · 核心机制详细需求文案 v3.1</div>
+  <div>疯狂足球 · 核心机制详细需求文案 v3.2</div>
   <div style="margin-top:4px;">谢华明 · 2026-04-27 · 关联文档：策划大纲 v1.0 / Web MVP 原型 football.html</div>
 </footer>
 

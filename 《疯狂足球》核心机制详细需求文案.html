@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>疯狂足球 · 核心机制详细需求文案 v3.0</title>
+<title>疯狂足球 · 核心机制详细需求文案 v3.1</title>
 <style>
   :root {
     --bg: #0d1117;
@@ -459,7 +459,7 @@
   </div>
   <h1>疯狂足球</h1>
   <p class="subtitle">核心机制详细需求文案 · 📷 摄像头体感操作 · 第三人称俯视角</p>
-  <span class="version-badge">v3.0 · 2026-05-03 · 谢华明</span>
+  <span class="version-badge">v3.1 · 2026-05-03 · 谢华明</span>
 </header>
 
 <!-- ============ NAV ============ -->
@@ -470,7 +470,6 @@
   <a href="#ch4">角色系统</a>
   <a href="#ch5">腿部踢球</a>
   <a href="#ch6">带球系统</a>
-  <a href="#ch7">守门员飞扑</a>
   <a href="#ch8">AI球员</a>
   <a href="#ch9">碰撞系统</a>
   <a href="#ch10">比赛规则</a>
@@ -808,27 +807,6 @@ camera.lookAt(smoothX, <span class="num">0</span>, smoothZ)
     </div>
   </div>
 
-  <!-- HUD -->
-  <div class="section">
-    <div class="section-title">2.4 HUD 系统</div>
-    <div class="diagram-container" style="min-height:280px;">
-      <canvas id="hudCanvas" width="640" height="360"></canvas>
-    </div>
-    <div class="card">
-      <table>
-        <tr><th>元素</th><th>位置</th><th>尺寸</th><th>说明</th></tr>
-        <tr><td>比分板</td><td>顶部居中</td><td>自适应</td><td>红:VS:蓝，36px；双人模式两侧显示玩家标签</td></tr>
-        <tr><td>计时器</td><td>右上角</td><td>自适应</td><td>MM:SS，20px</td></tr>
-        <tr><td>小地图</td><td>右上角</td><td>108×168 px</td><td>竖向，匹配球场形状</td></tr>
-        <tr><td>速度条</td><td>底部左/右</td><td>120×6 px ×2组</td><td>渐变色（绿→黄→红），P1左/P2右</td></tr>
-        <tr><td>带球指示</td><td>中心偏上</td><td>16px</td><td>⚽ 带球中，金色</td></tr>
-        <tr><td>射门提示</td><td>球员头顶</td><td>1.6×0.6 m</td><td>"射门"文字，禁区附近带球时闪烁</td></tr>
-        <tr><td>球方向箭头</td><td>屏幕边缘</td><td>32×32 px</td><td>黄色三角</td></tr>
-        <tr><td>镜头控制面板</td><td>底部中央</td><td>4滑条</td><td>单人模式显示，双人模式隐藏</td></tr>
-        <tr><td>识别状态灯</td><td>摄像头预览下方</td><td>小面板</td><td>双人模式，4状态灯</td></tr>
-      </table>
-    </div>
-  </div>
 </section>
 
 <!-- ============ 三、足球物理系统 ============ -->
@@ -1136,7 +1114,6 @@ kickDirZ += ballDirZ × <span class="num">0.3</span>
           <tr><th>条件</th><th>说明</th></tr>
           <tr><td>腿部踢球</td><td>玩家主动踢球</td></tr>
           <tr><td>AI 抢球</td><td>AI 球员触碰球</td></tr>
-          <tr><td>守门员飞扑</td><td>飞扑击中球</td></tr>
           <tr><td>被击倒</td><td>倒地时自动失去球</td></tr>
         </table>
       </div>
@@ -1159,97 +1136,6 @@ kickDirZ += ballDirZ × <span class="num">0.3</span>
   </div>
 </section>
 
-<!-- ============ 七、守门员飞扑系统 ============ -->
-<section class="chapter" id="ch7">
-  <div class="chapter-header">
-    <div class="chapter-num" style="background:rgba(188,140,255,0.15);color:var(--purple);">07</div>
-    <div class="chapter-title">守门员飞扑系统</div>
-  </div>
-  <p class="chapter-desc">3 阶段飞扑 · 5 秒冷却 · AABB碰撞盒 1.6×1.5×0.4m · 击球力度 10~15</p>
-
-  <div class="section">
-    <div class="stat-row">
-      <div class="stat-pill"><div class="val" style="color:var(--purple);">8 m/s</div><div class="label">飞扑速度</div></div>
-      <div class="stat-pill"><div class="val" style="color:var(--orange);">1.6×1.5m</div><div class="label">AABB碰撞盒</div></div>
-      <div class="stat-pill"><div class="val" style="color:var(--red);">5s</div><div class="label">冷却时间</div></div>
-      <div class="stat-pill"><div class="val" style="color:var(--cyan);">0.5m</div><div class="label">触发距离</div></div>
-    </div>
-  </div>
-
-  <div class="section">
-    <div class="section-title">7.1 飞扑阶段</div>
-    <div class="diagram-container">
-      <div class="flow" style="justify-content:center;gap:16px;">
-        <div style="text-align:center;">
-          <div class="flow-node" style="border-color:var(--purple);color:var(--purple);background:rgba(188,140,255,0.08);padding:12px 20px;">
-            🤿 飞扑中<br><span style="font-size:0.7rem;color:var(--text-dim);">0.3秒 · 8m/s · 侧倾67.5°</span>
-          </div>
-        </div>
-        <div class="flow-arrow">→</div>
-        <div style="text-align:center;">
-          <div class="flow-node" style="border-color:var(--orange);color:var(--orange);background:rgba(240,136,62,0.08);padding:12px 20px;">
-            💥 落地<br><span style="font-size:0.7rem;color:var(--text-dim);">0.6秒 · 趴地 · AABB 1.6×1.5×0.3</span>
-          </div>
-        </div>
-        <div class="flow-arrow">→</div>
-        <div style="text-align:center;">
-          <div class="flow-node" style="border-color:var(--cyan);color:var(--cyan);background:rgba(57,210,192,0.08);padding:12px 20px;">
-            🧍 起身<br><span style="font-size:0.7rem;color:var(--text-dim);">0.5秒 · 线性恢复 · 朝向球</span>
-          </div>
-        </div>
-        <div class="flow-arrow">→</div>
-        <div style="text-align:center;">
-          <div class="flow-node" style="border-color:var(--text-dim);color:var(--text-dim);padding:12px 20px;">
-            ⏳ 冷却<br><span style="font-size:0.7rem;color:var(--text-dim);">5秒</span>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="callout callout-warn" style="margin-top:12px;">
-      <span class="callout-icon">🎯</span>
-      <span><strong>触发条件</strong>：球距球门线 &lt; 0.5m（非禁区判定），无人带球，守门员空闲，冷却已过，球距 &lt; 3.6m</span>
-    </div>
-  </div>
-
-  <div class="section">
-    <div class="section-title">7.2 飞扑击球 · AABB 包围盒碰撞</div>
-    <div class="card">
-      <div class="card-title"><span class="icon">📦</span> AABB 碰撞盒参数</div>
-      <table>
-        <tr><th>阶段</th><th>纵向长度</th><th>横向宽度</th><th>高度</th><th>中心Y</th></tr>
-        <tr><td>飞扑中 (diving)</td><td><code>1.6 m</code></td><td><code>1.5 m</code></td><td><code>0.4 m</code></td><td><code>-0.15 m</code></td></tr>
-        <tr><td>落地 (diving_land)</td><td><code>1.6 m</code></td><td><code>1.5 m</code></td><td><code>0.3 m</code></td><td><code>-0.2 m</code></td></tr>
-      </table>
-      <div class="callout callout-info" style="margin-top:8px;">
-        <span class="callout-icon">📏</span>
-        <span>碰撞盒中心朝飞扑方向偏移 30% 身体长度，模拟飞扑时身体前伸</span>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-title"><span class="icon">⚽</span> 击球参数</div>
-      <table>
-        <tr><th>参数</th><th>设定值</th><th>说明</th></tr>
-        <tr><td>击球力度</td><td><code>10 ~ 15 m/s</code></td><td>随机</td></tr>
-        <tr><td>击球方向</td><td>远离己方球门</td><td>强制 Z 分量至少 50%</td></tr>
-        <tr><td>球 Y 速度</td><td><code>sqrt(2×g×targetH)</code></td><td>按物理公式计算</td></tr>
-      </table>
-    </div>
-  </div>
-
-  <div class="section">
-    <div class="section-title">7.3 守门员待机动画</div>
-    <div class="card">
-      <table>
-        <tr><th>行为</th><th>设定</th></tr>
-        <tr><td>半蹲姿势</td><td>大腿前倾 -0.4 rad，膝盖弯曲 0.8 rad</td></tr>
-        <tr><td>双臂张开</td><td>左臂 rotation.z=-1.2，右臂 rotation.z=1.2</td></tr>
-        <tr><td>呼吸微动</td><td>sin(time×2)×0.05 叠加</td></tr>
-        <tr><td>整体下移</td><td>Y=-0.15 模拟半蹲</td></tr>
-        <tr><td>移动时腿微摆</td><td>sin(time×speed×3)×0.15</td></tr>
-      </table>
-    </div>
-  </div>
-</section>
 
 <!-- ============ 八、AI球员系统 ============ -->
 <section class="chapter" id="ch8">
@@ -1332,8 +1218,6 @@ kickDirZ += ballDirZ × <span class="num">0.3</span>
         <table>
           <tr><th>情况</th><th>处理</th></tr>
           <tr><td>两个站立球员重叠</td><td>各推离 50%</td></tr>
-          <tr><td>飞扑守门员 vs 站立球员</td><td>站立球员推离 100%</td></tr>
-          <tr><td>飞扑方 vs 站立方</td><td>飞扑方不推离</td></tr>
           <tr><td>倒地球员</td><td>不参与碰撞推离</td></tr>
         </table>
       </div>
@@ -1489,11 +1373,6 @@ z = clamp(z, -FIELD_L/<span class="num">2</span> + margin, FIELD_L/<span class="
     <div class="appendix-item"><div class="sys">击人</div><div class="param">击退范围</div><div class="val">1/3/5 m</div></div>
     <div class="appendix-item"><div class="sys">击人</div><div class="param">倒地时间</div><div class="val">1.5/3 秒</div></div>
     <div class="appendix-item"><div class="sys">击人</div><div class="param">冷却</div><div class="val">0.3 秒</div></div>
-    <div class="appendix-item"><div class="sys">守门员</div><div class="param">飞扑速度</div><div class="val">8 m/s</div></div>
-    <div class="appendix-item"><div class="sys">守门员</div><div class="param">飞扑碰撞</div><div class="val">AABB 1.6×1.5</div></div>
-    <div class="appendix-item"><div class="sys">守门员</div><div class="param">飞扑冷却</div><div class="val">5 秒</div></div>
-    <div class="appendix-item"><div class="sys">守门员</div><div class="param">飞扑击球力度</div><div class="val">10~15</div></div>
-    <div class="appendix-item"><div class="sys">守门员</div><div class="param">飞扑触发距离</div><div class="val">球距球门&lt;0.5m</div></div>
     <div class="appendix-item"><div class="sys">守门员</div><div class="param">AI带球开球力度</div><div class="val">18</div></div>
     <div class="appendix-item"><div class="sys">镜头</div><div class="param">FOV</div><div class="val">45°（默认）</div></div>
     <div class="appendix-item"><div class="sys">镜头</div><div class="param">水平旋转</div><div class="val">-180°~180°</div></div>
@@ -1510,14 +1389,13 @@ z = clamp(z, -FIELD_L/<span class="num">2</span> + margin, FIELD_L/<span class="
     <div class="appendix-item"><div class="sys">切换</div><div class="param">冷却/滞后</div><div class="val">0.8s / 0.6</div></div>
     <div class="appendix-item"><div class="sys">转向</div><div class="param">横向系数</div><div class="val">0.6</div></div>
     <div class="appendix-item"><div class="sys">双人</div><div class="param">Pose实例</div><div class="val">2个(complex=0)</div></div>
-    <div class="appendix-item"><div class="sys">识别灯</div><div class="param">超时</div><div class="val">1200/600ms</div></div>
   </div>
 </section>
 
 </div><!-- container -->
 
 <footer>
-  <div>疯狂足球 · 核心机制详细需求文案 v3.0</div>
+  <div>疯狂足球 · 核心机制详细需求文案 v3.1</div>
   <div style="margin-top:4px;">谢华明 · 2026-04-27 · 关联文档：策划大纲 v1.0 / Web MVP 原型 football.html</div>
 </footer>
 
@@ -1601,104 +1479,6 @@ z = clamp(z, -FIELD_L/<span class="num">2</span> + margin, FIELD_L/<span class="
   ctx.fillStyle = '#ffd700';
   ctx.fillText('5m', ox-fw/2-gd/2, oy-2);
   ctx.fillText('1.8m深', ox-fw/2-gd/2, oy+10);
-})();
-
-// ========== Draw HUD Canvas ==========
-(function(){
-  const c = document.getElementById('hudCanvas');
-  if(!c) return;
-  const ctx = c.getContext('2d');
-  const W = 640, H = 360;
-
-  ctx.fillStyle = '#0d1117';
-  ctx.fillRect(0,0,W,H);
-
-  // Screen outline
-  ctx.strokeStyle = '#30363d';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(10, 10, W-20, H-20);
-
-  // Score board (top center)
-  ctx.fillStyle = 'rgba(22,27,34,0.9)';
-  ctx.fillRect(W/2-90, 16, 180, 36);
-  ctx.strokeStyle = '#30363d';
-  ctx.strokeRect(W/2-90, 16, 180, 36);
-  ctx.font = 'bold 20px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillStyle = '#ff4444';
-  ctx.fillText('2', W/2-40, 42);
-  ctx.fillStyle = '#8b949e';
-  ctx.fillText(':', W/2, 42);
-  ctx.fillStyle = '#4488ff';
-  ctx.fillText('1', W/2+40, 42);
-
-  // Timer (top right)
-  ctx.font = '14px monospace';
-  ctx.fillStyle = '#8b949e';
-  ctx.textAlign = 'right';
-  ctx.fillText('2:34', W-24, 34);
-
-  // Minimap (top right, below timer)
-  const mx = W-24-50, my = 46, mw = 50, mh = 78;
-  ctx.fillStyle = 'rgba(0,0,0,0.5)';
-  ctx.fillRect(mx, my, mw, mh);
-  ctx.strokeStyle = '#30363d';
-  ctx.strokeRect(mx, my, mw, mh);
-  // minimap dots
-  ctx.fillStyle = '#44ff44'; ctx.beginPath(); ctx.arc(mx+25, my+50, 2.5, 0, Math.PI*2); ctx.fill(); // player
-  ctx.fillStyle = '#ff4444'; ctx.beginPath(); ctx.arc(mx+20, my+45, 2, 0, Math.PI*2); ctx.fill(); // red AI
-  ctx.fillStyle = '#ff4444'; ctx.beginPath(); ctx.arc(mx+22, my+60, 2, 0, Math.PI*2); ctx.fill();
-  ctx.fillStyle = '#4488ff'; ctx.beginPath(); ctx.arc(mx+30, my+30, 2, 0, Math.PI*2); ctx.fill(); // blue
-  ctx.fillStyle = '#4488ff'; ctx.beginPath(); ctx.arc(mx+28, my+18, 2, 0, Math.PI*2); ctx.fill();
-  ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(mx+26, my+52, 2, 0, Math.PI*2); ctx.fill(); // ball
-
-  // Speed bar (bottom center)
-  const bw = 160, bh = 6;
-  const bx = W/2-bw/2, by = H-30;
-  ctx.fillStyle = 'rgba(22,27,34,0.8)';
-  ctx.fillRect(bx-2, by-2, bw+4, bh+4);
-  const grad = ctx.createLinearGradient(bx, by, bx+bw, by);
-  grad.addColorStop(0, '#44ff44');
-  grad.addColorStop(0.5, '#ffd700');
-  grad.addColorStop(1, '#ff4444');
-  ctx.fillStyle = grad;
-  ctx.fillRect(bx, by, bw*0.65, bh);
-
-  // Camera mode badge (top left)
-  ctx.fillStyle = 'rgba(88,166,255,0.1)';
-  ctx.fillRect(18, 18, 90, 24);
-  ctx.strokeStyle = 'rgba(88,166,255,0.3)';
-  ctx.strokeRect(18, 18, 90, 24);
-  ctx.font = '11px sans-serif';
-  ctx.textAlign = 'left';
-  ctx.fillStyle = '#58a6ff';
-  ctx.fillText('📷 体感模式', 26, 35);
-
-  // Ball indicator arrow (right edge)
-  ctx.fillStyle = '#ffd700';
-  ctx.beginPath();
-  ctx.moveTo(W-20, H/2-8);
-  ctx.lineTo(W-10, H/2);
-  ctx.lineTo(W-20, H/2+8);
-  ctx.fill();
-  ctx.font = '10px sans-serif';
-  ctx.textAlign = 'right';
-  ctx.fillStyle = '#ffd700';
-  ctx.fillText('8m', W-24, H/2+4);
-
-  // Dribble indicator
-  ctx.font = '12px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillStyle = '#ffd700';
-  ctx.fillText('⚽ 带球中', W/2, 72);
-
-  // Labels
-  ctx.font = '9px sans-serif';
-  ctx.fillStyle = '#58a6ff';
-  ctx.textAlign = 'left';
-  ctx.fillText('比分板', W/2-20, 60);
-  ctx.fillText('速度条', W/2-16, H-16);
-  ctx.fillText('小地图', mx+10, my+mh+12);
 })();
 
 // ========== Draw Stickman Canvas ==========

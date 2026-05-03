@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>疯狂足球 · 核心机制详细需求文案 v2.1</title>
+<title>疯狂足球 · 核心机制详细需求文案 v3.0</title>
 <style>
   :root {
     --bg: #0d1117;
@@ -459,7 +459,7 @@
   </div>
   <h1>疯狂足球</h1>
   <p class="subtitle">核心机制详细需求文案 · 📷 摄像头体感操作 · 第三人称俯视角</p>
-  <span class="version-badge">v2.1 · 2026-04-27 · 谢华明</span>
+  <span class="version-badge">v3.0 · 2026-05-03 · 谢华明</span>
 </header>
 
 <!-- ============ NAV ============ -->
@@ -492,7 +492,14 @@
     <div class="section-title">1.1 操作模式</div>
     <div class="callout callout-info">
       <span class="callout-icon">📷</span>
-      <span>游戏仅支持摄像头体感操作，玩家通过身体动作控制角色。</span>
+      <span>游戏支持单人模式和双人模式，均通过摄像头体感操作。双人模式使用同一摄像头，画面左右分割分别识别。</span>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <table>
+        <tr><th>模式</th><th>输入设备</th><th>视角</th><th>状态</th></tr>
+        <tr><td><span class="tag tag-blue">📷 单人</span></td><td>MediaPipe Pose 骨骼识别</td><td>第三人称俯视角</td><td>需摄像头权限</td></tr>
+        <tr><td><span class="tag tag-purple">📷📷 双人</span></td><td>双 MediaPipe Pose 实例</td><td>分屏第三人称俯视角</td><td>需摄像头权限</td></tr>
+      </table>
     </div>
     <div class="stat-row">
       <div class="stat-pill">
@@ -506,6 +513,10 @@
       <div class="stat-pill">
         <div class="val" style="color:var(--orange);">≤100ms</div>
         <div class="label">识别延迟目标</div>
+      </div>
+      <div class="stat-pill">
+        <div class="val" style="color:var(--purple);">2</div>
+        <div class="label">双人Pose实例</div>
       </div>
     </div>
   </div>
@@ -605,19 +616,78 @@
         <span class="callout-icon">⚡</span>
         <span>触发方式：边缘检测——手臂角度从下方越过 90° 时触发一次</span>
       </div>
+      <div class="callout callout-warn" style="margin-top:8px;">
+        <span class="callout-icon">✋</span>
+        <span><strong>高度检查（防误触）</strong>：手腕 y 值必须 &lt; 肩膀 y - 0.02（归一化坐标），即手腕明确高于肩膀才允许触发，防止身体转动时手臂侧摆误触</span>
+      </div>
+    </div>
+
+    <!-- 踢球动画状态机 -->
+    <div class="card">
+      <div class="card-title"><span class="icon">🎬</span> 踢球动画状态机</div>
+      <div class="flow" style="justify-content:center;">
+        <div class="flow-node active">idle</div>
+        <div class="flow-arrow">→举手触发→</div>
+        <div class="flow-node highlight">out (0.05s)</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node" style="border-color:var(--cyan);color:var(--cyan);">back (0.15s)</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node active">idle</div>
+      </div>
+      <div class="callout callout-success" style="margin-top:8px;">
+        <span class="callout-icon">💡</span>
+        <span>kickAnim 触发的踢球即使在带球+加速状态下也允许执行（这是刻意踢球），而骨骼绑定映射的腿部动作在带球+加速时被抑制</span>
+      </div>
     </div>
 
     <!-- 加速 -->
     <div class="card">
-      <div class="card-title"><span class="icon">🚀</span> 加速触发</div>
+      <div class="card-title"><span class="icon">🚀</span> 加速触发 · 跑步区摆动检测</div>
       <div class="flow" style="justify-content:center;">
-        <div class="flow-node">双手距离 &lt; 0.2</div>
+        <div class="flow-node">双手在跑步区</div>
+        <div class="flow-arrow">+</div>
+        <div class="flow-node">双手摆动速度 &gt; 0.2</div>
         <div class="flow-arrow">→</div>
         <div class="flow-node highlight">加速 6 m/s 🏃</div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-node">双手距离 ≥ 0.2</div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-node">自动追球 1 m/s 🚶</div>
+      </div>
+      <div class="card" style="margin-top:12px;background:rgba(0,0,0,0.2);padding:14px;">
+        <table>
+          <tr><th>参数</th><th>设定值</th><th>说明</th></tr>
+          <tr><td>跑步区上界</td><td><code>肩膀 y + 0.05</code></td><td>归一化坐标</td></tr>
+          <tr><td>跑步区下界</td><td><code>肩膀 y + 0.5</code></td><td>归一化坐标</td></tr>
+          <tr><td>摆动速度阈值</td><td><code>0.2</code></td><td>双手腕 y 方向速度绝对值</td></tr>
+          <tr><td>能量阈值</td><td><code>0.3</code></td><td>camSwingEnergy &gt; 0.3 时 speedBoost</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- 身体转向 -->
+    <div class="card">
+      <div class="card-title"><span class="icon">↔️</span> 身体转向检测 · 横向偏移</div>
+      <div class="callout callout-info">
+        <span class="callout-icon">🔄</span>
+        <span>利用肩部关键点 z 坐标（深度）差异计算身体偏航角，实现跑动中的横向移动</span>
+      </div>
+      <div class="grid-2" style="margin-top:12px;">
+        <div class="card" style="background:rgba(0,0,0,0.2);padding:14px;">
+          <div class="card-title" style="font-size:0.85rem;">转向检测参数</div>
+          <table>
+            <tr><th>参数</th><th>值</th></tr>
+            <tr><td>深度差放大系数</td><td><code>10</code></td></tr>
+            <tr><td>转向平滑系数</td><td><code>dt × 8</code></td></tr>
+            <tr><td>置信度阈值</td><td><code>0.5</code></td></tr>
+            <tr><td>角度死区</td><td><code>0.1 rad</code></td></tr>
+          </table>
+        </div>
+        <div class="card" style="background:rgba(0,0,0,0.2);padding:14px;">
+          <div class="card-title" style="font-size:0.85rem;">横向偏移参数</div>
+          <table>
+            <tr><th>参数</th><th>值</th></tr>
+            <tr><td>STRAFE_FACTOR</td><td><code>0.6</code></td></tr>
+            <tr><td>偏移方向</td><td>右转→右偏, 左转→左偏</td></tr>
+            <tr><td>限幅</td><td><code>clamp(turn, -1, 1)</code></td></tr>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -672,7 +742,7 @@
   <div class="section">
     <div class="stat-row">
       <div class="stat-pill"><div class="val" style="color:var(--accent);">1920×1080</div><div class="label">目标分辨率</div></div>
-      <div class="stat-pill"><div class="val" style="color:var(--cyan);">90°</div><div class="label">水平 FOV</div></div>
+      <div class="stat-pill"><div class="val" style="color:var(--cyan);">45°</div><div class="label">默认 FOV</div></div>
       <div class="stat-pill"><div class="val" style="color:var(--orange);">60 FPS</div><div class="label">目标帧率</div></div>
       <div class="stat-pill"><div class="val" style="color:var(--green);">4.5m</div><div class="label">默认摄像机高度</div></div>
     </div>
@@ -708,20 +778,32 @@
 
   <!-- 摄像机 -->
   <div class="section">
-    <div class="section-title">2.3 摄像机系统</div>
+    <div class="section-title">2.3 摄像机系统 · 球坐标4参数</div>
     <div class="card">
       <table>
         <tr><th>参数</th><th>设定值</th><th>说明</th></tr>
-        <tr><td>视角类型</td><td>第三人称俯视角</td><td>从上方俯瞰球场</td></tr>
-        <tr><td>摄像机 X/Z</td><td>跟随角色（平滑）</td><td>smoothFactor = 0.12</td></tr>
-        <tr><td>摄像机 Y</td><td><code>2.05 ~ 14 m</code></td><td>HUD 滑条控制，默认 4.5 m</td></tr>
-        <tr><td>摄像机朝向</td><td>lookAt(角色X, 0, 角色Z)</td><td>始终俯视角色位置</td></tr>
+        <tr><td>视角类型</td><td>第三人称俯视角</td><td>球坐标系统，4参数可调</td></tr>
+        <tr><td>水平旋转 (yaw)</td><td><code>-180° ~ +180°</code>，默认 180°</td><td>HUD 滑条控制</td></tr>
+        <tr><td>俯仰角度 (pitch)</td><td><code>10° ~ 89°</code>，默认 65°</td><td>HUD 滑条控制</td></tr>
+        <tr><td>镜头距离 (dist)</td><td><code>2.0 ~ 20.0 m</code>，默认 20.0 m</td><td>HUD 滑条控制</td></tr>
+        <tr><td>FOV</td><td><code>30° ~ 120°</code>，默认 45°</td><td>HUD 滑条控制</td></tr>
+        <tr><td>摄像机 up</td><td><code>(0, 1, 0)</code></td><td>Y 轴向上</td></tr>
+        <tr><td>旋转顺序</td><td><code>'YXZ'</code></td><td>欧拉角旋转顺序</td></tr>
       </table>
       <div class="code-block" style="margin-top:12px;">
-<span class="func">cameraSmoothX</span> += (playerX - cameraSmoothX) × <span class="num">0.12</span>
-<span class="func">cameraSmoothZ</span> += (playerZ - cameraSmoothZ) × <span class="num">0.12</span>
-camera.position = (cameraSmoothX, camHeight, cameraSmoothZ)
-camera.lookAt(cameraSmoothX, <span class="num">0</span>, cameraSmoothZ)
+<span class="func">smoothX</span> += (playerX - smoothX) × <span class="num">0.12</span>
+<span class="func">smoothZ</span> += (playerZ - smoothZ) × <span class="num">0.12</span>
+
+camX = smoothX + dist × cos(pitch) × sin(yaw)
+camY = dist × sin(pitch)
+camZ = smoothZ + dist × cos(pitch) × cos(yaw)
+
+camera.position = (camX, camY, camZ)
+camera.lookAt(smoothX, <span class="num">0</span>, smoothZ)
+      </div>
+      <div class="callout callout-info" style="margin-top:8px;">
+        <span class="callout-icon">👥</span>
+        <span><strong>双人模式</strong>：P1 使用 yaw 滑条值，P2 使用 yaw+180°（对面视角），pitch/dist/FOV 两台摄像机共享</span>
       </div>
     </div>
   </div>
@@ -735,13 +817,15 @@ camera.lookAt(cameraSmoothX, <span class="num">0</span>, cameraSmoothZ)
     <div class="card">
       <table>
         <tr><th>元素</th><th>位置</th><th>尺寸</th><th>说明</th></tr>
-        <tr><td>比分板</td><td>顶部居中</td><td>自适应</td><td>红:VS:蓝，36px</td></tr>
+        <tr><td>比分板</td><td>顶部居中</td><td>自适应</td><td>红:VS:蓝，36px；双人模式两侧显示玩家标签</td></tr>
         <tr><td>计时器</td><td>右上角</td><td>自适应</td><td>MM:SS，20px</td></tr>
         <tr><td>小地图</td><td>右上角</td><td>108×168 px</td><td>竖向，匹配球场形状</td></tr>
-        <tr><td>速度条</td><td>底部居中</td><td>200×8 px</td><td>渐变色（绿→黄→红）</td></tr>
-        <tr><td>带球指示</td><td>中心偏上</td><td>18px</td><td>⚽ 带球中，金色</td></tr>
-        <tr><td>体感标识</td><td>左上角</td><td>小标签</td><td>📷 体感模式</td></tr>
+        <tr><td>速度条</td><td>底部左/右</td><td>120×6 px ×2组</td><td>渐变色（绿→黄→红），P1左/P2右</td></tr>
+        <tr><td>带球指示</td><td>中心偏上</td><td>16px</td><td>⚽ 带球中，金色</td></tr>
+        <tr><td>射门提示</td><td>球员头顶</td><td>1.6×0.6 m</td><td>"射门"文字，禁区附近带球时闪烁</td></tr>
         <tr><td>球方向箭头</td><td>屏幕边缘</td><td>32×32 px</td><td>黄色三角</td></tr>
+        <tr><td>镜头控制面板</td><td>底部中央</td><td>4滑条</td><td>单人模式显示，双人模式隐藏</td></tr>
+        <tr><td>识别状态灯</td><td>摄像头预览下方</td><td>小面板</td><td>双人模式，4状态灯</td></tr>
       </table>
     </div>
   </div>
@@ -753,7 +837,7 @@ camera.lookAt(cameraSmoothX, <span class="num">0</span>, cameraSmoothZ)
     <div class="chapter-num" style="background:rgba(255,215,0,0.15);color:var(--gold);">03</div>
     <div class="chapter-title">足球物理系统</div>
   </div>
-  <p class="chapter-desc">弹性弹跳 · 摩擦减速 · 空气阻力 · 最大球速 30 m/s</p>
+  <p class="chapter-desc">弹性弹跳 · 真实抛物线 · 摩擦减速 · 空气阻力 · 最大球速 30 m/s</p>
 
   <div class="section">
     <div class="stat-row">
@@ -761,11 +845,37 @@ camera.lookAt(cameraSmoothX, <span class="num">0</span>, cameraSmoothZ)
       <div class="stat-pill"><div class="val" style="color:var(--orange);">0.7</div><div class="label">弹性系数</div></div>
       <div class="stat-pill"><div class="val" style="color:var(--red);">30 m/s</div><div class="label">最大球速</div></div>
       <div class="stat-pill"><div class="val" style="color:var(--cyan);">0.985</div><div class="label">滚动摩擦</div></div>
+      <div class="stat-pill"><div class="val" style="color:var(--green);">9.8</div><div class="label">重力 m/s²</div></div>
+      <div class="stat-pill"><div class="val" style="color:var(--purple);">3.0m</div><div class="label">最大飞行高度</div></div>
     </div>
   </div>
 
   <div class="section">
-    <div class="section-title">3.1 碰撞规则</div>
+    <div class="section-title">3.1 球的垂直物理（抛物线）</div>
+    <div class="card">
+      <div class="card-title"><span class="icon">📐</span> 踢球垂直速度公式</div>
+      <div class="code-block">
+<span class="func">powerRatio</span> = clamp((power - KICK_POWER_MIN) / (KICK_POWER_MAX - KICK_POWER_MIN), <span class="num">0</span>, <span class="num">1</span>)
+<span class="func">targetH</span> = KICK_MIN_HEIGHT + (KICK_MAX_HEIGHT - KICK_MIN_HEIGHT) × powerRatio
+<span class="func">ball.vy</span> = sqrt(<span class="num">2</span> × g × targetH)
+      </div>
+      <table>
+        <tr><th>参数</th><th>设定值</th><th>说明</th></tr>
+        <tr><td>KICK_POWER_MIN</td><td><code>3</code></td><td>最小踢球力度</td></tr>
+        <tr><td>KICK_POWER_MAX</td><td><code>25</code></td><td>最大踢球力度</td></tr>
+        <tr><td>KICK_MIN_HEIGHT</td><td><code>0.3 m</code></td><td>最小力度时球的起飞高度</td></tr>
+        <tr><td>KICK_MAX_HEIGHT</td><td><code>3.0 m</code></td><td>最大力度时球的最大高度</td></tr>
+        <tr><td>GRAVITY</td><td><code>9.8 m/s²</code></td><td>重力加速度</td></tr>
+      </table>
+      <div class="callout callout-success" style="margin-top:8px;">
+        <span class="callout-icon">💡</span>
+        <span>此公式统一应用于所有踢球场景：玩家踢球、AI踢球、守门员飞扑击球</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">3.2 碰撞规则</div>
     <div class="card">
       <table>
         <tr><th>碰撞对象</th><th>行为</th><th>弹性系数</th></tr>
@@ -1055,13 +1165,14 @@ kickDirZ += ballDirZ × <span class="num">0.3</span>
     <div class="chapter-num" style="background:rgba(188,140,255,0.15);color:var(--purple);">07</div>
     <div class="chapter-title">守门员飞扑系统</div>
   </div>
-  <p class="chapter-desc">3 阶段飞扑 · 5 秒冷却 · 碰撞半径 1.2m · 击球力度 10~15</p>
+  <p class="chapter-desc">3 阶段飞扑 · 5 秒冷却 · AABB碰撞盒 1.6×1.5×0.4m · 击球力度 10~15</p>
 
   <div class="section">
     <div class="stat-row">
       <div class="stat-pill"><div class="val" style="color:var(--purple);">8 m/s</div><div class="label">飞扑速度</div></div>
-      <div class="stat-pill"><div class="val" style="color:var(--orange);">1.2m</div><div class="label">飞扑碰撞半径</div></div>
+      <div class="stat-pill"><div class="val" style="color:var(--orange);">1.6×1.5m</div><div class="label">AABB碰撞盒</div></div>
       <div class="stat-pill"><div class="val" style="color:var(--red);">5s</div><div class="label">冷却时间</div></div>
+      <div class="stat-pill"><div class="val" style="color:var(--cyan);">0.5m</div><div class="label">触发距离</div></div>
     </div>
   </div>
 
@@ -1077,13 +1188,13 @@ kickDirZ += ballDirZ × <span class="num">0.3</span>
         <div class="flow-arrow">→</div>
         <div style="text-align:center;">
           <div class="flow-node" style="border-color:var(--orange);color:var(--orange);background:rgba(240,136,62,0.08);padding:12px 20px;">
-            💥 落地<br><span style="font-size:0.7rem;color:var(--text-dim);">0.6秒 · 趴地 · 碰撞1.0m</span>
+            💥 落地<br><span style="font-size:0.7rem;color:var(--text-dim);">0.6秒 · 趴地 · AABB 1.6×1.5×0.3</span>
           </div>
         </div>
         <div class="flow-arrow">→</div>
         <div style="text-align:center;">
           <div class="flow-node" style="border-color:var(--cyan);color:var(--cyan);background:rgba(57,210,192,0.08);padding:12px 20px;">
-            🧍 起身<br><span style="font-size:0.7rem;color:var(--text-dim);">0.5秒 · 线性恢复站立</span>
+            🧍 起身<br><span style="font-size:0.7rem;color:var(--text-dim);">0.5秒 · 线性恢复 · 朝向球</span>
           </div>
         </div>
         <div class="flow-arrow">→</div>
@@ -1094,17 +1205,33 @@ kickDirZ += ballDirZ × <span class="num">0.3</span>
         </div>
       </div>
     </div>
+    <div class="callout callout-warn" style="margin-top:12px;">
+      <span class="callout-icon">🎯</span>
+      <span><strong>触发条件</strong>：球距球门线 &lt; 0.5m（非禁区判定），无人带球，守门员空闲，冷却已过，球距 &lt; 3.6m</span>
+    </div>
   </div>
 
   <div class="section">
-    <div class="section-title">7.2 飞扑击球</div>
+    <div class="section-title">7.2 飞扑击球 · AABB 包围盒碰撞</div>
     <div class="card">
+      <div class="card-title"><span class="icon">📦</span> AABB 碰撞盒参数</div>
+      <table>
+        <tr><th>阶段</th><th>纵向长度</th><th>横向宽度</th><th>高度</th><th>中心Y</th></tr>
+        <tr><td>飞扑中 (diving)</td><td><code>1.6 m</code></td><td><code>1.5 m</code></td><td><code>0.4 m</code></td><td><code>-0.15 m</code></td></tr>
+        <tr><td>落地 (diving_land)</td><td><code>1.6 m</code></td><td><code>1.5 m</code></td><td><code>0.3 m</code></td><td><code>-0.2 m</code></td></tr>
+      </table>
+      <div class="callout callout-info" style="margin-top:8px;">
+        <span class="callout-icon">📏</span>
+        <span>碰撞盒中心朝飞扑方向偏移 30% 身体长度，模拟飞扑时身体前伸</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="icon">⚽</span> 击球参数</div>
       <table>
         <tr><th>参数</th><th>设定值</th><th>说明</th></tr>
-        <tr><td>飞扑碰撞半径</td><td><code>1.2 m</code> / <code>1.0 m</code></td><td>飞扑中 / 落地</td></tr>
         <tr><td>击球力度</td><td><code>10 ~ 15 m/s</code></td><td>随机</td></tr>
         <tr><td>击球方向</td><td>远离己方球门</td><td>强制 Z 分量至少 50%</td></tr>
-        <tr><td>球 Y 速度</td><td><code>2+rand×2</code> / <code>1.5+rand</code></td><td>飞扑中 / 落地</td></tr>
+        <tr><td>球 Y 速度</td><td><code>sqrt(2×g×targetH)</code></td><td>按物理公式计算</td></tr>
       </table>
     </div>
   </div>
@@ -1346,6 +1473,8 @@ z = clamp(z, -FIELD_L/<span class="num">2</span> + margin, FIELD_L/<span class="
     <div class="appendix-item"><div class="sys">球</div><div class="param">弹性系数</div><div class="val">0.7</div></div>
     <div class="appendix-item"><div class="sys">球</div><div class="param">最大速度</div><div class="val">30 m/s</div></div>
     <div class="appendix-item"><div class="sys">球</div><div class="param">摩擦</div><div class="val">0.985/帧</div></div>
+    <div class="appendix-item"><div class="sys">球</div><div class="param">重力</div><div class="val">9.8 m/s²</div></div>
+    <div class="appendix-item"><div class="sys">球</div><div class="param">最大飞行高度</div><div class="val">3.0 m</div></div>
     <div class="appendix-item"><div class="sys">移动</div><div class="param">自动追球</div><div class="val">1 m/s</div></div>
     <div class="appendix-item"><div class="sys">移动</div><div class="param">加速上限</div><div class="val">6 m/s</div></div>
     <div class="appendix-item"><div class="sys">移动</div><div class="param">衰减</div><div class="val">×0.92/帧</div></div>
@@ -1356,30 +1485,39 @@ z = clamp(z, -FIELD_L/<span class="num">2</span> + margin, FIELD_L/<span class="
     <div class="appendix-item"><div class="sys">腿</div><div class="param">最大摆角</div><div class="val">72° / 30°</div></div>
     <div class="appendix-item"><div class="sys">踢球</div><div class="param">默认力度</div><div class="val">10</div></div>
     <div class="appendix-item"><div class="sys">踢球</div><div class="param">冷却</div><div class="val">0.15 秒</div></div>
+    <div class="appendix-item"><div class="sys">踢球</div><div class="param">垂直速度</div><div class="val">sqrt(2gh)</div></div>
     <div class="appendix-item"><div class="sys">击人</div><div class="param">击退范围</div><div class="val">1/3/5 m</div></div>
     <div class="appendix-item"><div class="sys">击人</div><div class="param">倒地时间</div><div class="val">1.5/3 秒</div></div>
     <div class="appendix-item"><div class="sys">击人</div><div class="param">冷却</div><div class="val">0.3 秒</div></div>
     <div class="appendix-item"><div class="sys">守门员</div><div class="param">飞扑速度</div><div class="val">8 m/s</div></div>
-    <div class="appendix-item"><div class="sys">守门员</div><div class="param">飞扑碰撞半径</div><div class="val">1.2 m</div></div>
+    <div class="appendix-item"><div class="sys">守门员</div><div class="param">飞扑碰撞</div><div class="val">AABB 1.6×1.5</div></div>
     <div class="appendix-item"><div class="sys">守门员</div><div class="param">飞扑冷却</div><div class="val">5 秒</div></div>
     <div class="appendix-item"><div class="sys">守门员</div><div class="param">飞扑击球力度</div><div class="val">10~15</div></div>
-    <div class="appendix-item"><div class="sys">镜头</div><div class="param">FOV</div><div class="val">90°</div></div>
-    <div class="appendix-item"><div class="sys">镜头</div><div class="param">默认高度</div><div class="val">4.5 m</div></div>
-    <div class="appendix-item"><div class="sys">镜头</div><div class="param">高度范围</div><div class="val">2.05~14 m</div></div>
+    <div class="appendix-item"><div class="sys">守门员</div><div class="param">飞扑触发距离</div><div class="val">球距球门&lt;0.5m</div></div>
+    <div class="appendix-item"><div class="sys">守门员</div><div class="param">AI带球开球力度</div><div class="val">18</div></div>
+    <div class="appendix-item"><div class="sys">镜头</div><div class="param">FOV</div><div class="val">45°（默认）</div></div>
+    <div class="appendix-item"><div class="sys">镜头</div><div class="param">水平旋转</div><div class="val">-180°~180°</div></div>
+    <div class="appendix-item"><div class="sys">镜头</div><div class="param">俯仰角度</div><div class="val">10°~89° 默认65°</div></div>
+    <div class="appendix-item"><div class="sys">镜头</div><div class="param">距离</div><div class="val">2~20m 默认20m</div></div>
     <div class="appendix-item"><div class="sys">镜头</div><div class="param">跟随平滑</div><div class="val">0.12</div></div>
     <div class="appendix-item"><div class="sys">队伍</div><div class="param">每队人数</div><div class="val">4（含守门员）</div></div>
     <div class="appendix-item"><div class="sys">比赛</div><div class="param">默认时长</div><div class="val">180 秒</div></div>
     <div class="appendix-item"><div class="sys">骨骼</div><div class="param">对应映射</div><div class="val">左手→左腿</div></div>
     <div class="appendix-item"><div class="sys">骨骼</div><div class="param">死区角度</div><div class="val">15°</div></div>
     <div class="appendix-item"><div class="sys">骨骼</div><div class="param">最小置信度</div><div class="val">0.5</div></div>
-    <div class="appendix-item"><div class="sys">加速</div><div class="param">触发方式</div><div class="val">双手&lt;0.2</div></div>
+    <div class="appendix-item"><div class="sys">加速</div><div class="param">触发方式</div><div class="val">跑步区摆动</div></div>
+    <div class="appendix-item"><div class="sys">加速</div><div class="param">能量阈值</div><div class="val">0.3</div></div>
+    <div class="appendix-item"><div class="sys">切换</div><div class="param">冷却/滞后</div><div class="val">0.8s / 0.6</div></div>
+    <div class="appendix-item"><div class="sys">转向</div><div class="param">横向系数</div><div class="val">0.6</div></div>
+    <div class="appendix-item"><div class="sys">双人</div><div class="param">Pose实例</div><div class="val">2个(complex=0)</div></div>
+    <div class="appendix-item"><div class="sys">识别灯</div><div class="param">超时</div><div class="val">1200/600ms</div></div>
   </div>
 </section>
 
 </div><!-- container -->
 
 <footer>
-  <div>疯狂足球 · 核心机制详细需求文案 v2.1</div>
+  <div>疯狂足球 · 核心机制详细需求文案 v3.0</div>
   <div style="margin-top:4px;">谢华明 · 2026-04-27 · 关联文档：策划大纲 v1.0 / Web MVP 原型 football.html</div>
 </footer>
 

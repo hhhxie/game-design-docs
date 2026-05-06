@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>疯狂足球 · 球队设计文档 v1.0</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --card: #161b22;
+    --card-hover: #1c2333;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-dim: #8b949e;
+    --accent: #58a6ff;
+    --red: #ff4444;
+    --blue: #4488ff;
+    --green: #44ff44;
+    --gold: #ffd700;
+    --orange: #f0883e;
+    --purple: #bc8cff;
+    --cyan: #39d2c0;
+    --pink: #f778ba;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+  .hero {
+    position: relative;
+    min-height: 380px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    overflow: hidden;
+    background: linear-gradient(135deg, #0d1117 0%, #1a1040 40%, #0d2030 70%, #0d1117 100%);
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 600px 300px at 30% 40%, rgba(255,68,68,0.12), transparent),
+      radial-gradient(ellipse 500px 250px at 70% 60%, rgba(68,136,255,0.12), transparent),
+      radial-gradient(ellipse 300px 300px at 50% 50%, rgba(255,215,0,0.06), transparent);
+  }
+  .hero h1 {
+    font-size: 2.8rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #ff4444, #ffd700, #4488ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    position: relative;
+    z-index: 1;
+  }
+  .hero .subtitle {
+    font-size: 1.1rem;
+    color: var(--text-dim);
+    margin-top: 8px;
+    position: relative;
+    z-index: 1;
+  }
+  .version-badge {
+    display: inline-block;
+    background: rgba(88,166,255,0.12);
+    border: 1px solid rgba(88,166,255,0.25);
+    border-radius: 20px;
+    padding: 4px 16px;
+    font-size: 0.85rem;
+    color: var(--accent);
+    margin-top: 12px;
+    position: relative;
+    z-index: 1;
+  }
+  /* Navigation */
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(13,17,23,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 20px;
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .nav a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.85rem;
+    padding: 4px 12px;
+    border-radius: 16px;
+    transition: all 0.2s;
+  }
+  .nav a:hover {
+    color: var(--text);
+    background: rgba(88,166,255,0.1);
+  }
+  /* Content */
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  .chapter {
+    margin-bottom: 40px;
+  }
+  .chapter-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--border);
+  }
+  .chapter-num {
+    font-size: 2rem;
+    font-weight: 900;
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    flex-shrink: 0;
+  }
+  .chapter-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+  .chapter-desc {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    margin-bottom: 16px;
+    padding-left: 72px;
+  }
+  /* Cards */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    transition: border-color 0.2s;
+  }
+  .card:hover {
+    border-color: var(--accent);
+  }
+  .card-title {
+    font-weight: 700;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+  th {
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 2px solid var(--border);
+    color: var(--text-dim);
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  td {
+    padding: 7px 10px;
+    border-bottom: 1px solid rgba(48,54,61,0.5);
+  }
+  tr:hover td {
+    background: rgba(88,166,255,0.03);
+  }
+  code {
+    background: rgba(88,166,255,0.1);
+    color: var(--accent);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Cascadia Code','Fira Code',monospace;
+    font-size: 0.85em;
+  }
+  /* Stat pills */
+  .stat-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .stat-pill {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 16px;
+    text-align: center;
+    min-width: 80px;
+  }
+  .stat-pill .val {
+    font-size: 1.3rem;
+    font-weight: 800;
+  }
+  .stat-pill .label {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+  /* Team grid */
+  .team-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .team-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+  .team-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+  .team-card .flag {
+    font-size: 2rem;
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    opacity: 0.7;
+  }
+  .team-card .team-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .team-card .team-name-en {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+  }
+  .team-card .attr-row {
+    display: flex;
+    gap: 8px;
+    margin: 10px 0;
+  }
+  .team-card .attr {
+    flex: 1;
+    text-align: center;
+    border-radius: 8px;
+    padding: 6px 4px;
+  }
+  .team-card .attr .attr-val {
+    font-size: 1.2rem;
+    font-weight: 800;
+  }
+  .team-card .attr .attr-label {
+    font-size: 0.65rem;
+    opacity: 0.8;
+  }
+  .team-card .attr-atk { background: rgba(255,68,68,0.15); color: #ff6666; }
+  .team-card .attr-def { background: rgba(68,136,255,0.15); color: #6699ff; }
+  .team-card .attr-spd { background: rgba(68,255,68,0.15); color: #66ff66; }
+  .team-card .team-meta {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    margin-top: 6px;
+  }
+  .team-card .team-meta span {
+    margin-right: 10px;
+  }
+  .team-card .color-swatch {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    vertical-align: middle;
+    border: 1px solid rgba(255,255,255,0.2);
+    margin-right: 4px;
+  }
+  .team-card .formation {
+    font-family: 'Cascadia Code','Fira Code',monospace;
+    font-size: 0.7rem;
+    color: var(--accent);
+    background: rgba(88,166,255,0.08);
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+  /* Callout */
+  .callout {
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    margin: 12px 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .callout-info {
+    background: rgba(88,166,255,0.08);
+    border-left: 3px solid var(--accent);
+  }
+  .callout-warn {
+    background: rgba(240,136,62,0.08);
+    border-left: 3px solid var(--orange);
+  }
+  .callout-icon { font-size: 1.1rem; flex-shrink: 0; }
+  /* Section title */
+  .section-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::before {
+    content: '';
+    width: 4px;
+    height: 20px;
+    border-radius: 2px;
+    background: var(--accent);
+  }
+  /* Bar chart */
+  .bar-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 120px;
+    padding: 0 4px;
+  }
+  .bar {
+    flex: 1;
+    border-radius: 3px 3px 0 0;
+    min-width: 8px;
+    transition: all 0.3s;
+    position: relative;
+  }
+  .bar:hover {
+    opacity: 0.85;
+  }
+  .bar-label {
+    position: absolute;
+    bottom: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.55rem;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    border-top: 1px solid var(--border);
+  }
+  /* Responsive */
+  @media (max-width: 768px) {
+    .hero h1 { font-size: 1.8rem; }
+    .team-grid { grid-template-columns: 1fr; }
+    .stat-row { gap: 6px; }
+    .stat-pill { min-width: 60px; padding: 6px 10px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<div class="hero">
+  <h1>⚽ 疯狂足球 · 球队设计文档</h1>
+  <div class="subtitle">32 支世界级球队 · 属性 · 阵型 · 配色 · 体型</div>
+  <div class="version-badge">v1.0 · 2026-05-06 · 谢华明</div>
+</div>
+
+<!-- Navigation -->
+<div class="nav">
+  <a href="#overview">设计概述</a>
+  <a href="#teams">32支球队</a>
+  <a href="#stats">属性统计</a>
+  <a href="#mechanics">属性机制</a>
+  <a href="#bodytype">体型参数</a>
+</div>
+
+<div class="container">
+
+<!-- ============ 一、设计概述 ============ -->
+<section class="chapter" id="overview">
+  <div class="chapter-header">
+    <div class="chapter-num" style="background:rgba(88,166,255,0.15);color:var(--accent);">01</div>
+    <div class="chapter-title">设计概述</div>
+  </div>
+  <p class="chapter-desc">真实性 · 平衡性 · 差异化 · 视觉辨识</p>
+
+  <div class="stat-row">
+    <div class="stat-pill"><div class="val" style="color:var(--gold);">32</div><div class="label">球队数量</div></div>
+    <div class="stat-pill"><div class="val" style="color:var(--red);">3</div><div class="label">核心属性</div></div>
+    <div class="stat-pill"><div class="val" style="color:var(--blue);">4</div><div class="label">阵型类型</div></div>
+    <div class="stat-pill"><div class="val" style="color:var(--green);">4</div><div class="label">体型等级</div></div>
+    <div class="stat-pill"><div class="val" style="color:var(--cyan);">5</div><div class="label">肤色档次</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">属性体系</div>
+    <table>
+      <tr><th>属性</th><th>范围</th><th>影响机制</th></tr>
+      <tr><td><span style="color:#ff6666;font-weight:700;">进攻 ATK</span></td><td>50~95</td><td>踢球力度乘数、前锋/中场AI进攻积极性、带球朝向速度</td></tr>
+      <tr><td><span style="color:#6699ff;font-weight:700;">防守 DEF</span></td><td>50~95</td><td>回防速度、后卫追球距离、AI抢球判定范围</td></tr>
+      <tr><td><span style="color:#66ff66;font-weight:700;">速度 SPD</span></td><td>50~95</td><td>跑动速度上限、加速上限、自动追球速度</td></tr>
+    </table>
+    <div class="callout callout-info" style="margin-top:8px;">
+      <span class="callout-icon">⚖️</span>
+      <span>平衡性设计：ATK+DEF+SPD 总和控制在 <strong>202~260</strong> 区间。顶级球队约 258，弱队约 202。属性差距约 15%，确保弱队仍有竞争力。</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">阵型体系（5人制：GK + 4场上球员）</div>
+    <table>
+      <tr><th>阵型</th><th>配置</th><th>战术特征</th><th>适用球队</th></tr>
+      <tr><td><code>2-1-1</code></td><td>FW×2 + MF×1 + DF×1</td><td>全攻型</td><td>进攻 ≥85</td></tr>
+      <tr><td><code>1-2-1</code></td><td>FW×1 + MF×2 + DF×1</td><td>中场控制型</td><td>进攻 75~84</td></tr>
+      <tr><td><code>1-1-2</code></td><td>FW×1 + MF×1 + DF×2</td><td>防守反击型</td><td>防守 ≥80</td></tr>
+      <tr><td><code>1-1-1+1</code></td><td>FW×1 + MF×1 + DF×1 + 自由人×1</td><td>均衡型</td><td>均衡球队</td></tr>
+    </table>
+    <div class="callout callout-info" style="margin-top:8px;">
+      <span class="callout-icon">🔄</span>
+      <span><strong>自由人 (Libero)</strong>：球在己方半场时行为同后卫，球在对方半场时行为同中场，实现攻守动态平衡。</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">体型与肤色</div>
+    <table>
+      <tr><th>体型</th><th>身高系数</th><th>体型系数</th><th>视觉表现</th></tr>
+      <tr><td>S</td><td>0.88</td><td>0.85</td><td>矮小精悍</td></tr>
+      <tr><td>M</td><td>1.00</td><td>1.00</td><td>标准体型</td></tr>
+      <tr><td>L</td><td>1.10</td><td>1.10</td><td>高大壮硕</td></tr>
+      <tr><td>XL</td><td>1.15</td><td>1.18</td><td>魁梧型</td></tr>
+    </table>
+    <div style="margin-top:8px;font-size:0.85rem;color:var(--text-dim);">体型仅影响视觉表现（模型缩放），不影响碰撞判定和速度逻辑。</div>
+  </div>
+</section>
+
+<!-- ============ 二、32支球队 ============ -->
+<section class="chapter" id="teams">
+  <div class="chapter-header">
+    <div class="chapter-num" style="background:rgba(255,68,68,0.15);color:var(--red);">02</div>
+    <div class="chapter-title">32 支球队</div>
+  </div>
+  <p class="chapter-desc">8 组 · 每组 4 队 · 世界强队与黑马齐聚</p>
+
+  <div class="team-grid" id="teamGrid"></div>
+</section>
+
+<!-- ============ 三、属性统计 ============ -->
+<section class="chapter" id="stats">
+  <div class="chapter-header">
+    <div class="chapter-num" style="background:rgba(255,215,0,0.15);color:var(--gold);">03</div>
+    <div class="chapter-title">属性分布统计</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">属性区间分布</div>
+    <table>
+      <tr><th>属性区间</th><th>进攻</th><th>防守</th><th>速度</th></tr>
+      <tr><td>90~95</td><td style="color:var(--red);font-weight:700;">3 队</td><td style="color:var(--blue);font-weight:700;">2 队</td><td>0 队</td></tr>
+      <tr><td>80~89</td><td>9 队</td><td>6 队</td><td style="color:var(--green);font-weight:700;">11 队</td></tr>
+      <tr><td>70~79</td><td>15 队</td><td>19 队</td><td>16 队</td></tr>
+      <tr><td>60~69</td><td>5 队</td><td>5 队</td><td>5 队</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title">总和区间分布</div>
+    <div class="bar-chart" id="sumChart"></div>
+    <div style="height:22px;"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">阵型分布</div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;">
+      <div class="stat-pill" style="flex:1;min-width:140px;"><div class="val" style="color:var(--red);">6</div><div class="label">2-1-1 全攻型</div></div>
+      <div class="stat-pill" style="flex:1;min-width:140px;"><div class="val" style="color:var(--accent);">14</div><div class="label">1-2-1 中场控制</div></div>
+      <div class="stat-pill" style="flex:1;min-width:140px;"><div class="val" style="color:var(--blue);">10</div><div class="label">1-1-2 防守反击</div></div>
+      <div class="stat-pill" style="flex:1;min-width:140px;"><div class="val" style="color:var(--gold);">2</div><div class="label">1-1-1+1 均衡型</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 四、属性影响机制 ============ -->
+<section class="chapter" id="mechanics">
+  <div class="chapter-header">
+    <div class="chapter-num" style="background:rgba(68,255,68,0.15);color:var(--green);">04</div>
+    <div class="chapter-title">属性影响机制</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span style="color:var(--red);">进攻 ATK</span> 影响</div>
+    <table>
+      <tr><th>ATK</th><th>踢球力度倍率</th><th>前锋进攻距离</th><th>中场追球距离</th></tr>
+      <tr><td><strong>95</strong></td><td><code>1.19×</code></td><td>7.5m</td><td>15m</td></tr>
+      <tr><td><strong>85</strong></td><td><code>1.06×</code></td><td>6.5m</td><td>13m</td></tr>
+      <tr><td>75</td><td><code>0.94×</code></td><td>5.5m</td><td>11m</td></tr>
+      <tr><td>65</td><td><code>0.81×</code></td><td>4.5m</td><td>9m</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span style="color:var(--blue);">防守 DEF</span> 影响</div>
+    <table>
+      <tr><th>DEF</th><th>回防速度</th><th>后卫追球距离</th><th>抢球范围</th></tr>
+      <tr><td><strong>90</strong></td><td>2.8 m/s</td><td>8.25m</td><td>1.25m</td></tr>
+      <tr><td><strong>80</strong></td><td>2.6 m/s</td><td>6.75m</td><td>1.20m</td></tr>
+      <tr><td>70</td><td>2.4 m/s</td><td>5.25m</td><td>1.15m</td></tr>
+      <tr><td>60</td><td>2.2 m/s</td><td>3.75m</td><td>1.10m</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span style="color:var(--green);">速度 SPD</span> 影响</div>
+    <table>
+      <tr><th>SPD</th><th>速度上限</th><th>追球速度</th><th>加速上限</th></tr>
+      <tr><td><strong>95</strong></td><td>7.6 m/s</td><td>1.27 m/s</td><td>7.6 m/s</td></tr>
+      <tr><td><strong>85</strong></td><td>6.8 m/s</td><td>1.13 m/s</td><td>6.8 m/s</td></tr>
+      <tr><td>75</td><td>6.0 m/s</td><td>1.00 m/s</td><td>6.0 m/s</td></tr>
+      <tr><td>65</td><td>5.2 m/s</td><td>0.87 m/s</td><td>5.2 m/s</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ============ 五、体型参数 ============ -->
+<section class="chapter" id="bodytype">
+  <div class="chapter-header">
+    <div class="chapter-num" style="background:rgba(188,140,255,0.15);color:var(--purple);">05</div>
+    <div class="chapter-title">体型视觉参数</div>
+  </div>
+
+  <div class="card">
+    <table>
+      <tr><th>体型</th><th>身高缩放</th><th>肩宽缩放</th><th>头部缩放</th><th>腿长缩放</th><th>代表球队</th></tr>
+      <tr><td>S</td><td>0.88</td><td>0.85</td><td>0.92</td><td>0.86</td><td>日本、韩国、哥斯达黎加</td></tr>
+      <tr><td>M</td><td>1.00</td><td>1.00</td><td>1.00</td><td>1.00</td><td>巴西、西班牙、中国（多数球队）</td></tr>
+      <tr><td>L</td><td>1.10</td><td>1.10</td><td>1.05</td><td>1.08</td><td>德国、法国、丹麦、澳大利亚</td></tr>
+      <tr><td>XL</td><td>1.15</td><td>1.18</td><td>1.08</td><td>1.12</td><td>部分非洲球队守门员</td></tr>
+    </table>
+    <div class="callout callout-info" style="margin-top:8px;">
+      <span class="callout-icon">👁️</span>
+      <span>体型仅影响视觉表现（模型缩放），不影响碰撞判定和速度逻辑。同一球队内球员体型可以有 ±1 级浮动。</span>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  <div>疯狂足球 · 球队设计文档 v1.0</div>
+  <div style="margin-top:4px;">关联文档：《疯狂足球》核心机制详细需求文案 v3.2</div>
+</div>
+
+<script>
+// ============ Team Data ============
+const teams = [
+  { flag:'🇧🇷', name:'巴西', en:'Brazil', group:'A', atk:92, def:78, spd:88, form:'2-1-1', color1:'#FFDD00', color1n:'黄', color2:'#009C3B', color2n:'绿', pants:'#002776', skin:'C/B', body:'M', desc:'桑巴足球，进攻华丽' },
+  { flag:'🇭🇷', name:'克罗地亚', en:'Croatia', group:'A', atk:82, def:85, spd:80, form:'1-1-2', color1:'#FFFFFF', color1n:'红白格', color2:'#FF0000', color2n:'红', pants:'#171796', skin:'A/B', body:'M', desc:'中场控制力强，防守坚韧' },
+  { flag:'🇲🇽', name:'墨西哥', en:'Mexico', group:'A', atk:78, def:76, spd:83, form:'1-2-1', color1:'#006847', color1n:'绿', color2:'#FFFFFF', color2n:'白', pants:'#FFFFFF', skin:'B/C', body:'S/M', desc:'快速传切，中场调度' },
+  { flag:'🇨🇲', name:'喀麦隆', en:'Cameroon', group:'A', atk:76, def:72, spd:86, form:'1-2-1', color1:'#009739', color1n:'绿', color2:'#CE1126', color2n:'红', pants:'#CE1126', skin:'D/C', body:'M/L', desc:'非洲雄狮，冲击力强' },
+  { flag:'🇦🇷', name:'阿根廷', en:'Argentina', group:'B', atk:94, def:80, spd:84, form:'2-1-1', color1:'#75AADB', color1n:'蓝白条', color2:'#FFFFFF', color2n:'白', pants:'#000000', skin:'A/B/C', body:'M', desc:'世界冠军，进攻天赋极高' },
+  { flag:'🇫🇷', name:'法国', en:'France', group:'B', atk:90, def:84, spd:86, form:'1-2-1', color1:'#002395', color1n:'蓝', color2:'#FFFFFF', color2n:'白', pants:'#FFFFFF', skin:'A/B/C/D', body:'M/L', desc:'全面均衡，攻守兼备' },
+  { flag:'🇩🇰', name:'丹麦', en:'Denmark', group:'B', atk:78, def:82, spd:76, form:'1-1-2', color1:'#C8102E', color1n:'红', color2:'#FFFFFF', color2n:'白', pants:'#FFFFFF', skin:'A', body:'M/L', desc:'童话军团，防守硬朗' },
+  { flag:'🇦🇺', name:'澳大利亚', en:'Australia', group:'B', atk:72, def:76, spd:78, form:'1-1-2', color1:'#FFCD00', color1n:'金黄', color2:'#00843D', color2n:'绿', pants:'#000000', skin:'A/B', body:'M/L', desc:'身体对抗强，意志坚韧' },
+  { flag:'🇩🇪', name:'德国', en:'Germany', group:'C', atk:86, def:86, spd:80, form:'1-1-1+1', color1:'#FFFFFF', color1n:'白', color2:'#000000', color2n:'黑', pants:'#000000', skin:'A', body:'M/L', desc:'战术严谨，攻守均衡' },
+  { flag:'🇪🇸', name:'西班牙', en:'Spain', group:'C', atk:88, def:80, spd:78, form:'1-2-1', color1:'#C60C30', color1n:'红', color2:'#FFC400', color2n:'金', pants:'#002776', skin:'A/B', body:'M', desc:'Tiki-taka 传控' },
+  { flag:'🇯🇵', name:'日本', en:'Japan', group:'C', atk:78, def:76, spd:84, form:'1-2-1', color1:'#2E4A9E', color1n:'蓝', color2:'#FFFFFF', color2n:'白', pants:'#2E4A9E', skin:'B', body:'S/M', desc:'蓝武士，技术细腻' },
+  { flag:'🇨🇷', name:'哥斯达黎加', en:'Costa Rica', group:'C', atk:68, def:74, spd:76, form:'1-1-2', color1:'#CE1126', color1n:'红', color2:'#002B7F', color2n:'蓝', pants:'#002B7F', skin:'B/C', body:'S/M', desc:'中北美黑马，防守顽强' },
+  { flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', name:'英格兰', en:'England', group:'D', atk:86, def:82, spd:82, form:'1-2-1', color1:'#FFFFFF', color1n:'白', color2:'#CF081F', color2n:'红', pants:'#FFFFFF', skin:'A/B/C', body:'M/L', desc:'快速边路，中场硬朗' },
+  { flag:'🇧🇪', name:'比利时', en:'Belgium', group:'D', atk:84, def:78, spd:80, form:'1-2-1', color1:'#ED2939', color1n:'红', color2:'#2D2926', color2n:'黑', pants:'#2D2926', skin:'A/B/C', body:'M/L', desc:'黄金一代，个人能力突出' },
+  { flag:'🇺🇸', name:'美国', en:'USA', group:'D', atk:78, def:76, spd:84, form:'1-2-1', color1:'#FFFFFF', color1n:'白', color2:'#3C3B6E', color2n:'蓝', pants:'#3C3B6E', skin:'A/B/C/D', body:'M/L', desc:'体能充沛，冲击力强' },
+  { flag:'🇮🇷', name:'伊朗', en:'Iran', group:'D', atk:70, def:76, spd:76, form:'1-1-2', color1:'#FFFFFF', color1n:'白', color2:'#239F40', color2n:'绿', pants:'#FFFFFF', skin:'B/C', body:'M', desc:'亚洲铁壁，防守纪律严明' },
+  { flag:'🇮🇹', name:'意大利', en:'Italy', group:'E', atk:82, def:88, spd:76, form:'1-1-2', color1:'#0066CC', color1n:'蓝', color2:'#FFFFFF', color2n:'白', pants:'#0066CC', skin:'A/B', body:'M', desc:'链式防守鼻祖' },
+  { flag:'🇵🇹', name:'葡萄牙', en:'Portugal', group:'E', atk:88, def:76, spd:82, form:'2-1-1', color1:'#DA291C', color1n:'红', color2:'#00843D', color2n:'绿', pants:'#DA291C', skin:'A/B/C', body:'M', desc:'边路突破，个人能力强' },
+  { flag:'🇬🇭', name:'加纳', en:'Ghana', group:'E', atk:76, def:72, spd:86, form:'1-2-1', color1:'#FFFFFF', color1n:'白', color2:'#FDB913', color2n:'金', pants:'#CE1126', skin:'D/C', body:'M/L', desc:'非洲黑星，身体素质顶级' },
+  { flag:'🇰🇷', name:'韩国', en:'South Korea', group:'E', atk:76, def:74, spd:84, form:'1-2-1', color1:'#CD2E3A', color1n:'红', color2:'#000000', color2n:'黑', pants:'#000000', skin:'B', body:'S/M', desc:'太极虎，跑不死' },
+  { flag:'🇳🇱', name:'荷兰', en:'Netherlands', group:'F', atk:86, def:80, spd:82, form:'1-1-1+1', color1:'#FF6600', color1n:'橙', color2:'#FFFFFF', color2n:'白', pants:'#000000', skin:'A/B', body:'M/L', desc:'全攻全守发源地' },
+  { flag:'🇸🇳', name:'塞内加尔', en:'Senegal', group:'F', atk:78, def:74, spd:84, form:'1-2-1', color1:'#008751', color1n:'绿', color2:'#FFD700', color2n:'金', pants:'#FFFFFF', skin:'D/E', body:'M/L', desc:'特兰加雄狮' },
+  { flag:'🇪🇨', name:'厄瓜多尔', en:'Ecuador', group:'F', atk:74, def:72, spd:80, form:'1-1-2', color1:'#FFD100', color1n:'黄', color2:'#0033A0', color2n:'蓝', pants:'#0033A0', skin:'B/C', body:'S/M', desc:'高原主场优势' },
+  { flag:'🇶🇦', name:'卡塔尔', en:'Qatar', group:'F', atk:66, def:68, spd:74, form:'1-1-2', color1:'#8A1538', color1n:'栗红', color2:'#FFFFFF', color2n:'白', pants:'#8A1538', skin:'B/C', body:'M', desc:'东道主，综合实力偏弱' },
+  { flag:'🇺🇾', name:'乌拉圭', en:'Uruguay', group:'G', atk:84, def:80, spd:78, form:'1-2-1', color1:'#5CADCF', color1n:'浅蓝', color2:'#FFFFFF', color2n:'白', pants:'#000000', skin:'A/B', body:'M/L', desc:'顽强斗志，前锋嗅觉敏锐' },
+  { flag:'🇨🇭', name:'瑞士', en:'Switzerland', group:'G', atk:76, def:82, spd:76, form:'1-1-2', color1:'#DA291C', color1n:'红', color2:'#FFFFFF', color2n:'白', pants:'#DA291C', skin:'A/B', body:'M/L', desc:'红十字军团，纪律严明' },
+  { flag:'🇳🇬', name:'尼日利亚', en:'Nigeria', group:'G', atk:78, def:70, spd:88, form:'2-1-1', color1:'#008751', color1n:'绿', color2:'#FFFFFF', color2n:'白', pants:'#008751', skin:'D/E', body:'M/L', desc:'超级雄鹰，速度顶级' },
+  { flag:'🇸🇦', name:'沙特', en:'Saudi Arabia', group:'G', atk:66, def:70, spd:74, form:'1-1-2', color1:'#006C35', color1n:'绿', color2:'#FFFFFF', color2n:'白', pants:'#FFFFFF', skin:'B/C', body:'M', desc:'技术型但对抗偏弱' },
+  { flag:'🇨🇳', name:'中国', en:'China', group:'H', atk:62, def:68, spd:72, form:'1-1-2', color1:'#DE2910', color1n:'红', color2:'#FFDE00', color2n:'金', pants:'#FFFFFF', skin:'B', body:'M', desc:'防守为主，偶有反击亮点' },
+  { flag:'🇨🇱', name:'智利', en:'Chile', group:'H', atk:80, def:72, spd:82, form:'2-1-1', color1:'#D52B1E', color1n:'红', color2:'#0039A6', color2n:'蓝', pants:'#0039A6', skin:'B/C', body:'M', desc:'疯狂压迫，全场逼抢' },
+  { flag:'🇹🇷', name:'土耳其', en:'Turkey', group:'H', atk:78, def:76, spd:80, form:'1-2-1', color1:'#E30A17', color1n:'红', color2:'#FFFFFF', color2n:'白', pants:'#FFFFFF', skin:'B/C', body:'M/L', desc:'星月军团，对抗凶猛' },
+  { flag:'🇨🇴', name:'哥伦比亚', en:'Colombia', group:'H', atk:80, def:74, spd:84, form:'1-2-1', color1:'#FCD116', color1n:'黄', color2:'#003893', color2n:'蓝', pants:'#003893', skin:'B/C/D', body:'M', desc:'技术华丽' }
+];
+
+// ============ Render Team Cards ============
+function renderTeams() {
+  const grid = document.getElementById('teamGrid');
+  const groups = ['A','B','C','D','E','F','G','H'];
+  const groupTeams = {};
+  groups.forEach(g => groupTeams[g] = teams.filter(t => t.group === g));
+
+  let html = '';
+  groups.forEach(g => {
+    html += `<div style="grid-column:1/-1;margin-top:16px;margin-bottom:4px;">
+      <div class="section-title" style="font-size:1rem;">${g} 组</div>
+    </div>`;
+    groupTeams[g].forEach(t => {
+      const total = t.atk + t.def + t.spd;
+      const atkW = (t.atk/100*100).toFixed(0);
+      const defW = (t.def/100*100).toFixed(0);
+      const spdW = (t.spd/100*100).toFixed(0);
+      html += `
+      <div class="team-card">
+        <div class="flag">${t.flag}</div>
+        <div class="team-name">${t.name}</div>
+        <div class="team-name-en">${t.en}</div>
+        <div class="attr-row">
+          <div class="attr attr-atk"><div class="attr-val">${t.atk}</div><div class="attr-label">进攻</div></div>
+          <div class="attr attr-def"><div class="attr-val">${t.def}</div><div class="attr-label">防守</div></div>
+          <div class="attr attr-spd"><div class="attr-val">${t.spd}</div><div class="attr-label">速度</div></div>
+        </div>
+        <div style="height:4px;border-radius:2px;background:var(--border);overflow:hidden;display:flex;">
+          <div style="width:${atkW}%;background:#ff4444;"></div>
+          <div style="width:${defW}%;background:#4488ff;"></div>
+          <div style="width:${spdW}%;background:#44ff44;"></div>
+        </div>
+        <div class="team-meta">
+          <span><strong>${total}</strong> 总和</span>
+          <span class="formation">${t.form}</span>
+          <span><span class="color-swatch" style="background:${t.color1};"></span>${t.color1n}</span>
+          <span><span class="color-swatch" style="background:${t.color2};"></span>${t.color2n}</span>
+        </div>
+        <div class="team-meta">
+          <span>体型 ${t.body}</span>
+          <span>肤色 ${t.skin}</span>
+        </div>
+        <div style="margin-top:6px;font-size:0.78rem;color:var(--text-dim);">${t.desc}</div>
+      </div>`;
+    });
+  });
+  grid.innerHTML = html;
+}
+
+// ============ Render Sum Chart ============
+function renderSumChart() {
+  const chart = document.getElementById('sumChart');
+  const sorted = [...teams].sort((a,b) => (b.atk+b.def+b.spd) - (a.atk+a.def+a.spd));
+  const maxSum = 260;
+  let html = '';
+  sorted.forEach(t => {
+    const total = t.atk + t.def + t.spd;
+    const h = (total / maxSum * 100).toFixed(1);
+    let color;
+    if (total >= 250) color = '#ffd700';
+    else if (total >= 240) color = '#ff8c00';
+    else if (total >= 230) color = '#58a6ff';
+    else if (total >= 220) color = '#39d2c0';
+    else color = '#8b949e';
+    html += `<div class="bar" style="height:${h}%;background:${color};" title="${t.name} ${total}"><div class="bar-label">${t.flag}</div></div>`;
+  });
+  chart.innerHTML = html;
+}
+
+renderTeams();
+renderSumChart();
+</script>
+</body>
+</html>

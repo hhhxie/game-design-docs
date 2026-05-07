@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>疯狂足球 · 球队选择界面</title>
+<style>
+:root{
+  --bg:#06111f;
+  --panel:#0f1f35;
+  --panel-2:#142944;
+  --line:rgba(255,255,255,.12);
+  --text:#f6fbff;
+  --muted:#8ea4bc;
+  --p1:#ff4b4b;
+  --p2:#49a0ff;
+  --gold:#ffd166;
+  --green:#39d98a;
+  --atk:#ff6b6b;
+  --def:#4ecdc4;
+  --spd:#ffe66d;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  width:100vw;height:100vh;overflow:hidden;
+  display:grid;place-items:center;
+  font-family:"Microsoft YaHei",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color:var(--text);
+  background:#020611;
+}
+body::before{
+  content:"";position:fixed;inset:0;z-index:-2;
+  background:
+    radial-gradient(circle at 20% 10%,rgba(255,75,75,.2),transparent 28%),
+    radial-gradient(circle at 80% 18%,rgba(73,160,255,.2),transparent 30%),
+    linear-gradient(135deg,#030711,#07192c 45%,#071a16);
+}
+.app{position:relative;width:1920px;height:1080px;max-width:100vw;max-height:100vh;aspect-ratio:16/9;padding:18px 30px 20px;display:flex;flex-direction:column;gap:14px;overflow:hidden;transform-origin:center center}
+.bg-grid{position:absolute;inset:0;opacity:.17;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(circle,black,transparent 78%)}
+.topbar{position:relative;display:grid;grid-template-columns:480px 1fr 480px;align-items:start;gap:20px;z-index:2;min-height:160px}
+.pick-badge{height:156px;border:1px solid var(--line);border-radius:18px;padding:12px 14px;background:rgba(8,18,34,.76);box-shadow:0 14px 36px rgba(0,0,0,.25);display:flex;align-items:stretch;gap:12px;overflow:hidden}
+.pick-badge.p1{border-color:rgba(255,75,75,.38)}
+.pick-badge.p2{border-color:rgba(73,160,255,.38);justify-content:flex-end;text-align:left}
+.pick-badge.previewing{border-color:rgba(255,209,102,.55);box-shadow:0 14px 36px rgba(0,0,0,.25),0 0 28px rgba(255,209,102,.12)}
+.pick-badge.locked{border-color:rgba(57,217,138,.55)}
+.pick-badge .slot{font-size:15px;font-weight:900;letter-spacing:1px;opacity:.9;min-width:46px;display:flex;align-items:center;justify-content:center}
+.pick-badge.p1 .slot{color:var(--p1)}
+.pick-badge.p2 .slot{color:var(--p2)}
+.pick-badge .flag{width:68px;height:46px;object-fit:cover;border-radius:7px;border:1px solid rgba(255,255,255,.25);background:#111;box-shadow:0 6px 16px rgba(0,0,0,.35)}
+.pick-badge .empty{font-size:18px;color:var(--muted);font-weight:800;display:flex;align-items:center}
+.pick-badge .team-name{font-size:24px;font-weight:950;line-height:1.05;white-space:nowrap}
+.pick-badge .team-sub{font-size:12px;color:var(--muted);margin-top:4px}
+.preview-card{display:grid;grid-template-columns:78px 1fr 116px;grid-template-rows:auto 1fr;gap:8px 12px;align-items:center;width:100%;min-width:0}
+.preview-card .flag{grid-row:1;width:68px;height:46px}
+.preview-title{min-width:0}.preview-title .team-name{overflow:hidden;text-overflow:ellipsis}.preview-title .team-sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.preview-card .mini-stats{grid-column:1 / 3;grid-row:2;gap:5px}
+.preview-card .mini-pitch{grid-column:3;grid-row:1 / 3;height:104px}
+.pick-badge.p2 .preview-card{grid-template-columns:116px 1fr 78px}
+.pick-badge.p2 .preview-card .flag{grid-column:3}.pick-badge.p2 .preview-title{grid-column:2;grid-row:1}.pick-badge.p2 .mini-stats{grid-column:2 / 4;grid-row:2}.pick-badge.p2 .mini-pitch{grid-column:1;grid-row:1 / 3}
+.title{text-align:center;padding-top:2px}
+.title h1{font-size:38px;letter-spacing:6px;text-shadow:0 0 24px rgba(255,209,102,.28)}
+.title .sub{margin-top:8px;color:var(--muted);font-size:14px;letter-spacing:2px}
+.phase-pill{display:inline-flex;align-items:center;gap:9px;margin-top:10px;padding:8px 18px;border-radius:999px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);font-weight:900;letter-spacing:2px}
+.phase-dot{width:10px;height:10px;border-radius:50%;background:var(--p1);box-shadow:0 0 16px var(--p1)}
+.phase-pill.p2 .phase-dot{background:var(--p2);box-shadow:0 0 16px var(--p2)}
+.phase-pill.done .phase-dot{background:var(--green);box-shadow:0 0 16px var(--green)}
+.main{position:relative;z-index:2;display:block;min-height:0;flex:1}
+.team-grid{height:100%;display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(6,92px);gap:8px;align-content:start;overflow:visible}
+.team-card{position:relative;border-radius:12px;border:1px solid rgba(255,255,255,.13);background:linear-gradient(90deg,rgba(255,255,255,.10),rgba(255,255,255,.045));padding:7px 12px;display:flex;flex-direction:row;justify-content:flex-start;align-items:center;gap:10px;min-width:0;box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 5px 14px rgba(0,0,0,.16);transition:transform .12s ease,border-color .12s ease,box-shadow .12s ease,background .12s ease,filter .12s ease,color .12s ease;color:#f6fbff;text-align:left;overflow:hidden}
+.team-card .flag{width:42px;height:28px;flex:0 0 auto;object-fit:cover;border-radius:5px;border:1px solid rgba(255,255,255,.32);background:#111;box-shadow:0 4px 10px rgba(0,0,0,.38)}
+.team-card .name{font-size:17px;font-weight:950;color:#f8fbff;text-shadow:0 2px 6px rgba(0,0,0,.75);white-space:nowrap;text-overflow:ellipsis;overflow:hidden;max-width:100%;letter-spacing:.4px}
+.team-card .picked-mark{position:absolute;right:7px;top:50%;transform:translateY(-50%);font-size:11px;font-weight:950;padding:2px 5px;border-radius:7px;background:rgba(0,0,0,.42);color:#fff;display:none}
+.team-card.picked-p1 .picked-mark.p1,.team-card.picked-p2 .picked-mark.p2{display:block}
+.team-card.picked-p1{filter:saturate(.82) brightness(.72);border-color:rgba(255,75,75,.38)}
+.team-card.picked-p2{filter:saturate(.82) brightness(.72);border-color:rgba(73,160,255,.38)}
+.team-card.active{transform:none;z-index:20;border-color:var(--gold);background:linear-gradient(90deg,rgba(255,209,102,.24),rgba(255,255,255,.08));box-shadow:0 0 0 2px rgba(255,209,102,.25),0 12px 28px rgba(0,0,0,.42),0 0 28px rgba(255,209,102,.16);overflow:hidden}
+.team-card.active .flag{width:42px;height:28px}
+.team-card.active .name{color:#ffffff;font-size:17px;text-shadow:0 0 10px rgba(255,209,102,.45),0 2px 6px rgba(0,0,0,.85)}
+.team-card.active::after{content:"";position:absolute;inset:-4px;border-radius:16px;border:2px solid rgba(255,209,102,.42);animation:pulse 1s infinite ease-in-out;pointer-events:none}
+.mini-detail{display:none}
+.team-card.active .mini-detail{display:none}
+.mini-stats{display:grid;gap:5px;align-content:center}
+.mini-stat{display:grid;grid-template-columns:34px 1fr 28px;align-items:center;gap:6px;font-size:10px;font-weight:950;color:#eaf5ff}
+.mini-bar{height:7px;border-radius:999px;background:rgba(255,255,255,.13);overflow:hidden}
+.mini-fill{height:100%;border-radius:999px}.mini-fill.atk{background:var(--atk)}.mini-fill.def{background:var(--def)}.mini-fill.spd{background:var(--spd)}
+.mini-pitch{position:relative;height:92px;border-radius:10px;border:1px solid rgba(118,224,157,.45);background:linear-gradient(180deg,rgba(33,139,77,.32),rgba(16,88,54,.30));overflow:hidden}
+.mini-pitch::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(255,255,255,.25)}
+.mini-pitch::after{content:"";position:absolute;left:50%;top:50%;width:25px;height:25px;border:1px solid rgba(255,255,255,.23);border-radius:50%;transform:translate(-50%,-50%)}
+.mini-pitch .box{position:absolute;left:24%;width:52%;height:13%;border:1px solid rgba(255,255,255,.2)}
+.mini-pitch .box.top{top:-1px;border-top:0;border-radius:0 0 6px 6px}.mini-pitch .box.bottom{bottom:-1px;border-bottom:0;border-radius:6px 6px 0 0}
+.mini-dot{position:absolute;width:16px;height:16px;border-radius:50%;display:grid;place-items:center;font-size:7px;font-weight:950;color:#06111f;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.mini-dot.fw{background:#ff6b6b}.mini-dot.mf{background:#ffe66d}.mini-dot.df{background:#4ecdc4}.mini-dot.gk{background:#8ea4bc}
+.team-card.active .picked-mark{top:10px;right:10px;transform:none}
+@keyframes pulse{0%,100%{opacity:.35;transform:scale(1)}50%{opacity:.9;transform:scale(1.018)}}
+.detail-panel{height:100%;border:1px solid rgba(255,255,255,.13);border-radius:22px;background:linear-gradient(180deg,rgba(17,34,56,.92),rgba(7,16,31,.92));box-shadow:0 20px 52px rgba(0,0,0,.35);padding:22px;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.detail-head{display:flex;gap:14px;align-items:center;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.1)}
+.detail-head .flag{width:84px;height:56px;object-fit:cover;border-radius:10px;border:1px solid rgba(255,255,255,.28);background:#111;box-shadow:0 10px 24px rgba(0,0,0,.35)}
+.detail-title h2{font-size:33px;line-height:1;font-weight:1000}
+.detail-title .en{color:var(--muted);margin-top:5px;font-size:13px}
+.style-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.chip{padding:5px 9px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);font-size:12px;color:#d9e8f7;font-weight:800}
+.stats{display:grid;gap:11px;margin-top:16px}
+.compact-stats{margin-top:0;gap:18px;padding:12px 4px 18px;border-bottom:1px solid rgba(255,255,255,.1)}
+.compact-stats .stat{grid-template-columns:54px 1fr 46px;gap:12px}
+.compact-stats .stat-label{font-size:15px}
+.compact-stats .stat-num{font-size:16px}
+.compact-stats .bar{height:16px}
+.stat{display:grid;grid-template-columns:44px 1fr 42px;align-items:center;gap:9px}
+.stat-label{font-size:13px;font-weight:950;color:#dce7f5}
+.stat-num{text-align:right;font-weight:950}
+.bar{height:11px;border-radius:999px;background:rgba(255,255,255,.1);overflow:hidden;box-shadow:inset 0 1px 4px rgba(0,0,0,.25)}
+.fill{height:100%;border-radius:999px;box-shadow:0 0 14px currentColor}
+.fill.atk{background:var(--atk);color:var(--atk)}
+.fill.def{background:var(--def);color:var(--def)}
+.fill.spd{background:var(--spd);color:var(--spd)}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.info-box{border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);padding:10px}
+.info-label{font-size:11px;color:var(--muted);font-weight:900;letter-spacing:1px;margin-bottom:4px}
+.info-value{font-size:17px;font-weight:950;line-height:1.2}
+.formation{margin-top:14px;border-radius:16px;border:1px solid rgba(255,255,255,.12);background:radial-gradient(circle at 50% 35%,rgba(57,217,138,.16),rgba(255,255,255,.04));padding:13px;display:grid;grid-template-columns:112px 1fr;gap:12px;align-items:center}
+.compact-formation{margin-top:22px;padding:18px;display:block;flex:1;min-height:0}
+.compact-formation .pitch{height:100%;min-height:610px}
+.compact-formation .dot{width:34px;height:34px;font-size:12px}
+.pitch{height:162px;border:2px solid rgba(118,224,157,.45);border-radius:16px;background:linear-gradient(180deg,rgba(33,139,77,.35),rgba(16,88,54,.32));position:relative;overflow:hidden}
+.pitch .box{position:absolute;left:22%;width:56%;height:13%;border:1px solid rgba(255,255,255,.22)}
+.pitch .box.top{top:-1px;border-top:0;border-radius:0 0 10px 10px}
+.pitch .box.bottom{bottom:-1px;border-bottom:0;border-radius:10px 10px 0 0}
+.pitch::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(255,255,255,.25)}
+.pitch::after{content:"";position:absolute;left:50%;top:50%;width:45px;height:45px;border:1px solid rgba(255,255,255,.24);border-radius:50%;transform:translate(-50%,-50%)}
+.dot{position:absolute;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:9px;font-weight:950;color:#06111f;background:#fff;box-shadow:0 4px 10px rgba(0,0,0,.35)}
+.dot.fw{background:#ff6b6b}.dot.mf{background:#ffe66d}.dot.df{background:#4ecdc4}.dot.gk{background:#8ea4bc}
+.formation-text{white-space:pre;line-height:1.55;color:#eaf5ff;font-family:Consolas,"Courier New",monospace;font-weight:900;font-size:18px}
+.desc{margin-top:12px;color:#d3e3f3;line-height:1.55;font-size:14px;background:rgba(255,255,255,.045);padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,.08)}
+.help{margin-top:auto;padding-top:12px;color:#8ea4bc;font-size:12px;line-height:1.7;border-top:1px solid rgba(255,255,255,.08)}
+.footer-help{position:relative;z-index:2;margin-top:0;padding-top:4px;text-align:center;border-top:0}
+.help kbd{display:inline-block;min-width:23px;text-align:center;padding:2px 5px;border-radius:5px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.17);color:#fff;font-weight:900;margin:0 2px}
+.flash{animation:confirmFlash .5s ease-out}
+@keyframes confirmFlash{0%{box-shadow:0 0 0 0 rgba(57,217,138,.9)}100%{box-shadow:0 0 0 22px rgba(57,217,138,0)}}
+.overlay{position:absolute;inset:0;z-index:20;display:none;align-items:center;justify-content:center;background:rgba(3,7,17,.7);backdrop-filter:blur(8px)}
+.overlay.show{display:flex}.result{border-radius:26px;padding:32px 38px;background:linear-gradient(180deg,rgba(23,47,77,.95),rgba(8,17,33,.95));border:1px solid rgba(255,255,255,.16);box-shadow:0 30px 90px rgba(0,0,0,.55);text-align:center;min-width:560px}.result h2{font-size:36px;margin-bottom:20px}.vs{display:flex;align-items:center;justify-content:center;gap:20px}.vs-team{width:200px}.vs-team img{width:92px;height:62px;object-fit:cover;border-radius:10px;border:1px solid rgba(255,255,255,.25)}.vs-team .n{font-size:24px;font-weight:1000;margin-top:10px}.vs-mid{font-size:34px;color:var(--gold);font-weight:1000}.restart{margin-top:24px;color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="bg-grid"></div>
+  <div class="topbar">
+    <div class="pick-badge p1" id="p1Badge"><div class="slot">1P</div><div class="empty">等待选择</div></div>
+    <div class="title">
+      <h1>球队选择</h1>
+      <div class="sub">48支国家队 · 方向键移动 · 回车确认</div>
+      <div class="phase-pill" id="phasePill"><span class="phase-dot"></span><span id="phaseText">1P 选择球队</span></div>
+    </div>
+    <div class="pick-badge p2" id="p2Badge"><div class="empty">等待选择</div><div class="slot">2P</div></div>
+  </div>
+  <div class="main">
+    <div class="team-grid" id="teamGrid"></div>
+  </div>
+  <div class="overlay" id="overlay">
+    <div class="result">
+      <h2>双方球队已确定</h2>
+      <div class="vs" id="vsBox"></div>
+      <div class="restart">按 <b>R</b> 重新选择</div>
+    </div>
+  </div>
+</div>
+<script>
+const TEAMS = [
+  // A组
+  { group:"A", flag:"mx", name:"墨西哥", nameEn:"Mexico", atk:78, def:76, spd:83, formation:"2-1-1", style:"快速进攻", desc:"快速传切，中场调度能力强", jersey:["#006847","#FFFFFF","#FFFFFF"], jerseyName:["绿色","白色","白色"], skin:"B/C", body:"S/M", host:true },
+  { group:"A", flag:"za", name:"南非", nameEn:"South Africa", atk:66, def:68, spd:76, formation:"1-2-1", style:"身体均衡", desc:"身体素质好但技术粗糙", jersey:["#FFB81C","#007749","#FFFFFF"], jerseyName:["金黄色","绿色","白色"], skin:"C/D", body:"M/L" },
+  { group:"A", flag:"kr", name:"韩国", nameEn:"South Korea", atk:76, def:74, spd:84, formation:"1-2-1", style:"跑动均衡", desc:"太极虎，跑不死，全场逼抢", jersey:["#CD2E3A","#000000","#000000"], jerseyName:["红色","黑色","黑色"], skin:"B", body:"S/M" },
+  { group:"A", flag:"cz", name:"捷克", nameEn:"Czech Republic", atk:76, def:78, spd:76, formation:"1-1-2", style:"战术防守", desc:"东欧铁骑，战术纪律严明", jersey:["#D7141A","#FFFFFF","#11457E"], jerseyName:["红色","白色","蓝色"], skin:"A", body:"M/L" },
+  // B组
+  { group:"B", flag:"ca", name:"加拿大", nameEn:"Canada", atk:72, def:72, spd:80, formation:"1-2-1", style:"冲击均衡", desc:"枫叶军团，体能充沛冲击力强", jersey:["#FF0000","#FFFFFF","#FF0000"], jerseyName:["红色","白色","红色"], skin:"A/B/C", body:"M/L", host:true },
+  { group:"B", flag:"ba", name:"波黑", nameEn:"Bosnia & Herz.", atk:74, def:72, spd:74, formation:"1-1-2", style:"硬朗防守", desc:"巴尔干雄鹰，身体对抗硬朗", jersey:["#FFFFFF","#002F6C","#002F6C"], jerseyName:["白色","蓝色","蓝色"], skin:"A/B", body:"M/L" },
+  { group:"B", flag:"qa", name:"卡塔尔", nameEn:"Qatar", atk:66, def:68, spd:74, formation:"1-2-1", style:"控球均衡", desc:"技术尚可但综合实力偏弱", jersey:["#8A1538","#FFFFFF","#8A1538"], jerseyName:["栗红色","白色","栗红色"], skin:"B/C", body:"M" },
+  { group:"B", flag:"ch", name:"瑞士", nameEn:"Switzerland", atk:76, def:82, spd:76, formation:"1-1-2", style:"纪律防守", desc:"红十字军团，纪律严明", jersey:["#DA291C","#FFFFFF","#DA291C"], jerseyName:["红色","白色","红色"], skin:"A/B", body:"M/L" },
+  // C组
+  { group:"C", flag:"br", name:"巴西", nameEn:"Brazil", atk:92, def:78, spd:88, formation:"2-1-1", style:"桑巴进攻", desc:"桑巴足球，进攻华丽，个人技术突出", jersey:["#FFDD00","#009C3B","#002776"], jerseyName:["黄色","绿色","蓝色"], skin:"C/B", body:"M" },
+  { group:"C", flag:"ma", name:"摩洛哥", nameEn:"Morocco", atk:76, def:80, spd:80, formation:"1-1-2", style:"组织防守", desc:"阿特拉斯雄狮，防守组织出色", jersey:["#C1272D","#006233","#C1272D"], jerseyName:["红色","绿色","红色"], skin:"B/C", body:"M/L" },
+  { group:"C", flag:"ht", name:"海地", nameEn:"Haiti", atk:62, def:64, spd:74, formation:"1-1-2", style:"加勒比防守", desc:"加勒比黑马，体能出众但战术薄弱", jersey:["#00209F","#D21034","#00209F"], jerseyName:["蓝色","红色","蓝色"], skin:"C/D", body:"S/M" },
+  { group:"C", flag:"gb-sct", name:"苏格兰", nameEn:"Scotland", atk:72, def:76, spd:74, formation:"1-1-2", style:"英式防守", desc:"风笛军团，硬朗英式足球", jersey:["#003087","#FFFFFF","#FFFFFF"], jerseyName:["深蓝色","白色","白色"], skin:"A", body:"M/L" },
+  // D组
+  { group:"D", flag:"us", name:"美国", nameEn:"USA", atk:78, def:76, spd:84, formation:"2-1-1", style:"冲击进攻", desc:"体能充沛，冲击力强", jersey:["#FFFFFF","#3C3B6E","#3C3B6E"], jerseyName:["白色","蓝色","蓝色"], skin:"A/B/C/D", body:"M/L", host:true },
+  { group:"D", flag:"py", name:"巴拉圭", nameEn:"Paraguay", atk:72, def:78, spd:76, formation:"1-1-2", style:"南美防守", desc:"南美铁壁，防守顽强", jersey:["#0038A8","#D52B1E","#0038A8"], jerseyName:["蓝色","红色","蓝色"], skin:"B/C", body:"M" },
+  { group:"D", flag:"au", name:"澳大利亚", nameEn:"Australia", atk:72, def:76, spd:78, formation:"1-1-2", style:"对抗防守", desc:"身体对抗强，意志坚韧", jersey:["#FFCD00","#00843D","#000000"], jerseyName:["金黄色","绿色","黑色"], skin:"A/B", body:"M/L" },
+  { group:"D", flag:"tr", name:"土耳其", nameEn:"Türkiye", atk:78, def:76, spd:80, formation:"1-2-1", style:"拦截均衡", desc:"星月军团，对抗凶猛", jersey:["#E30A17","#FFFFFF","#FFFFFF"], jerseyName:["红色","白色","白色"], skin:"B/C", body:"M/L" },
+  // E组
+  { group:"E", flag:"de", name:"德国", nameEn:"Germany", atk:86, def:86, spd:80, formation:"2-1-1", style:"战术进攻", desc:"战术严谨，攻守均衡，大赛之王", jersey:["#FFFFFF","#000000","#000000"], jerseyName:["白色","黑色","黑色"], skin:"A", body:"M/L" },
+  { group:"E", flag:"cw", name:"库拉索", nameEn:"Curaçao", atk:58, def:62, spd:72, formation:"1-1-2", style:"铁桶防守", desc:"世界杯新军，加勒比小国奇迹", jersey:["#002B7F","#FFD700","#002B7F"], jerseyName:["蓝色","金黄色","蓝色"], skin:"C/D", body:"S/M" },
+  { group:"E", flag:"ci", name:"科特迪瓦", nameEn:"Côte d'Ivoire", atk:78, def:74, spd:84, formation:"2-1-1", style:"力量进攻", desc:"非洲大象，身体素质顶级", jersey:["#F77F00","#009E49","#F77F00"], jerseyName:["橙色","绿色","橙色"], skin:"D/C", body:"M/L" },
+  { group:"E", flag:"ec", name:"厄瓜多尔", nameEn:"Ecuador", atk:74, def:72, spd:80, formation:"1-2-1", style:"速度均衡", desc:"高原主场优势，体能出色", jersey:["#FFD100","#0033A0","#0033A0"], jerseyName:["黄色","蓝色","蓝色"], skin:"B/C", body:"S/M" },
+  // F组
+  { group:"F", flag:"nl", name:"荷兰", nameEn:"Netherlands", atk:86, def:80, spd:82, formation:"2-1-1", style:"全攻全守", desc:"全攻全守足球发源地，战术灵活", jersey:["#FF6600","#FFFFFF","#000000"], jerseyName:["橙色","白色","黑色"], skin:"A/B", body:"M/L" },
+  { group:"F", flag:"jp", name:"日本", nameEn:"Japan", atk:78, def:76, spd:84, formation:"2-1-1", style:"传切进攻", desc:"蓝武士，技术细腻，跑动积极", jersey:["#2E4A9E","#FFFFFF","#2E4A9E"], jerseyName:["蓝色","白色","蓝色"], skin:"B", body:"S/M" },
+  { group:"F", flag:"se", name:"瑞典", nameEn:"Sweden", atk:74, def:78, spd:76, formation:"1-1-2", style:"北欧防守", desc:"北欧海盗，身体硬朗，防空强", jersey:["#FECC02","#006AA7","#006AA7"], jerseyName:["黄色","蓝色","蓝色"], skin:"A", body:"M/L" },
+  { group:"F", flag:"tn", name:"突尼斯", nameEn:"Tunisia", atk:70, def:74, spd:76, formation:"1-1-2", style:"北非防守", desc:"迦太基之鹰，北非铁壁", jersey:["#D70000","#FFFFFF","#FFFFFF"], jerseyName:["红色","白色","白色"], skin:"B/C", body:"M" },
+  // G组
+  { group:"G", flag:"be", name:"比利时", nameEn:"Belgium", atk:84, def:78, spd:80, formation:"2-1-1", style:"黄金进攻", desc:"黄金一代余晖，个人能力突出", jersey:["#ED2939","#2D2926","#2D2926"], jerseyName:["红色","黑色","黑色"], skin:"A/B/C", body:"M/L" },
+  { group:"G", flag:"eg", name:"埃及", nameEn:"Egypt", atk:74, def:74, spd:76, formation:"1-2-1", style:"技术均衡", desc:"法老军团，个人技术细腻", jersey:["#C8102E","#FFFFFF","#FFFFFF"], jerseyName:["红色","白色","白色"], skin:"C/B", body:"M" },
+  { group:"G", flag:"ir", name:"伊朗", nameEn:"Iran", atk:70, def:76, spd:76, formation:"1-1-2", style:"铁壁防守", desc:"亚洲铁壁，防守纪律严明", jersey:["#FFFFFF","#239F40","#FFFFFF"], jerseyName:["白色","绿色","白色"], skin:"B/C", body:"M" },
+  { group:"G", flag:"nz", name:"新西兰", nameEn:"New Zealand", atk:60, def:66, spd:72, formation:"1-2-1", style:"防守均衡", desc:"大洋洲独苗，身体好但技术差距大", jersey:["#FFFFFF","#000000","#000000"], jerseyName:["白色","黑色","黑色"], skin:"A/B", body:"M/L" },
+  // H组
+  { group:"H", flag:"es", name:"西班牙", nameEn:"Spain", atk:88, def:80, spd:78, formation:"2-1-1", style:"传控进攻", desc:"Tiki-taka 传控，中场统治力", jersey:["#C60C30","#FFC400","#002776"], jerseyName:["红色","金黄色","蓝色"], skin:"A/B", body:"M" },
+  { group:"H", flag:"cv", name:"佛得角", nameEn:"Cabo Verde", atk:64, def:66, spd:76, formation:"1-1-2", style:"岛国防守", desc:"世界杯新军，岛国奇迹", jersey:["#003DA5","#FFFFFF","#FFFFFF"], jerseyName:["蓝色","白色","白色"], skin:"C/D", body:"S/M" },
+  { group:"H", flag:"sa", name:"沙特", nameEn:"Saudi Arabia", atk:66, def:70, spd:74, formation:"1-1-2", style:"密集防守", desc:"技术型但对抗偏弱", jersey:["#006C35","#FFFFFF","#FFFFFF"], jerseyName:["绿色","白色","白色"], skin:"B/C", body:"M" },
+  { group:"H", flag:"uy", name:"乌拉圭", nameEn:"Uruguay", atk:84, def:80, spd:78, formation:"2-1-1", style:"锋线进攻", desc:"顽强斗志，前锋嗅觉敏锐", jersey:["#5CADCF","#FFFFFF","#000000"], jerseyName:["浅蓝色","白色","黑色"], skin:"A/B", body:"M/L" },
+  // I组
+  { group:"I", flag:"fr", name:"法国", nameEn:"France", atk:90, def:84, spd:86, formation:"2-1-1", style:"全能进攻", desc:"全面均衡，个人能力顶级", jersey:["#002395","#FFFFFF","#FFFFFF"], jerseyName:["蓝色","白色","白色"], skin:"A/B/C/D", body:"M/L" },
+  { group:"I", flag:"sn", name:"塞内加尔", nameEn:"Senegal", atk:78, def:74, spd:84, formation:"1-2-1", style:"速度均衡", desc:"特兰加雄狮，身体对抗+速度", jersey:["#008751","#FFD700","#FFFFFF"], jerseyName:["绿色","金黄色","白色"], skin:"D/E", body:"M/L" },
+  { group:"I", flag:"no", name:"挪威", nameEn:"Norway", atk:74, def:76, spd:78, formation:"1-2-1", style:"体能均衡", desc:"北欧维京，体能与身体对抗出色", jersey:["#BA0C2F","#FFFFFF","#00205B"], jerseyName:["红色","白色","蓝色"], skin:"A", body:"M/L" },
+  { group:"I", flag:"iq", name:"伊拉克", nameEn:"Iraq", atk:68, def:70, spd:74, formation:"1-2-1", style:"意志均衡", desc:"美索不达米亚雄狮，意志顽强", jersey:["#FFFFFF","#009B3A","#000000"], jerseyName:["白色","绿色","黑色"], skin:"B/C", body:"M" },
+  // J组
+  { group:"J", flag:"ar", name:"阿根廷", nameEn:"Argentina", atk:94, def:80, spd:84, formation:"2-1-1", style:"冠军进攻", desc:"世界冠军，进攻天赋极高", jersey:["#75AADB","#FFFFFF","#000000"], jerseyName:["浅蓝白条纹","白色","黑色"], skin:"A/B/C", body:"M" },
+  { group:"J", flag:"dz", name:"阿尔及利亚", nameEn:"Algeria", atk:72, def:72, spd:78, formation:"1-2-1", style:"反击均衡", desc:"沙漠之狐，速度与反击", jersey:["#006233","#FFFFFF","#FFFFFF"], jerseyName:["绿色","白色","白色"], skin:"B/C", body:"M" },
+  { group:"J", flag:"at", name:"奥地利", nameEn:"Austria", atk:76, def:76, spd:76, formation:"1-2-1", style:"战术均衡", desc:"中欧劲旅，战术纪律严明", jersey:["#ED2939","#FFFFFF","#FFFFFF"], jerseyName:["红色","白色","白色"], skin:"A", body:"M/L" },
+  { group:"J", flag:"jo", name:"约旦", nameEn:"Jordan", atk:62, def:68, spd:72, formation:"1-2-1", style:"纪律均衡", desc:"世界杯新军，亚洲杯亚军奇迹", jersey:["#CE1126","#FFFFFF","#FFFFFF"], jerseyName:["红色","白色","白色"], skin:"B/C", body:"M" },
+  // K组
+  { group:"K", flag:"pt", name:"葡萄牙", nameEn:"Portugal", atk:88, def:76, spd:82, formation:"2-1-1", style:"边路进攻", desc:"边路突破，个人能力强", jersey:["#DA291C","#00843D","#DA291C"], jerseyName:["红色","绿色","红色"], skin:"A/B/C", body:"M" },
+  { group:"K", flag:"cd", name:"刚果(金)", nameEn:"DR Congo", atk:68, def:68, spd:78, formation:"2-1-1", style:"速度进攻", desc:"非洲豹，速度和身体对抗出色", jersey:["#007FFF","#F42A41","#007FFF"], jerseyName:["蓝色","红色","蓝色"], skin:"D/C", body:"M/L" },
+  { group:"K", flag:"uz", name:"乌兹别克斯坦", nameEn:"Uzbekistan", atk:68, def:70, spd:72, formation:"1-1-2", style:"反击防守", desc:"中亚白狼，首次晋级世界杯", jersey:["#0099B5","#FFFFFF","#FFFFFF"], jerseyName:["蓝色","白色","白色"], skin:"B/C", body:"M" },
+  { group:"K", flag:"co", name:"哥伦比亚", nameEn:"Colombia", atk:80, def:74, spd:84, formation:"2-1-1", style:"技术进攻", desc:"技术华丽，J罗时代遗产", jersey:["#FCD116","#003893","#003893"], jerseyName:["黄色","蓝色","蓝色"], skin:"B/C/D", body:"M" },
+  // L组
+  { group:"L", flag:"gb-eng", name:"英格兰", nameEn:"England", atk:86, def:82, spd:82, formation:"1-2-1", style:"中场驱动", desc:"快速边路，中场硬朗", jersey:["#FFFFFF","#CF081F","#FFFFFF"], jerseyName:["白色","红色","白色"], skin:"A/B/C", body:"M/L" },
+  { group:"L", flag:"hr", name:"克罗地亚", nameEn:"Croatia", atk:82, def:85, spd:80, formation:"1-2-1", style:"中场控制", desc:"中场控制力强，防守坚韧", jersey:["#FFFFFF","#FF0000","#171796"], jerseyName:["白底红格","红色","蓝色"], skin:"A/B", body:"M" },
+  { group:"L", flag:"gh", name:"加纳", nameEn:"Ghana", atk:76, def:72, spd:86, formation:"2-1-1", style:"速度进攻", desc:"非洲黑星，身体素质顶级", jersey:["#FFFFFF","#FDB913","#CE1126"], jerseyName:["白色","金黄色","红色"], skin:"D/C", body:"M/L" },
+  { group:"L", flag:"pa", name:"巴拿马", nameEn:"Panama", atk:60, def:66, spd:70, formation:"1-1-2", style:"铁桶防守", desc:"中美小国，2018首秀后再次晋级", jersey:["#D52B1E","#003893","#FFFFFF"], jerseyName:["红色","蓝色","白色"], skin:"B/C", body:"M" },
+];
+const FORMATIONS = {
+  "2-1-1": "FW  FW\n  MF\n  DF\n  GK",
+  "1-2-1": "  FW\nMF  MF\n  DF\n  GK",
+  "1-1-2": "  FW\n  MF\nDF  DF\n  GK",
+};
+
+function flagUrl(code) {
+  if (code === 'gb-sct') return 'https://flagcdn.com/w80/gb.png';
+  if (code === 'gb-eng') return 'https://flagcdn.com/w80/gb.png';
+  return `https://flagcdn.com/w80/${code}.png`;
+}
+
+const grid = document.getElementById('teamGrid');
+const phasePill = document.getElementById('phasePill');
+const phaseText = document.getElementById('phaseText');
+const p1Badge = document.getElementById('p1Badge');
+const p2Badge = document.getElementById('p2Badge');
+const overlay = document.getElementById('overlay');
+const vsBox = document.getElementById('vsBox');
+const COLS = 8;
+let cursor = 0;
+let phase = 1;
+let p1 = null;
+let p2 = null;
+
+function total(t){return t.atk + t.def + t.spd;}
+function formationLabel(f){return f === '2-1-1' ? '进攻型' : f === '1-2-1' ? '均衡型' : '防守型';}
+function renderGrid(){
+  grid.innerHTML = TEAMS.map((t,i)=>`
+    <button class="team-card" data-index="${i}" aria-label="${t.name}">
+      <span class="picked-mark p1">1P</span><span class="picked-mark p2">2P</span>
+      <img class="flag" src="${flagUrl(t.flag)}" alt="${t.name}" onerror="this.style.display='none'">
+      <div class="name">${t.name}</div>
+    </button>`).join('');
+  [...grid.children].forEach(btn=>{
+    btn.addEventListener('mouseenter',()=>setCursor(Number(btn.dataset.index)));
+    btn.addEventListener('click',()=>confirmPick());
+  });
+  updateUI();
+}
+function setCursor(i){
+  cursor = (i + TEAMS.length) % TEAMS.length;
+  updateUI();
+}
+function updateUI(){
+  [...grid.children].forEach((card,i)=>{
+    card.classList.toggle('active', i === cursor);
+    card.classList.toggle('picked-p1', p1 === i);
+    card.classList.toggle('picked-p2', p2 === i);
+  });
+  if(phase === 1){
+    phasePill.className='phase-pill';phaseText.textContent='1P 选择球队';
+    renderPreviewBadge(p1Badge, cursor, 1, false);
+    renderEmptyBadge(p2Badge, 2);
+  }
+  else if(phase === 2){
+    phasePill.className='phase-pill p2';phaseText.textContent='2P 选择球队';
+    renderPreviewBadge(p1Badge, p1, 1, true);
+    renderPreviewBadge(p2Badge, cursor, 2, false);
+  }
+  else{
+    phasePill.className='phase-pill done';phaseText.textContent='选择完成';
+    renderPreviewBadge(p1Badge, p1, 1, true);
+    renderPreviewBadge(p2Badge, p2, 2, true);
+  }
+}
+function renderEmptyBadge(el, side){
+  el.classList.remove('previewing','locked');
+  el.innerHTML = side === 1 ? '<div class="slot">1P</div><div class="empty">等待选择</div>' : '<div class="empty">等待选择</div><div class="slot">2P</div>';
+}
+function renderPreviewBadge(el, idx, side, locked){
+  if(idx === null || idx === undefined){ renderEmptyBadge(el, side); return; }
+  const t = TEAMS[idx];
+  el.classList.toggle('previewing', !locked);
+  el.classList.toggle('locked', locked);
+  const card = `<div class="preview-card">
+    <img class="flag" src="${flagUrl(t.flag)}" alt="${t.name}">
+    <div class="preview-title"><div class="team-name">${t.name}</div><div class="team-sub">${t.formation} · ${formationLabel(t.formation)} · 总评 ${total(t)}</div></div>
+    <div class="mini-stats">${miniStat('ATK',t.atk,'atk')}${miniStat('DEF',t.def,'def')}${miniStat('SPD',t.spd,'spd')}</div>
+    <div class="mini-pitch"><span class="box top"></span><span class="box bottom"></span>${miniPitchDots(t.formation)}</div>
+  </div>`;
+  el.innerHTML = side === 1 ? `<div class="slot">1P</div>${card}` : `${card}<div class="slot">2P</div>`;
+}
+function miniDetail(t){
+  const f = t.formation;
+  return `<div class="mini-detail">
+    <div class="mini-stats">
+      ${miniStat('ATK',t.atk,'atk')}${miniStat('DEF',t.def,'def')}${miniStat('SPD',t.spd,'spd')}
+    </div>
+    <div class="mini-pitch"><span class="box top"></span><span class="box bottom"></span>${miniPitchDots(f)}</div>
+  </div>`;
+}
+function miniStat(label,value,type){return `<div class="mini-stat"><span>${label}</span><div class="mini-bar"><div class="mini-fill ${type}" style="width:${value}%"></div></div><span>${value}</span></div>`;}
+function statRow(label,value,type){return `<div class="stat"><div class="stat-label">${label}</div><div class="bar"><div class="fill ${type}" style="width:${value}%"></div></div><div class="stat-num">${value}</div></div>`;}
+function miniPitchDots(f){
+  const maps={
+    '2-1-1':[['FW',35,18,'fw'],['FW',65,18,'fw'],['MF',50,38,'mf'],['DF',50,62,'df'],['GK',50,84,'gk']],
+    '1-2-1':[['FW',50,17,'fw'],['MF',35,38,'mf'],['MF',65,38,'mf'],['DF',50,62,'df'],['GK',50,84,'gk']],
+    '1-1-2':[['FW',50,17,'fw'],['MF',50,38,'mf'],['DF',35,62,'df'],['DF',65,62,'df'],['GK',50,84,'gk']]
+  };
+  return maps[f].map(d=>`<span class="mini-dot ${d[3]}" style="left:calc(${d[1]}% - 8px);top:calc(${d[2]}% - 8px)">${d[0]}</span>`).join('');
+}
+function confirmPick(){
+  if(phase === 1){
+    p1 = cursor; phase = 2;
+    let next = cursor; for(let k=1;k<=TEAMS.length;k++){ if((cursor+k)%TEAMS.length !== p1){ next=(cursor+k)%TEAMS.length; break; } }
+    cursor = next;
+  }else if(phase === 2){
+    if(cursor === p1){ shakeActive(); return; }
+    p2 = cursor; phase = 3; showResult();
+  }
+  updateUI();
+}
+function shakeActive(){
+  const card = grid.children[cursor];
+  card.animate([{transform:'translateX(0)'},{transform:'translateX(-8px)'},{transform:'translateX(8px)'},{transform:'translateX(0)'}],{duration:220});
+}
+function showResult(){
+  const a=TEAMS[p1], b=TEAMS[p2];
+  vsBox.innerHTML = `<div class="vs-team"><img src="${flagUrl(a.flag)}"><div class="n">${a.name}</div><div class="team-sub">1P · ${a.formation}</div></div><div class="vs-mid">VS</div><div class="vs-team"><img src="${flagUrl(b.flag)}"><div class="n">${b.name}</div><div class="team-sub">2P · ${b.formation}</div></div>`;
+  overlay.classList.add('show');
+}
+function reset(){p1=null;p2=null;phase=1;cursor=0;overlay.classList.remove('show');updateUI();}
+document.addEventListener('keydown',e=>{
+  const key=e.key;
+  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Enter',' '].includes(key)) e.preventDefault();
+  if(key === 'r' || key === 'R'){reset();return;}
+  if(phase === 3) return;
+  if(key === 'ArrowLeft') setCursor(cursor-1);
+  if(key === 'ArrowRight') setCursor(cursor+1);
+  if(key === 'ArrowUp') setCursor(cursor-COLS);
+  if(key === 'ArrowDown') setCursor(cursor+COLS);
+  if(key === 'Enter' || key === ' ') confirmPick();
+});
+function resizeStage(){
+  const app = document.querySelector('.app');
+  const scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+  app.style.transform = `scale(${scale})`;
+}
+window.addEventListener('resize', resizeStage);
+resizeStage();
+renderGrid();
+</script>
+</body>
+</html>

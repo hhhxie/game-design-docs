@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>game-design-doc-generator · 流程说明书</title>
+  <style>
+    :root {
+      --bg: #060914;
+      --bg2: #0a1020;
+      --panel: rgba(18, 28, 52, 0.76);
+      --panel-solid: #111b33;
+      --line: rgba(132, 165, 255, 0.18);
+      --line-strong: rgba(132, 165, 255, 0.36);
+      --text: #f6f8ff;
+      --muted: #9cabcf;
+      --soft: #cfd8f6;
+      --blue: #54a6ff;
+      --cyan: #57e6ff;
+      --purple: #9d7cff;
+      --gold: #ffd166;
+      --green: #48df9b;
+      --red: #ff6d7a;
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --max: 960px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 12% 8%, rgba(84, 166, 255, 0.18), transparent 30%),
+        radial-gradient(circle at 82% 14%, rgba(157, 124, 255, 0.16), transparent 30%),
+        linear-gradient(180deg, var(--bg), var(--bg2) 45%, #050812 100%);
+      min-height: 100vh;
+      line-height: 1.72;
+    }
+
+    .page { max-width: var(--max); margin: 0 auto; padding: 42px 28px 70px; }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--cyan);
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 28px;
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(87, 230, 255, 0.2);
+      background: rgba(87, 230, 255, 0.06);
+      transition: 0.2s ease;
+    }
+    .back-link:hover { background: rgba(87, 230, 255, 0.12); }
+
+    .header {
+      padding: 32px;
+      border-radius: var(--radius-lg);
+      background: linear-gradient(135deg, rgba(84,166,255,0.1), rgba(87,230,255,0.06));
+      border: 1px solid var(--line-strong);
+      margin-bottom: 36px;
+    }
+
+    .header-tag {
+      display: inline-flex;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(84,166,255,0.12);
+      border: 1px solid rgba(84,166,255,0.3);
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(28px, 4vw, 42px);
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+    }
+
+    .gradient-text {
+      background: linear-gradient(90deg, var(--cyan), var(--blue));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .meta { color: var(--muted); font-size: 14px; margin-top: 8px; }
+
+    .section {
+      margin-bottom: 32px;
+      padding: 28px;
+      border-radius: var(--radius-lg);
+      background: var(--panel);
+      border: 1px solid var(--line);
+    }
+
+    .section h2 {
+      margin: 0 0 18px;
+      font-size: 22px;
+      line-height: 1.2;
+      color: var(--cyan);
+      letter-spacing: -0.02em;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .section h3 {
+      margin: 22px 0 10px;
+      font-size: 17px;
+      color: var(--text);
+    }
+
+    .section p { margin: 10px 0; color: var(--soft); }
+    .section ul, .section ol { color: var(--soft); padding-left: 22px; }
+    .section li { margin: 7px 0; }
+    .section strong { color: var(--text); }
+
+    code {
+      background: rgba(84,166,255,0.1);
+      border: 1px solid rgba(84,166,255,0.2);
+      padding: 2px 7px;
+      border-radius: 6px;
+      font-size: 0.92em;
+      color: var(--cyan);
+    }
+
+    pre {
+      background: rgba(5,9,20,0.7);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px 22px;
+      overflow-x: auto;
+      font-size: 13.5px;
+      line-height: 1.65;
+      color: var(--soft);
+      margin: 14px 0;
+    }
+
+    pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      color: var(--soft);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      font-size: 14px;
+    }
+
+    th {
+      background: rgba(84,166,255,0.1);
+      color: var(--cyan);
+      font-weight: 800;
+      text-align: left;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--line-strong);
+    }
+
+    td {
+      padding: 9px 14px;
+      border-bottom: 1px solid var(--line);
+      color: var(--soft);
+      vertical-align: top;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    .flow-box {
+      padding: 14px 18px;
+      margin: 10px 0;
+      border-radius: 14px;
+      background: rgba(5,9,20,0.5);
+      border-left: 3px solid var(--cyan);
+      color: var(--soft);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .flow-box strong { color: var(--cyan); }
+
+    .tag {
+      display: inline-block;
+      padding: 2px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      margin: 2px 3px;
+    }
+    .tag-green { background: rgba(72,223,155,0.12); color: var(--green); border: 1px solid rgba(72,223,155,0.25); }
+    .tag-blue { background: rgba(84,166,255,0.12); color: var(--blue); border: 1px solid rgba(84,166,255,0.25); }
+    .tag-gold { background: rgba(255,209,102,0.12); color: var(--gold); border: 1px solid rgba(255,209,102,0.25); }
+    .tag-red { background: rgba(255,109,122,0.12); color: var(--red); border: 1px solid rgba(255,109,122,0.25); }
+
+    .checklist { list-style: none; padding-left: 0; }
+    .checklist li { padding: 5px 0 5px 28px; position: relative; }
+    .checklist li::before {
+      content: "☐";
+      position: absolute;
+      left: 0;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    hr { border: none; border-top: 1px solid var(--line); margin: 28px 0; }
+
+    .footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 42px;
+      padding-top: 28px;
+      border-top: 1px solid var(--line);
+    }
+
+    @media (max-width: 720px) {
+      .page { padding: 24px 16px 50px; }
+      .section { padding: 20px 18px; }
+      table { font-size: 12.5px; }
+      th, td { padding: 8px 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <a class="back-link" href="游戏策划大纲全流程工作法.html">← 返回全流程工作法</a>
+
+    <header class="header">
+      <div class="header-tag">Skill Flow Document · v1.0</div>
+      <h1><span class="gradient-text">game-design-doc-generator</span><br>流程说明书</h1>
+      <div class="meta">版本：v1.0 · 更新日期：2026-05-11 · 对应 SKILL.md v1.0</div>
+    </header>
+
+    <!-- 一、技能概述 -->
+    <section class="section">
+      <h2>一、技能概述</h2>
+
+      <h3>1.1 用途</h3>
+      <p>本技能用于生成<strong>专业游戏策划大纲（GDD）</strong>，遵循行业标准结构（Youdoo 平台规范），覆盖所有游戏类型（动作/休闲/RPG/体育竞技等）。</p>
+
+      <h3>1.2 触发方式</h3>
+      <p><strong>指令触发</strong>：<code>@skill:game-design-doc-generator</code></p>
+      <p><strong>关键词触发</strong>：</p>
+      <ul>
+        <li><code>写策划大纲</code></li>
+        <li><code>生成游戏设计文档</code></li>
+        <li><code>帮我写游戏文档</code></li>
+        <li><code>game design document</code></li>
+        <li><code>GDD</code></li>
+      </ul>
+
+      <h3>1.3 核心能力</h3>
+      <ul>
+        <li>支持两种工作模式：信息预收集 + 细分任务问答</li>
+        <li>所有文档遵循 <code>references/standard-template.md</code> 的权威 10 节结构</li>
+        <li>根据游戏类型自动选择参考模板（动作/休闲/体育竞技）</li>
+        <li>每个问题附带 1-3 个生成选项，降低用户输入负担</li>
+        <li>自动结构合规检查（商业化/多语言/资产清单/存档逻辑）</li>
+      </ul>
+    </section>
+
+    <!-- 二、完整流程概览 -->
+    <section class="section">
+      <h2>二、完整流程概览</h2>
+
+      <div class="flow-box">
+        <strong>【入口判断】</strong>用户触发技能 → <strong>Phase 0 信息预收集</strong>（是否有已有信息/文档？）
+      </div>
+      <div class="flow-box">
+        <strong>【Phase 1】模板选择</strong><br>
+        加载 <code>references/standard-template.md</code>（必须）→ 加载类型参考模板（按需）
+      </div>
+      <div class="flow-box">
+        <strong>【Phase 2】任务列表创建</strong><br>
+        根据游戏类型创建细分任务列表（49 项，按类别分组）
+      </div>
+      <div class="flow-box">
+        <strong>【Phase 3】逐任务问答</strong><br>
+        每个任务问一个问题 → 提供选项 → 用户选择/自定义 → 记录 → 下一任务
+      </div>
+      <div class="flow-box">
+        <strong>【Phase 4】文档生成</strong><br>
+        编译所有答案 → 结构合规检查 → 写入文件 → 呈现用户
+      </div>
+      <div class="flow-box">
+        <strong>【Phase 5】迭代优化</strong><br>
+        用户审阅 → 针对性修改 → 更新版本历史 → 最终定稿
+      </div>
+    </section>
+
+    <!-- 三、详细流程说明 -->
+    <section class="section">
+      <h2>三、详细流程说明</h2>
+
+      <h3>Phase 0：信息预收集（可选）</h3>
+      <p><strong>目的</strong>：判断用户是否有已有信息，优先使用用户资料生成更精准的选项。</p>
+      <p><strong>执行动作</strong>：</p>
+      <ol>
+        <li>询问用户是否可以提供已有信息（文档/草稿/参考案例）</li>
+        <li><strong>情况 A</strong>：用户选择"有" → 读取并分析信息，提取关键要素（游戏类型/核心玩法/美术风格等），后续所有任务的选项优先基于用户提供的信息</li>
+        <li><strong>情况 B</strong>：用户选择"无" → 直接进入 Phase 1，使用模板作为选项生成基础</li>
+      </ol>
+
+      <table>
+        <tr><th>优先级</th><th>来源</th><th>说明</th></tr>
+        <tr><td><span class="tag tag-gold">🥇 1</span></td><td>用户提供的信息</td><td>最高优先级，直接反映用户意图</td></tr>
+        <tr><td><span class="tag tag-blue">🥈 2</span></td><td>参考文档</td><td>用户指定的参考资料</td></tr>
+        <tr><td><span class="tag tag-green">🥉 3</span></td><td>模板文档</td><td>作为补充和兜底</td></tr>
+      </table>
+
+      <hr>
+
+      <h3>Phase 1：模板选择</h3>
+      <p><strong>目的</strong>：确定文档结构和内容参考。</p>
+      <p><strong>执行规则</strong>：</p>
+      <ol>
+        <li><strong>必须加载</strong> <code>references/standard-template.md</code> — 权威文档结构规范，所有游戏类型必须遵循</li>
+        <li><strong>按需加载</strong> 类型参考模板：
+          <ul>
+            <li>动作/街机类 → <code>references/action-game-template.md</code></li>
+            <li>休闲/养成类 → <code>references/casual-game-template.md</code></li>
+            <li><strong>体育竞技/足球/多人对战</strong> → <code>references/sports-game-template.md</code>（⚠️ 体育类有专门注意事项）</li>
+            <li>其他类型 → 标准模板 + 相关章节混合</li>
+          </ul>
+        </li>
+      </ol>
+
+      <hr>
+
+      <h3>Phase 2：任务列表创建</h3>
+      <p><strong>目的</strong>：将文档生成拆解为可管理的细分任务。</p>
+      <p><strong>任务分组结构</strong>（以动作为例，共 49 项）：</p>
+
+      <table>
+        <tr><th>分组</th><th>任务数</th><th>内容</th></tr>
+        <tr><td>基本信息</td><td>4</td><td>版本号、作者、游戏ID、更新日期</td></tr>
+        <tr><td>产品定位</td><td>6</td><td>游戏名称、用户年龄、游戏人数、维度、氛围、后期运营</td></tr>
+        <tr><td>核心玩法</td><td>4-6</td><td>玩法概述、主要操控、游戏规则、游戏模式</td></tr>
+        <tr><td>操作规范</td><td>3-5</td><td>基本操作、操作判定、进阶技巧</td></tr>
+        <tr><td>角色系统</td><td>4-6</td><td>角色数量、造型、属性、AI行为</td></tr>
+        <tr><td>关卡场景</td><td>4-6</td><td>场景类型、尺寸、障碍设计、难度递增</td></tr>
+        <tr><td>道具奖励</td><td>2-4</td><td>道具类型、奖励机制</td></tr>
+        <tr><td>UI界面</td><td>3-4</td><td>主菜单、游戏HUD、暂停菜单、结算界面</td></tr>
+        <tr><td>音效音乐</td><td>3-4</td><td>音乐风格、音效设计、语音解说、音频设置</td></tr>
+        <tr><td>游戏流程</td><td>3-4</td><td>开始流程、进行流程、结束流程</td></tr>
+        <tr><td>美术表现</td><td>3-4</td><td>整体风格、角色设计、场景设计、特效设计</td></tr>
+        <tr><td>后期运营</td><td>1-2</td><td>更新计划（可选）</td></tr>
+      </table>
+
+      <hr>
+
+      <h3>Phase 3：逐任务问答</h3>
+      <p><strong>核心原则</strong>：每次只问一个问题，提供 1-3 个生成选项。</p>
+
+      <pre>
+📋 **任务 X/49: [任务名称]**
+[具体问题]？
+
+**参考选项：**
+A. [基于模板/参考/用户信息的选项1]
+B. [选项2 — 变体/改进版本]
+C. [选项3 — 可选，提供更多可能性]
+
+💡 你也可以直接输入自定义答案</pre>
+
+      <p><strong>选项生成规则</strong>：</p>
+      <ul>
+        <li>选项 A：标准/推荐选择（来自模板）</li>
+        <li>选项 B：替代方案</li>
+        <li>选项 C：额外可能性（可选，最多 3 个）</li>
+        <li>用户可选择选项（A/B/C）或输入自定义答案</li>
+        <li>用户可说"按模板来"使用默认值</li>
+      </ul>
+
+      <p><strong>流转规则</strong>：</p>
+      <ul>
+        <li>用户回复 → 记录答案 → 标记任务完成 → 进入下一任务</li>
+        <li>用户一次回复多个答案 → 同时标记多个任务完成</li>
+        <li>用户说"跳过" → 标记为"待定"，继续下一任务</li>
+        <li>用户回答模糊 → 追问一个细节，不推进流程</li>
+      </ul>
+
+      <hr>
+
+      <h3>Phase 4：文档生成</h3>
+      <p>编译所有答案 → 按 10 节结构组织内容。</p>
+
+      <p><strong>文档必须包含的 10 个一级章节</strong>（来自 <code>standard-template.md</code>）：</p>
+      <pre>
+1. 版本
+2. 产品定位（游戏名称/ID/用户年龄/游戏人数/是否3D/游戏氛围/后期运营）
+3. 玩法与体感操作（玩法简介/操作规范/基本操作/进阶技巧）
+4. 玩法详情（游戏模式设计/属性及计算/角色设计/技能设计/战斗设计/道具与背包/怪物设计）
+5. 产品内容与商业化设计（购机附赠/订阅制/买断制）
+6. 辅助功能与交互体验（应用导航/准备流程/UX/辅助功能/通用功能）
+7. 美术需求（艺术风格/视角/场景/角色/UI/资源清单表格）
+8. 音频需求（音乐/音效/语音/资源清单表格）
+9. 多语言支持（简中/繁中(台)/英文）
+10. 里程碑
+备忘录</pre>
+
+      <p><strong>结构合规检查（必须执行）</strong>：</p>
+      <table>
+        <tr><th>#</th><th>检查项</th><th>说明</th></tr>
+        <tr><td>1</td><td>章节编号</td><td>所有主章节必须使用 <code>1.</code> ~ <code>10.</code> 编号</td></tr>
+        <tr><td>2</td><td>10 节结构完整</td><td>缺少第 4/8/9/10 节</td></tr>
+        <tr><td>3</td><td>商业化设计</td><td>必须包含三种商业化模型，不允许为空</td></tr>
+        <tr><td>4</td><td>多语言支持</td><td>必须包含至少 3 种语言</td></tr>
+        <tr><td>5</td><td>资产清单表格</td><td>美术资源清单 + 音频资源清单必须使用表格格式</td></tr>
+        <tr><td>6</td><td>存档逻辑</td><td>每个游戏模式必须说明存档策略</td></tr>
+      </table>
+
+      <hr>
+
+      <h3>Phase 5：迭代优化</h3>
+      <p>用户审阅 → 提出修改意见 → 针对性修改对应章节 → 更新版本历史。</p>
+    </section>
+
+    <!-- 四、文档质量检查清单 -->
+    <section class="section">
+      <h2>四、文档质量检查清单</h2>
+
+      <h3>A. 结构完整性（必查项）</h3>
+      <table>
+        <tr><th>#</th><th>检查项</th><th>常见遗漏</th></tr>
+        <tr><td>1</td><td>章节编号</td><td>生成版无编号</td></tr>
+        <tr><td>2</td><td>10 节结构完整</td><td>缺少第 4/8/9/10 节</td></tr>
+        <tr><td>3</td><td>商业化设计</td><td>完全遗漏</td></tr>
+        <tr><td>4</td><td>多语言支持</td><td>完全遗漏</td></tr>
+        <tr><td>5</td><td>里程碑 + 备忘录</td><td>完全遗漏</td></tr>
+        <tr><td>6</td><td>数据与保存</td><td>无存档逻辑</td></tr>
+      </table>
+
+      <h3>B. 内容精确度（必查项）</h3>
+      <table>
+        <tr><th>#</th><th>检查项</th><th>常见问题</th></tr>
+        <tr><td>7</td><td>游戏视角精确描述</td><td>写"3D视角"而不写"第三人称俯视"</td></tr>
+        <tr><td>8</td><td>体感操作判定精度</td><td>缺失动作编号和判定阈值</td></tr>
+        <tr><td>9</td><td>核心机制集中组织</td><td>带球/换人等分散在多处</td></tr>
+        <tr><td>10</td><td>美术资源需求清单</td><td>缺表格格式</td></tr>
+        <tr><td>11</td><td>音频资源需求清单</td><td>缺表格格式</td></tr>
+      </table>
+
+      <h3>C. 平台规范合规（必查项）</h3>
+      <table>
+        <tr><th>#</th><th>检查项</th><th>说明</th></tr>
+        <tr><td>13</td><td>辅助功能 5 个子节</td><td>应用导航/准备流程/UX/辅助功能/通用功能 均需覆盖</td></tr>
+        <tr><td>14</td><td>卡路里计算</td><td>Youdoo 平台通用功能，必须提及</td></tr>
+        <tr><td>15</td><td>产品定位字段完整</td><td>必须包含全部 7 个字段</td></tr>
+      </table>
+    </section>
+
+    <!-- 五、异常处理规则 -->
+    <section class="section">
+      <h2>五、异常处理规则</h2>
+      <table>
+        <tr><th>情况</th><th>处理方式</th></tr>
+        <tr><td>用户回答模糊</td><td>追问一个细节，不推进流程</td></tr>
+        <tr><td>用户一次回复多个任务答案</td><td>同时标记多个任务完成，继续下一未完成任务</td></tr>
+        <tr><td>商业化章节为空</td><td>必须补充，默认使用"买断制"</td></tr>
+        <tr><td>多语言章节为空</td><td>必须补充，默认"简中/繁中(台)/英文"</td></tr>
+        <tr><td>缺少资产清单表格</td><td>必须格式化为表格</td></tr>
+      </table>
+    </section>
+
+    <!-- 六、输出示例 -->
+    <section class="section">
+      <h2>六、输出示例</h2>
+      <h3>示例：体育竞技类游戏（足球）</h3>
+
+      <p><strong>Phase 0</strong>：</p>
+      <pre>
+📋 **前置任务: 信息预收集**
+在开始正式策划大纲之前，请问您是否可以提供一些已有的信息？
+
+选项：
+A. 有，我可以提供一些信息/文档
+B. 暂时没有，直接开始正常流程</pre>
+
+      <p><strong>Phase 3（逐任务问答）</strong>：</p>
+      <pre>
+📋 **任务 5/49: 游戏名称**
+你的游戏叫什么名字？
+
+**参考选项：**
+A. 疯狂足球（推荐，体育竞技类）
+B. 世界杯足球
+C. 射门达人
+
+💡 你也可以直接输入自定义答案</pre>
+    </section>
+
+    <!-- 七、版本历史 -->
+    <section class="section">
+      <h2>七、版本历史</h2>
+      <table>
+        <tr><th>版本</th><th>日期</th><th>变更内容</th></tr>
+        <tr><td>v1.0</td><td>2026-05-11</td><td>初始版本，基于 game-mvp-plan-builder 流程说明书模板创建</td></tr>
+      </table>
+    </section>
+
+    <!-- 八、注意事项 -->
+    <section class="section">
+      <h2>八、注意事项</h2>
+      <ul>
+        <li><strong>所有文档必须遵循 standard-template.md 结构</strong>，这是权威规范，不可偏离</li>
+        <li><strong>每个问题只问一次</strong>，提供 1-3 个选项，不开放式追问</li>
+        <li><strong>Phase 0 信息预收集</strong> 可跳过（用户选 B），但一旦用户选 A，必须优先使用用户提供的信息生成选项</li>
+        <li><strong>商业化章节绝对不可为空</strong>，即使只有"买断制"也要占位</li>
+        <li><strong>体育竞技类游戏</strong> 必须使用 <code>sports-game-template.md</code>，且注意体育类常见错误（视角/球队设计/操作编码/存档逻辑）</li>
+        <li><strong>文档保存格式</strong>：<code>《游戏名称》策划大纲.md</code></li>
+      </ul>
+    </section>
+
+    <div class="footer">
+      game-design-doc-generator · 流程说明书 v1.0 · 技能文件位于 <code>~/.workbuddy/skills/game-design-doc-generator/SKILL.md</code>
+    </div>
+  </div>
+</body>
+</html>

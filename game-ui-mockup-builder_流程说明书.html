@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>game-ui-mockup-builder · 流程说明书</title>
+  <style>
+    :root {
+      --bg: #060914;
+      --bg2: #0a1020;
+      --panel: rgba(18, 28, 52, 0.76);
+      --panel-solid: #111b33;
+      --line: rgba(132, 165, 255, 0.18);
+      --line-strong: rgba(132, 165, 255, 0.36);
+      --text: #f6f8ff;
+      --muted: #9cabcf;
+      --soft: #cfd8f6;
+      --blue: #54a6ff;
+      --cyan: #57e6ff;
+      --purple: #9d7cff;
+      --gold: #ffd166;
+      --green: #48df9b;
+      --red: #ff6d7a;
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --max: 960px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 12% 8%, rgba(157, 124, 255, 0.18), transparent 30%),
+        radial-gradient(circle at 82% 14%, rgba(87, 230, 255, 0.16), transparent 30%),
+        linear-gradient(180deg, var(--bg), var(--bg2) 45%, #050812 100%);
+      min-height: 100vh;
+      line-height: 1.72;
+    }
+
+    .page { max-width: var(--max); margin: 0 auto; padding: 42px 28px 70px; }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--purple);
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 28px;
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(157, 124, 255, 0.2);
+      background: rgba(157, 124, 255, 0.06);
+      transition: 0.2s ease;
+    }
+    .back-link:hover { background: rgba(157, 124, 255, 0.12); }
+
+    .header {
+      padding: 32px;
+      border-radius: var(--radius-lg);
+      background: linear-gradient(135deg, rgba(157,124,255,0.1), rgba(87,230,255,0.06));
+      border: 1px solid rgba(157,124,255,0.3);
+      margin-bottom: 36px;
+    }
+
+    .header-tag {
+      display: inline-flex;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(157,124,255,0.12);
+      border: 1px solid rgba(157,124,255,0.3);
+      color: var(--purple);
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(28px, 4vw, 42px);
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+    }
+
+    .gradient-text {
+      background: linear-gradient(90deg, var(--purple), var(--cyan));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .meta { color: var(--muted); font-size: 14px; margin-top: 8px; }
+
+    .section {
+      margin-bottom: 32px;
+      padding: 28px;
+      border-radius: var(--radius-lg);
+      background: var(--panel);
+      border: 1px solid var(--line);
+    }
+
+    .section h2 {
+      margin: 0 0 18px;
+      font-size: 22px;
+      line-height: 1.2;
+      color: var(--purple);
+      letter-spacing: -0.02em;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .section h3 {
+      margin: 22px 0 10px;
+      font-size: 17px;
+      color: var(--text);
+    }
+
+    .section p { margin: 10px 0; color: var(--soft); }
+    .section ul, .section ol { color: var(--soft); padding-left: 22px; }
+    .section li { margin: 7px 0; }
+    .section strong { color: var(--text); }
+
+    code {
+      background: rgba(157,124,255,0.1);
+      border: 1px solid rgba(157,124,255,0.2);
+      padding: 2px 7px;
+      border-radius: 6px;
+      font-size: 0.92em;
+      color: var(--purple);
+    }
+
+    pre {
+      background: rgba(5,9,20,0.7);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px 22px;
+      overflow-x: auto;
+      font-size: 13.5px;
+      line-height: 1.65;
+      color: var(--soft);
+      margin: 14px 0;
+    }
+
+    pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      color: var(--soft);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      font-size: 14px;
+    }
+
+    th {
+      background: rgba(157,124,255,0.1);
+      color: var(--purple);
+      font-weight: 800;
+      text-align: left;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--line-strong);
+    }
+
+    td {
+      padding: 9px 14px;
+      border-bottom: 1px solid var(--line);
+      color: var(--soft);
+      vertical-align: top;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    .flow-box {
+      padding: 14px 18px;
+      margin: 10px 0;
+      border-radius: 14px;
+      background: rgba(5,9,20,0.5);
+      border-left: 3px solid var(--purple);
+      color: var(--soft);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .flow-box strong { color: var(--purple); }
+
+    .tag {
+      display: inline-block;
+      padding: 2px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      margin: 2px 3px;
+    }
+    .tag-green { background: rgba(72,223,155,0.12); color: var(--green); border: 1px solid rgba(72,223,155,0.25); }
+    .tag-blue { background: rgba(84,166,255,0.12); color: var(--blue); border: 1px solid rgba(84,166,255,0.25); }
+    .tag-gold { background: rgba(255,209,102,0.12); color: var(--gold); border: 1px solid rgba(255,209,102,0.25); }
+    .tag-red { background: rgba(255,109,122,0.12); color: var(--red); border: 1px solid rgba(255,109,122,0.25); }
+
+    .checklist { list-style: none; padding-left: 0; }
+    .checklist li { padding: 5px 0 5px 28px; position: relative; }
+    .checklist li::before {
+      content: "☐";
+      position: absolute;
+      left: 0;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    hr { border: none; border-top: 1px solid var(--line); margin: 28px 0; }
+
+    .footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 42px;
+      padding-top: 28px;
+      border-top: 1px solid var(--line);
+    }
+
+    @media (max-width: 720px) {
+      .page { padding: 24px 16px 50px; }
+      .section { padding: 20px 18px; }
+      table { font-size: 12.5px; }
+      th, td { padding: 8px 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <a class="back-link" href="游戏策划大纲全流程工作法.html">← 返回全流程工作法</a>
+
+    <header class="header">
+      <div class="header-tag">Skill Flow Document · v1.0</div>
+      <h1><span class="gradient-text">game-ui-mockup-builder</span><br>流程说明书</h1>
+      <div class="meta">版本：v1.0 · 更新日期：2026-05-11 · 对应 SKILL.md v1.0</div>
+    </header>
+
+    <!-- 一、技能概述 -->
+    <section class="section">
+      <h2>一、技能概述</h2>
+
+      <h3>1.1 用途</h3>
+      <p>本技能通过读取游戏流程图或策划大纲，构建<strong>可交互的 HTML 游戏 UI 原型</strong>（单文件），在一个 HTML 中模拟所有界面及界面间的导航逻辑，无需实际游戏玩法。</p>
+
+      <h3>1.2 触发方式</h3>
+      <p><strong>指令触发</strong>：<code>@skill:game-ui-mockup-builder</code></p>
+      <p><strong>关键词触发</strong>：</p>
+      <ul>
+        <li><code>制作UI原型</code></li>
+        <li><code>游戏界面模拟</code></li>
+        <li><code>UI流程图</code></li>
+        <li><code>构建界面原型</code></li>
+        <li><code>game UI mockup</code></li>
+      </ul>
+
+      <h3>1.3 核心能力</h3>
+      <ul>
+        <li>支持多种输入：流程图图片 / .md/.docx 策划大纲 / 文字描述 / 无输入</li>
+        <li>逐个界面设计方案确认（每个界面提供 2 个方案 + 自定义）</li>
+        <li>复用参考实现的设计模式（CSS 变量 / 响应式缩放 / 键盘导航）</li>
+        <li>结果模拟：胜利/失败/平局等不同操作结果的模拟展示</li>
+        <li>完整导航状态机：界面切换动画 + 键盘/触摸操作</li>
+      </ul>
+    </section>
+
+    <!-- 二、完整流程概览 -->
+    <section class="section">
+      <h2>二、完整流程概览</h2>
+
+      <div class="flow-box">
+        <strong>【Phase 0 — 输入解析】</strong><br>
+        判断输入类型（流程图图片/md文档/文字描述/无输入）→ 提取界面清单 + 跳转条件
+      </div>
+      <div class="flow-box">
+        <strong>【Phase 1 — 逐个界面设计方案确认】</strong><br>
+        列出所有界面 → 每个界面提供 2 个方案供选择 → 用户确认或自定义 → 汇总确认表
+      </div>
+      <div class="flow-box">
+        <strong>【Phase 2 — UI 设计细化】</strong><br>
+        调用 <code>ui-ux-pro-max</code> skill → 确定布局/色彩/字体/交互状态 → 复用参考文件 CSS 模式
+      </div>
+      <div class="flow-box">
+        <strong>【Phase 3 — 导航逻辑实现】</strong><br>
+        实现 JavaScript 状态机 → showView() 切换界面 → 支持键盘/触摸/超时跳转
+      </div>
+      <div class="flow-box">
+        <strong>【Phase 4 — 结果模拟】</strong><br>
+        定义操作→结果路径 → 模拟胜利/失败/平局/超时等 → 弹窗覆盖层展示
+      </div>
+      <div class="flow-box">
+        <strong>【Phase 5 — 生成 HTML 文件】</strong><br>
+        集成所有界面 + 导航 + 模拟逻辑 → 响应式缩放 → 键盘导航 → 无实际游戏代码
+      </div>
+    </section>
+
+    <!-- 三、详细流程说明 -->
+    <section class="section">
+      <h2>三、详细流程说明</h2>
+
+      <h3>Phase 0 — 输入解析</h3>
+      <p><strong>判断输入类型</strong>：</p>
+      <table>
+        <tr><th>输入类型</th><th>处理方式</th></tr>
+        <tr><td>流程图图片</td><td>描述图片内容，提取所有节点和连接关系</td></tr>
+        <tr><td>.md/.docx 策划大纲</td><td>读取"界面流程"或"UX 流程"章节</td></tr>
+        <tr><td>直接文字描述</td><td>按用户提供的大纲解析</td></tr>
+        <tr><td>无输入</td><td>询问用户描述游戏的主要界面流程</td></tr>
+      </table>
+
+      <p><strong>提取内容</strong>：</p>
+      <ul>
+        <li>所有界面名称（如：主菜单 → 球队选择 → 比赛 → 结算）</li>
+        <li>每个界面的核心元素（按钮、列表、表单等）</li>
+        <li>界面间的跳转条件（点击什么 → 去哪里）</li>
+      </ul>
+
+      <hr>
+
+      <h3>Phase 1 — 逐个界面设计方案确认</h3>
+      <p><strong>核心流程</strong>：每个界面逐一设计确认，生成 2 个方案供用户选择，支持自定义。</p>
+
+      <p><strong>执行步骤</strong>：</p>
+      <ol>
+        <li><strong>列出所有界面，确认数量和顺序</strong>
+          <pre>=== 界面清单确认 ===
+| 编号 | 界面名称 | 进入条件 | 离开条件 |
+|------|---------|---------|---------|
+| 1 | 主菜单 | 游戏启动 | 点击开始 → 进入球队选择 |
+| 2 | 球队选择 | 从主菜单 | 选择完成 → 进入比赛 |
+| 3 | 比赛界面 | 从球队选择 | 比赛结束 → 进入结算 |
+| 4 | 结算界面 | 从比赛界面 | 点击返回 → 回到主菜单 |</pre>
+        </li>
+        <li><strong>逐个界面设计，对每个界面生成 2 个方案</strong>
+          <pre>=== 界面 1/4：主菜单 ===
+
+【方案 A】
+布局：垂直居中布局，大标题在上，3个按钮纵向排列
+操作：鼠标点击 / 键盘方向键+回车
+特色：背景动态粒子动画，按钮hover发光效果
+
+【方案 B】
+布局：全屏海报风格，底部固定按钮栏
+操作：触摸滑动 / 鼠标点击
+特色：背景轮播图，按钮底部固定不动
+
+请选择界面「主菜单」的布局方案：
+[ A ] 方案A：垂直居中布局，键盘+鼠标操作
+[ B ] 方案B：海报风格，触摸+点击操作
+[ C ] 自定义：请描述你的想法</pre>
+        </li>
+        <li>循环执行，直到所有界面确认完毕</li>
+        <li>输出最终汇总确认表</li>
+      </ol>
+
+      <hr>
+
+      <h3>Phase 2 — UI 设计细化</h3>
+      <p>基于 Phase 1 确认的方案，使用 UI/UX Pro Max 原则进行细化：</p>
+      <ol>
+        <li>调用 <code>ui-ux-pro-max</code> skill 获取设计建议</li>
+        <li>确定每个界面的：
+          <ul>
+            <li>布局结构（CSS Grid / Flexbox）</li>
+            <li>色彩方案（继承参考文件的 CSS 变量模式）</li>
+            <li>字体层级</li>
+            <li>交互状态（hover / active / disabled / selected）</li>
+          </ul>
+        </li>
+        <li>复用参考文件的通用设计模式：
+          <ul>
+            <li>CSS 变量集中管理（<code>:root</code>）</li>
+            <li>深色游戏风配色（深蓝/黑色底色 + 金色高亮）</li>
+            <li>卡片式布局 + 毛玻璃效果（<code>backdrop-filter: blur</code>）</li>
+            <li>响应式缩放（1920×1080 基准）</li>
+          </ul>
+        </li>
+      </ol>
+
+      <p><strong>参考配色方案</strong>：</p>
+      <pre>:root {
+  --bg: #050b16;       /* 主背景深蓝黑 */
+  --panel: #0d1d33;    /* 面板背景 */
+  --panel2: #132944;   /* 二级面板 */
+  --text: #f5fbff;     /* 主文字 */
+  --muted: #8da4bd;    /* 次要文字 */
+  --gold: #ffd166;     /* 高亮/选中 */
+  --green: #39d98a;   /* 成功/确认 */
+  --red: #ff5c5c;      /* 失败/警告 */
+  --blue: #49a0ff;     /* 信息/1P */
+  --atk: #ff6b6b;     /* 攻击 - 红 */
+  --def: #4ecdc4;     /* 防守 - 青 */
+  --spd: #ffe66d;     /* 速度 - 黄 */
+}</pre>
+
+      <hr>
+
+      <h3>Phase 3 — 导航逻辑实现</h3>
+      <p><strong>JavaScript 状态机模板</strong>：</p>
+      <pre>let currentView = 'mainMenu';
+const VIEWS = {
+  mainMenu:   { el: '#mainMenu',   next: 'teamSelect' },
+  teamSelect: { el: '#teamSelect',  next: 'match' },
+  match:      { el: '#match',       next: 'result' },
+  result:     { el: '#result',      next: 'mainMenu' },
+};
+
+function showView(viewName) {
+  Object.values(VIEWS).forEach(v => $(v.el).style.display = 'none');
+  $(VIEWS[viewName].el).style.display = 'grid';
+  currentView = viewName;
+}</pre>
+
+      <p><strong>导航触发方式</strong>（根据 Phase 1 用户选择的操作方式）：</p>
+      <table>
+        <tr><th>触发方式</th><th>实现方式</th></tr>
+        <tr><td>按钮点击</td><td><code>onclick="showView('targetView')"</code></td></tr>
+        <tr><td>键盘按键</td><td><code>keydown</code> 事件（方向键 + 回车）</td></tr>
+        <tr><td>触摸滑动</td><td><code>touch</code> 事件</td></tr>
+        <tr><td>超时自动跳转</td><td><code>setTimeout(() => showView('next'), 3000)</code></td></tr>
+      </table>
+
+      <hr>
+
+      <h3>Phase 4 — 结果模拟</h3>
+      <table>
+        <tr><th>操作</th><th>可能结果</th><th>模拟方式</th></tr>
+        <tr><td>开始比赛</td><td>胜利/失败/平局</td><td>随机生成，可设置玩家保胜概率</td></tr>
+        <tr><td>选择球队</td><td>确认/取消</td><td>高亮选中 + 确认按钮激活</td></tr>
+        <tr><td>抽奖/开包</td><td>稀有/普通/重复</td><td>随机结果 + 动画展示</td></tr>
+        <tr><td>购买道具</td><td>成功/金币不足</td><td>检查虚拟余额</td></tr>
+      </table>
+
+      <p><strong>结果展示模式</strong>：</p>
+      <ul>
+        <li>弹窗覆盖层（<code>.overlay.show</code>）</li>
+        <li>结果卡片（<code>.result-card</code>）</li>
+        <li>确定按钮关闭弹窗并返回</li>
+      </ul>
+
+      <p><strong>通用结果生成函数</strong>：</p>
+      <pre>function simulateResult(options = {}) {
+  const { playerWinRate = 0.6, drawRate = 0.2, maxScore = 5 } = options;
+  const rand = Math.random();
+  if (rand < drawRate) {
+    // 平局
+    playerScore = opponentScore = Math.floor(Math.random() * 4);
+  } else if (rand < drawRate + playerWinRate * (1 - drawRate)) {
+    // 玩家胜
+    playerScore = Math.floor(Math.random() * 3) + 1;
+    opponentScore = Math.floor(Math.random() * playerScore);
+  } else {
+    // 对手胜
+    opponentScore = Math.floor(Math.random() * 3) + 1;
+    playerScore = Math.floor(Math.random() * opponentScore);
+  }
+  return { playerScore, opponentScore };
+}</pre>
+
+      <hr>
+
+      <h3>Phase 5 — 生成 HTML 文件</h3>
+      <p><strong>必须包含的功能</strong>：</p>
+      <ul>
+        <li>响应式缩放（<code>resizeStage()</code> 函数）</li>
+        <li>界面切换动画（CSS transition / animation）</li>
+        <li>键盘导航支持（方向键 + 回车）</li>
+        <li>结果弹窗系统（modal overlay）</li>
+      </ul>
+    </section>
+
+    <!-- 四、输出检查清单 -->
+    <section class="section">
+      <h2>四、输出检查清单</h2>
+      <p>生成 HTML 后，自动验证：</p>
+      <ul class="checklist">
+        <li>所有流程图中的界面都已实现</li>
+        <li>每个界面都可以通过某种操作进入</li>
+        <li>导航逻辑符合流程图描述</li>
+        <li>结果模拟覆盖主要分支（胜/负/平）</li>
+        <li>键盘导航可用（如有需要）</li>
+        <li>响应式缩放正常（窗口大小变化）</li>
+        <li>无实际游戏玩法代码（仅 UI 模拟）</li>
+      </ul>
+    </section>
+
+    <!-- 五、异常处理规则 -->
+    <section class="section">
+      <h2>五、异常处理规则</h2>
+      <table>
+        <tr><th>情况</th><th>处理方式</th></tr>
+        <tr><td>用户选择 [C] 自定义</td><td>详细询问其想法并记录，更新该界面的自定义描述</td></tr>
+        <tr><td>用户提供文字描述而非图片</td><td>使用流程图描述模板解析</td></tr>
+        <tr><td>无输入</td><td>主动询问用户描述游戏的主要界面流程</td></tr>
+        <tr><td>界面数量过多（>10）</td><td>分批确认，每批不超过 5 个界面</td></tr>
+      </table>
+    </section>
+
+    <!-- 六、参考实现档案 -->
+    <section class="section">
+      <h2>六、参考实现档案</h2>
+
+      <h3>参考 1：疯狂足球_球队选择界面.html</h3>
+      <ul>
+        <li>48 支球队网格展示（8列×6行）</li>
+        <li>键盘导航（方向键 + 回车）</li>
+        <li>1P/2P 选择流程（phase 状态机）</li>
+        <li>预览面板显示球队属性、阵型、球员位置</li>
+        <li>VS 结果弹窗覆盖层</li>
+        <li>响应式缩放：<code>scale = min(vw/1920, vh/1080)</code></li>
+      </ul>
+
+      <h3>参考 2：疯狂足球_世界杯模式.html</h3>
+      <ul>
+        <li>多阶段视图切换（group-view / knockout-view / champion-view）</li>
+        <li>小组赛 → 淘汰赛 → 冠军 流程状态机</li>
+        <li>小组积分榜（动态排序）</li>
+        <li>淘汰赛对阵树（9列网格）</li>
+        <li>比赛结算弹窗（Modal）</li>
+      </ul>
+    </section>
+
+    <!-- 七、版本历史 -->
+    <section class="section">
+      <h2>七、版本历史</h2>
+      <table>
+        <tr><th>版本</th><th>日期</th><th>变更内容</th></tr>
+        <tr><td>v1.0</td><td>2026-05-11</td><td>初始版本，基于 game-mvp-plan-builder 流程说明书模板创建</td></tr>
+      </table>
+    </section>
+
+    <!-- 八、注意事项 -->
+    <section class="section">
+      <h2>八、注意事项</h2>
+      <ul>
+        <li><strong>Phase 1 逐界面确认是核心</strong>：每个界面必须独立确认，不能跳过</li>
+        <li><strong>结果模拟不等于游戏玩法</strong>：仅模拟操作结果，无真实游戏逻辑</li>
+        <li><strong>参考文件是 CSS/JS 的直接来源</strong>：配色、布局、动画模式均从参考文件提取</li>
+        <li><strong>键盘导航是加分项</strong>：如 Phase 1 用户选择了键盘操作，必须实现方向键+回车导航</li>
+        <li><strong>响应式缩放必须实现</strong>：使用参考文件的 <code>scale = min(vw/1920, vh/1080)</code> 模式</li>
+        <li><strong>Phase 5 完成后输出检查清单</strong>：逐项验证，确保所有界面可导航</li>
+      </ul>
+    </section>
+
+    <div class="footer">
+      game-ui-mockup-builder · 流程说明书 v1.0 · 技能文件位于 <code>~/.workbuddy/skills/game-ui-mockup-builder/SKILL.md</code>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>游戏策划大纲全流程工作法</title>
+  <style>
+    :root {
+      --bg: #060914;
+      --bg2: #0a1020;
+      --panel: rgba(18, 28, 52, 0.76);
+      --panel-solid: #111b33;
+      --panel2: rgba(29, 45, 82, 0.72);
+      --line: rgba(132, 165, 255, 0.18);
+      --line-strong: rgba(132, 165, 255, 0.36);
+      --text: #f6f8ff;
+      --muted: #9cabcf;
+      --soft: #cfd8f6;
+      --blue: #54a6ff;
+      --cyan: #57e6ff;
+      --purple: #9d7cff;
+      --gold: #ffd166;
+      --green: #48df9b;
+      --red: #ff6d7a;
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+      --radius-xl: 28px;
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --max: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 12% 8%, rgba(84, 166, 255, 0.24), transparent 30%),
+        radial-gradient(circle at 82% 14%, rgba(157, 124, 255, 0.22), transparent 30%),
+        radial-gradient(circle at 60% 72%, rgba(87, 230, 255, 0.11), transparent 34%),
+        linear-gradient(180deg, var(--bg), var(--bg2) 45%, #050812 100%);
+      min-height: 100vh;
+      line-height: 1.68;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent 74%);
+      z-index: 0;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .page { position: relative; z-index: 1; }
+
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(18px);
+      background: rgba(6, 9, 20, 0.72);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .nav-inner {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+
+    .brand-mark {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      color: #05101d;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--cyan), var(--gold));
+      box-shadow: 0 12px 30px rgba(87, 230, 255, 0.22);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      padding: 8px 11px;
+      border-radius: 999px;
+      font-size: 13px;
+      border: 1px solid transparent;
+      transition: 0.2s ease;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+      border-color: var(--line-strong);
+      background: rgba(255,255,255,0.06);
+    }
+
+    .hero {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 84px 24px 42px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(340px, 0.9fr);
+      gap: 40px;
+      align-items: center;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--cyan);
+      background: rgba(87, 230, 255, 0.08);
+      border: 1px solid rgba(87, 230, 255, 0.2);
+      padding: 8px 13px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 18px;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(42px, 6vw, 76px);
+      line-height: 1.05;
+      letter-spacing: -0.06em;
+    }
+
+    .gradient-text {
+      background: linear-gradient(90deg, #ffffff, #bcd8ff 38%, #66eaff 68%, #ffd166);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .hero-desc {
+      margin: 24px 0 0;
+      max-width: 690px;
+      color: var(--soft);
+      font-size: 18px;
+    }
+
+    .hero-actions {
+      margin-top: 30px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      min-height: 46px;
+      padding: 0 18px;
+      border-radius: 14px;
+      border: 1px solid var(--line-strong);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      font-weight: 800;
+      transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .btn:hover { transform: translateY(-2px); background: rgba(255,255,255,0.1); }
+    .btn.primary {
+      border: 0;
+      color: #06101f;
+      background: linear-gradient(135deg, var(--cyan), var(--gold));
+      box-shadow: 0 18px 45px rgba(87, 230, 255, 0.18);
+    }
+
+    .hero-card {
+      position: relative;
+      padding: 24px;
+      border-radius: var(--radius-xl);
+      background: linear-gradient(180deg, rgba(255,255,255,0.1), rgba(255,255,255,0.045));
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .hero-card::before {
+      content: "";
+      position: absolute;
+      inset: -60px -80px auto auto;
+      width: 220px;
+      height: 220px;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(255,209,102,0.32), transparent 70%);
+    }
+
+    .metric-grid {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+
+    .metric {
+      padding: 18px;
+      border-radius: 20px;
+      background: rgba(7, 13, 28, 0.58);
+      border: 1px solid var(--line);
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 28px;
+      line-height: 1;
+      color: var(--gold);
+      margin-bottom: 8px;
+    }
+
+    .metric span { color: var(--muted); font-size: 13px; }
+
+    .hero-loop {
+      margin-top: 18px;
+      padding: 18px;
+      border-radius: 20px;
+      background: rgba(87, 230, 255, 0.08);
+      border: 1px solid rgba(87, 230, 255, 0.18);
+      color: var(--soft);
+      font-weight: 700;
+    }
+
+    .section {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 58px 24px;
+    }
+
+    .section-head {
+      max-width: 760px;
+      margin-bottom: 28px;
+    }
+
+    .section-kicker {
+      color: var(--cyan);
+      font-weight: 900;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+
+    .section h2 {
+      margin: 0;
+      font-size: clamp(30px, 4vw, 48px);
+      line-height: 1.12;
+      letter-spacing: -0.04em;
+    }
+
+    .section-head p {
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: 17px;
+    }
+
+    .pain-grid,
+    .skills-grid,
+    .value-grid,
+    .summary-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .pain-grid { grid-template-columns: repeat(4, 1fr); }
+    .skills-grid { grid-template-columns: repeat(3, 1fr); }
+    .value-grid { grid-template-columns: repeat(2, 1fr); }
+    .summary-grid { grid-template-columns: repeat(7, 1fr); }
+
+    .card {
+      border-radius: var(--radius-lg);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: 0 18px 55px rgba(0,0,0,0.18);
+      overflow: hidden;
+    }
+
+    .card-pad { padding: 22px; }
+
+    .card h3 {
+      margin: 0 0 10px;
+      font-size: 20px;
+      line-height: 1.25;
+    }
+
+    .card p { margin: 0; color: var(--muted); }
+
+    .icon {
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      border-radius: 15px;
+      margin-bottom: 14px;
+      color: #06101f;
+      font-weight: 950;
+      background: linear-gradient(135deg, var(--blue), var(--cyan));
+    }
+
+    .skill-card {
+      position: relative;
+      padding: 26px;
+      min-height: 390px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .skill-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(circle at top right, rgba(87, 230, 255, 0.15), transparent 42%);
+    }
+
+    .skill-card > * { position: relative; z-index: 1; }
+    .skill-tag {
+      display: inline-flex;
+      width: fit-content;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.07);
+      color: var(--cyan);
+      border: 1px solid rgba(87, 230, 255, 0.18);
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 14px;
+    }
+
+    .skill-card ul,
+    .value-card ul {
+      margin: 16px 0 0;
+      padding-left: 18px;
+      color: var(--soft);
+    }
+
+    .skill-card li,
+    .value-card li { margin: 7px 0; }
+
+    .output-pill {
+      margin-top: 18px;
+      display: inline-flex;
+      width: fit-content;
+      align-items: center;
+      gap: 8px;
+      color: var(--gold);
+      font-weight: 900;
+      background: rgba(255,209,102,0.08);
+      border: 1px solid rgba(255,209,102,0.18);
+      padding: 8px 11px;
+      border-radius: 999px;
+    }
+
+    .doc-btn {
+      margin-top: 12px;
+      display: inline-flex;
+      width: 100%;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--line-strong);
+      background: rgba(84,166,255,0.08);
+      color: var(--blue);
+      font-weight: 800;
+      font-size: 13px;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .doc-btn:hover {
+      background: rgba(84,166,255,0.18);
+      border-color: rgba(84,166,255,0.4);
+      transform: translateY(-1px);
+    }
+
+    .workflow {
+      position: relative;
+      display: grid;
+      gap: 16px;
+    }
+
+    .flow-step {
+      display: grid;
+      grid-template-columns: 72px 1fr 230px;
+      gap: 18px;
+      align-items: stretch;
+      position: relative;
+    }
+
+    .flow-step:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      left: 35px;
+      top: 72px;
+      bottom: -16px;
+      width: 2px;
+      background: linear-gradient(to bottom, var(--cyan), rgba(87,230,255,0.08));
+    }
+
+    .num {
+      width: 72px;
+      height: 72px;
+      border-radius: 24px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, rgba(87,230,255,0.9), rgba(157,124,255,0.9));
+      color: white;
+      font-weight: 950;
+      font-size: 24px;
+      box-shadow: 0 18px 40px rgba(87,230,255,0.16);
+      z-index: 2;
+    }
+
+    .flow-main, .flow-result {
+      padding: 20px;
+      border-radius: var(--radius-lg);
+      background: rgba(18, 28, 52, 0.72);
+      border: 1px solid var(--line);
+    }
+
+    .flow-main h3 { margin: 0 0 8px; }
+    .flow-main p, .flow-result p { margin: 0; color: var(--muted); }
+    .flow-result strong { color: var(--gold); display: block; margin-bottom: 6px; }
+
+    .value-card {
+      padding: 24px;
+      display: grid;
+      grid-template-columns: 56px 1fr;
+      gap: 18px;
+    }
+
+    .value-card h3 { margin: 0 0 8px; }
+    .value-card p { color: var(--muted); margin: 0; }
+
+    .mini-badge {
+      width: 56px;
+      height: 56px;
+      display: grid;
+      place-items: center;
+      border-radius: 18px;
+      color: #08111e;
+      font-weight: 950;
+      background: linear-gradient(135deg, var(--gold), var(--green));
+    }
+
+    .loop-panel {
+      padding: 28px;
+      border-radius: var(--radius-xl);
+      background: linear-gradient(135deg, rgba(87,230,255,0.1), rgba(157,124,255,0.08));
+      border: 1px solid var(--line-strong);
+      box-shadow: var(--shadow);
+    }
+
+    .loop-chain {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .chain-item {
+      min-height: 150px;
+      padding: 18px;
+      border-radius: 20px;
+      background: rgba(5, 9, 20, 0.48);
+      border: 1px solid var(--line);
+      position: relative;
+    }
+
+    .chain-item:not(:last-child)::after {
+      content: "→";
+      position: absolute;
+      right: -13px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--cyan);
+      font-size: 24px;
+      font-weight: 900;
+      z-index: 2;
+    }
+
+    .chain-item strong { display: block; margin-bottom: 8px; color: var(--gold); }
+    .chain-item span { color: var(--muted); font-size: 14px; }
+
+    .summary-card {
+      min-height: 154px;
+      padding: 18px;
+      border-radius: 20px;
+      background: rgba(18, 28, 52, 0.72);
+      border: 1px solid var(--line);
+    }
+
+    .summary-card strong {
+      display: block;
+      color: var(--cyan);
+      margin-bottom: 8px;
+      font-size: 15px;
+    }
+
+    .summary-card span { color: var(--muted); font-size: 13px; }
+
+    .quote {
+      margin-top: 30px;
+      padding: 28px;
+      border-radius: var(--radius-xl);
+      background: rgba(255, 209, 102, 0.08);
+      border: 1px solid rgba(255, 209, 102, 0.2);
+      color: #fff2c9;
+      font-size: 20px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .footer {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 42px 24px 70px;
+      color: var(--muted);
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .fade-in {
+      opacity: 0;
+      transform: translateY(18px);
+      animation: rise 0.72s ease forwards;
+    }
+    .fade-in.delay-1 { animation-delay: 0.08s; }
+    .fade-in.delay-2 { animation-delay: 0.16s; }
+    .fade-in.delay-3 { animation-delay: 0.24s; }
+    @keyframes rise { to { opacity: 1; transform: none; } }
+
+    @media (max-width: 1060px) {
+      .hero { grid-template-columns: 1fr; padding-top: 58px; }
+      .pain-grid { grid-template-columns: repeat(2, 1fr); }
+      .skills-grid { grid-template-columns: 1fr; }
+      .value-grid { grid-template-columns: 1fr; }
+      .flow-step { grid-template-columns: 64px 1fr; }
+      .flow-result { grid-column: 2 / -1; }
+      .num { width: 64px; height: 64px; }
+      .flow-step:not(:last-child)::after { left: 31px; top: 64px; }
+      .loop-chain { grid-template-columns: 1fr; }
+      .chain-item:not(:last-child)::after { content: "↓"; right: 50%; top: auto; bottom: -20px; transform: translateX(50%); }
+      .summary-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 720px) {
+      .nav-inner { align-items: flex-start; flex-direction: column; }
+      .nav-links { justify-content: flex-start; }
+      .hero { padding: 42px 18px 28px; }
+      .section { padding: 42px 18px; }
+      .pain-grid, .metric-grid, .summary-grid { grid-template-columns: 1fr; }
+      .flow-step { grid-template-columns: 1fr; }
+      .flow-step:not(:last-child)::after { display: none; }
+      .flow-result { grid-column: auto; }
+      .value-card { grid-template-columns: 1fr; }
+      .hero h1 { letter-spacing: -0.04em; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+
+    /* ===== 弹窗样式 ===== */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: rgba(0, 0, 0, 0.82);
+      backdrop-filter: blur(8px);
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.show {
+      display: flex;
+    }
+    .modal-box {
+      width: 100%;
+      max-width: 1000px;
+      max-height: 88vh;
+      background: var(--panel-solid);
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius-xl);
+      box-shadow: 0 40px 100px rgba(0,0,0,0.6);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,0.03);
+    }
+    .modal-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+    .modal-close {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      border: 1px solid var(--line-strong);
+      background: rgba(255,255,255,0.06);
+      color: var(--muted);
+      font-size: 20px;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: 0.2s ease;
+    }
+    .modal-close:hover {
+      background: rgba(255,109,122,0.15);
+      border-color: rgba(255,109,122,0.3);
+      color: var(--red);
+    }
+    .modal-body {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+    }
+    .modal-body iframe {
+      width: 100%;
+      height: 100%;
+      min-height: 70vh;
+      border: none;
+      background: var(--bg);
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <nav class="nav" aria-label="页面导航">
+      <div class="nav-inner">
+        <a class="brand" href="#top" aria-label="回到顶部">
+          <span class="brand-mark">G</span>
+          <span>游戏策划工作流</span>
+        </a>
+        <div class="nav-links">
+          <a href="#purpose">目的</a>
+          <a href="#skills">三大技能</a>
+          <a href="#path">路径选择</a>
+          <a href="#workflow-a">路径A</a>
+          <a href="#workflow-b">路径B</a>
+          <a href="#value">价值</a>
+          <a href="#summary">总结</a>
+        </div>
+      </div>
+    </nav>
+
+    <header id="top" class="hero">
+      <div class="fade-in">
+        <div class="eyebrow">AI Skill × VS Code × CodeBuddy</div>
+        <h1><span class="gradient-text">游戏策划大纲</span><br />全流程工作法</h1>
+        <p class="hero-desc">根据游戏情况选择合适的路径。有成熟玩法走路径 A（直接生成大纲），纯创意构想走路径 B（先 MVP 验证）。两条路径最终都产出可验证、可迭代、可分享的游戏设计资产。</p>
+        <div class="hero-actions">
+          <a class="btn primary" href="#path">选择路径</a>
+          <a class="btn" href="#skills">了解三大技能</a>
+        </div>
+      </div>
+      <aside class="hero-card fade-in delay-2" aria-label="流程指标概览">
+        <div class="metric-grid">
+          <div class="metric"><strong>2</strong><span>可选路径</span></div>
+          <div class="metric"><strong>7~10</strong><span>流程步骤</span></div>
+          <div class="metric"><strong>3</strong><span>核心技能协同</span></div>
+          <div class="metric"><strong>1</strong><span>最终索引文档</span></div>
+        </div>
+        <div class="hero-loop">核心理念：每一步产出都是下一步输入，形成闭环迭代。</div>
+      </aside>
+    </header>
+
+    <section id="purpose" class="section">
+      <div class="section-head fade-in">
+        <div class="section-kicker">Purpose</div>
+        <h2>把模糊创意变成可交付开发的策划资产</h2>
+        <p>传统文档容易停留在文字层面，而这套流程要求每个关键设计都经过原型验证、网页化表达和在线部署。</p>
+      </div>
+      <div class="pain-grid">
+        <article class="card card-pad fade-in delay-1">
+          <div class="icon">01</div>
+          <h3>沟通成本高</h3>
+          <p>策划用文字描述玩法，开发再理解实现，双方容易出现认知偏差。</p>
+        </article>
+        <article class="card card-pad fade-in delay-2">
+          <div class="icon">02</div>
+          <h3>细节难验证</h3>
+          <p>交互体验是否流畅，常常要等代码完成后才暴露问题。</p>
+        </article>
+        <article class="card card-pad fade-in delay-3">
+          <div class="icon">03</div>
+          <h3>UI 设计滞后</h3>
+          <p>流程和界面在开发后期才明确，修改成本极高。</p>
+        </article>
+        <article class="card card-pad fade-in delay-3">
+          <div class="icon">04</div>
+          <h3>文档实现脱节</h3>
+          <p>文档写完后没有持续校准，最终与实际体验不一致。</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="skills" class="section">
+      <div class="section-head">
+        <div class="section-kicker">Skills</div>
+        <h2>三大技能分工：文档生成、玩法验证、UI 模拟</h2>
+        <p>三个技能不是孤立使用，而是组成一条从文本到原型再到交付的流水线。</p>
+      </div>
+      <div class="skills-grid">
+        <article class="card skill-card">
+          <div>
+            <span class="skill-tag">game-design-doc-generator</span>
+            <h3>策划大纲生成器</h3>
+            <p>通过结构化问答生成符合行业规范的游戏策划大纲。</p>
+            <ul>
+              <li>支持动作、体育、养成、休闲、RPG 等类型</li>
+              <li>遵循 10 节标准文档结构</li>
+              <li>每个问题提供 1-3 个参考选项</li>
+              <li>自动检查遗漏章节和模糊表述</li>
+            </ul>
+          </div>
+          <div>
+            <div class="output-pill">输出：.md 策划大纲</div>
+            <button class="doc-btn" onclick="openModal('game-design-doc-generator · 流程说明书', 'game-design-doc-generator_流程说明书.html')">📖 查看流程说明</button>
+          </div>
+        </article>
+        <article class="card skill-card">
+          <div>
+            <span class="skill-tag">game-mvp-plan-builder</span>
+            <h3>MVP 计划构建器</h3>
+            <p>收集核心机制信息，产出用于生成游戏原型的 PLAN 提示词。</p>
+            <ul>
+              <li>六步引导式问答收集核心机制</li>
+              <li>三要素场景设计（风格+物件+范围）</li>
+              <li>生成可交给 CodeBuddy 的 PLAN 提示词</li>
+              <li>严格的 P0/P1/P2 MVP 范围管控</li>
+            </ul>
+          </div>
+          <div>
+            <div class="output-pill">输出：PLAN 提示词</div>
+            <button class="doc-btn" onclick="openModal('game-mvp-plan-builder · 流程说明书', 'game-mvp-plan-builder_流程说明书.html')">📖 查看流程说明</button>
+          </div>
+        </article>
+        <article class="card skill-card">
+          <div>
+            <span class="skill-tag">game-ui-mockup-builder</span>
+            <h3>游戏 UI 流程模拟器</h3>
+            <p>生成可交互的 UI 流程原型，模拟所有界面跳转和结果分支。</p>
+            <ul>
+              <li>解析界面清单、核心元素、跳转条件</li>
+              <li>逐个界面提供 A/B 设计方案确认</li>
+              <li>支持键盘、鼠标、触摸操作</li>
+              <li>模拟胜利、失败、平局、超时等结果</li>
+            </ul>
+          </div>
+          <div>
+            <div class="output-pill">输出：.html UI 原型</div>
+            <button class="doc-btn" onclick="openModal('game-ui-mockup-builder · 流程说明书', 'game-ui-mockup-builder_流程说明书.html')">📖 查看流程说明</button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="path" class="section">
+      <div class="section-head fade-in">
+        <div class="section-kicker">Two Paths</div>
+        <h2>两条路径，先选再走</h2>
+        <p>在开始之前，先判断你的游戏属于哪种情况。不同的起点，决定了不同的流程路径。</p>
+      </div>
+      <div class="skills-grid" style="grid-template-columns: repeat(2, 1fr);">
+        <article class="card skill-card" style="min-height:auto;">
+          <div>
+            <span class="skill-tag" style="background:rgba(72,223,155,0.08);border-color:rgba(72,223,155,0.3);color:#48df9b;">✅ 推荐路径</span>
+            <h3>情况一：有成熟玩法 + 有参照竞品</h3>
+            <p>当你已经有明确的核心玩法，并且能找到对应的体感操作参照竞品时，可以<strong style="color:#48df9b;">直接生成策划大纲</strong>。</p>
+            <ul>
+              <li>核心玩法已经过市场验证（如：体感足球、体感拳击）</li>
+              <li>已有类似游戏可以参考操作方式（如：Just Dance）</li>
+              <li>MVP 原型是<strong>可选项</strong>，仅当需要验证技术创新时才生成</li>
+            </ul>
+          </div>
+          <div class="output-pill" style="background:rgba(72,223,155,0.08);border-color:rgba(72,223,155,0.3);">流程：7~8 步 · 更短更快</div>
+        </article>
+        <article class="card skill-card" style="min-height:auto;">
+          <div>
+            <span class="skill-tag" style="background:rgba(255,209,102,0.08);border-color:rgba(255,209,102,0.3);color:#ffd166;">🔧 验证路径</span>
+            <h3>情况二：纯创意构想 / 未改编类型</h3>
+            <p>当你的游戏是全新创意构想，或需要将传统游戏改编为体感操作时，需要<strong style="color:#ffd166;">先通过 MVP 验证</strong>。</p>
+            <ul>
+              <li>玩法是全新的创意，没有参照竞品</li>
+              <li>需要探索全新的动作映射方案</li>
+              <li>MVP 验证是<strong>必要环节</strong>，确保操作性可行</li>
+            </ul>
+          </div>
+          <div class="output-pill">流程：10 步 · 先验后策</div>
+        </article>
+      </div>
+    </section>
+
+    <section id="path-detail" class="section" style="padding-top:0;">
+      <div class="pain-grid" style="grid-template-columns: repeat(4, 1fr);">
+        <article class="card card-pad fade-in">
+          <div class="icon" style="background:linear-gradient(135deg, #54a6ff, #48df9b);">判</div>
+          <h3>如何判断？</h3>
+          <p>是否有成熟的核心玩法和参照竞品？玩法是否需要全新探索？</p>
+        </article>
+        <article class="card card-pad fade-in delay-1">
+          <div class="icon" style="background:linear-gradient(135deg, #9d7cff, #54a6ff);">→</div>
+          <h3>选择路径</h3>
+          <p>有成熟方案走路径 A，需要验证走路径 B。</p>
+        </article>
+        <article class="card card-pad fade-in delay-2">
+          <div class="icon" style="background:linear-gradient(135deg, #ffd166, #ff6d7a);">🔧</div>
+          <h3>执行流程</h3>
+          <p>按选择的路径依次完成各步骤。</p>
+        </article>
+        <article class="card card-pad fade-in delay-3">
+          <div class="icon" style="background:linear-gradient(135deg, #48df9b, #54a6ff);">✓</div>
+          <h3>最终交付</h3>
+          <p>两条路径最终都产出可体验、可迭代、可分享的资产。</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="workflow-a" class="section">
+      <div class="section-head fade-in">
+        <div class="section-kicker">Path A</div>
+        <h2>路径 A：直接大纲路径（情况一）</h2>
+        <p>有成熟玩法和参照竞品时，直接生成策划大纲，MVP 可选。</p>
+      </div>
+      <div class="workflow">
+        <article class="flow-step">
+          <div class="num">1</div>
+          <div class="flow-main"><h3>生成策划大纲</h3><p>使用 game-design-doc-generator，通过问答形成规范化游戏策划文档。</p></div>
+          <div class="flow-result"><strong>产出</strong><p>.md 策划大纲，统一语言、减少歧义。</p></div>
+        </article>
+        <article class="flow-step">
+          <div class="num">2<span style="font-size:11px;font-weight:400;opacity:0.7">（可选）</span></div>
+          <div class="flow-main"><h3>使用 game-mvp-plan-builder</h3><p>收集核心机制信息，产出 PLAN 提示词，然后交给 CodeBuddy 生成 MVP 原型。</p></div>
+          <div class="flow-result"><strong>价值</strong><p>当需要验证技术创新时使用，可选步骤。</p></div>
+        </article>
+        <article class="flow-step">
+          <div class="num">3</div>
+          <div class="flow-main"><h3>VS Code + CodeBuddy 迭代</h3><p>边体验边调整数值、UI、交互和遗漏功能，直到满足需求。</p></div>
+          <div class="flow-result"><strong>效果</strong><p>快速反馈、即时修改、低成本验证。</p></div>
+        </article>
+        <article class="flow-step">
+          <div class="num">4</div>
+          <div class="flow-main"><h3>生成核心机制文档网页</h3><p>基于调整后的 MVP，把机制、数值、规则转化为可视化 HTML 文档。</p></div>
+          <div class="flow-result"><strong>产出</strong><p>带图表、流程、属性条的网页文档。</p></div>
+        </article>
+        <article class="flow-step">
+          <div class="num">5</div>
+          <div class="flow-main"><h3>生成 UI 流程模拟原型</h3><p>使用 game-ui-mockup-builder 生成完整界面流程和结果模拟。</p></div>
+          <div class="flow-result"><strong>价值</strong><p>快速生成 UI 示意图，同时说明操作流程。</p></div>
+        </article>
+        <article class="flow-step">
+          <div class="num">6</div>
+          <div class="flow-main"><h3>调整 UI 原型</h3><p>继续用 VS Code + CodeBuddy 精修布局、跳转逻辑和交互细节。</p></div>
+          <div class="flow-result"><strong>效果</strong><p>形成可作为 UI/UX 参考标准的最终原型。</p></div>
+        </article>
+        <article class="flow-step">
+          <div class="num">7</div>
+          <div class="flow-main"><h3>部署至 GitHub Pages</h3><p>将所有网页文件发布为可访问 URL，方便评审、演示和远程协作。</p></div>
+          <div class="flow-result"><strong>产出</strong><p>在线文档与原型矩阵。</p></div>
+        </article>
+        <article class="flow-step">
+          <div class="num">8</div>
+          <div class="flow-main"><h3>整合链接至大纲文档</h3><p>把 MVP、UI 原型、核心机制网页等链接汇总到同一份交付清单。</p></div>
+          <div class="flow-result"><strong>产出</strong><p>一站式索引文档，便于交付和查阅。</p></div>
+        </article>
+      </div>
+    </section>
+
+    <section id="workflow-b" class="section">
+      <div class="section-head fade-in">
+        <div class="section-kicker" style="background:rgba(255,209,102,0.08);border-color:rgba(255,209,102,0.3);color:#ffd166;">Path B</div>
+        <h2>路径 B：MVP 验证路径（情况二）</h2>
+        <p>纯创意构想或未改编类型，必须先通过 MVP 原型验证操作可行性，再生成正式策划文档。</p>
+      </div>
+      <div class="workflow">
+        <article class="flow-step">
+          <div class="num" style="background:linear-gradient(135deg, rgba(255,209,102,0.9), rgba(255,109,122,0.9));">1</div>
+          <div class="flow-main"><h3>使用 game-mvp-plan-builder</h3><p>收集核心机制信息，产出可用于生成 MVP 原型的 PLAN 提示词。</p></div>
+          <div class="flow-result"><strong>产出</strong><p>结构化 PLAN 提示词。</p></div>
+        </article>
+        <article class="flow-step">
+          <div class="num" style="background:linear-gradient(135deg, rgba(255,209,102,0.9), rgba(255,109,122,0.9));">2</div>
+          <div class="flow-main"><h3>VS Code CodeBuddy 生成 MVP</h3><p>将 PLAN 提示词丢给 VS Code 中的 CodeBuddy 插件，生成游戏原型。</p></div>
+          <div class="flow-result"><strong>产出</strong><p>可运行的 .html MVP 原型。</p></div>
+        </article>
+        <article class="flow-step">
+          <div class="num" style="background:linear-gradient(135deg, rgba(255,209,102,0.9), rgba(255,109,122,0.9));">3</div>
+          <div class="flow-main"><h3>体验验证 + 迭代修改</h3><p>在 VS Code 中打开文件，直接对话修改，直到核心玩法和操作体验满足需求。</p></div>
+          <div class="flow-result"><strong>关键</strong><p>✅ 验证通过后才进入下一步。</p></div>
+        </article>
+        <article class="flow-step">
+          <div class="num" style="background:linear-gradient(135deg, rgba(255,209,102,0.9), rgba(255,109,122,0.9));">4</div>
+          <div class="flow-main"><h3>从 MVP 提取核心玩法说明</h3><p>从验证后的 MVP 文件中提取：玩法机制、数值公式、操作逻辑。</p></div>
+          <div class="flow-result"><strong>产出</strong><p>经过验证的核心机制清单。</p></div>
+        </article>
+        <article class="flow-step">
+          <div class="num" style="background:linear-gradient(135deg, rgba(255,209,102,0.9), rgba(255,109,122,0.9));">5</div>
+          <div class="flow-main"><h3>生成策划大纲</h3><p>使用 game-design-doc-generator，基于验证过的核心玩法生成正式策划文档。</p></div>
+          <div class="flow-result"><strong>产出</strong><p>.md 策划大纲。</p></div>
+        </article>
+        <article class="flow-step">
+          <div class="num" style="background:linear-gradient(135deg, rgba(255,209,102,0.9), rgba(255,109,122,0.9));">6</div>
+          <div class="flow-main"><h3>生成核心机制文档网页</h3><p>把机制、数值、规则转化为可视化 HTML 文档。</p></div>
+          <div class="flow-result"><strong>产出</strong><p>带图表的网页文档。</p></div>
+        </article>
+        <article class="flow-step">
+          <div class="num" style="background:linear-gradient(135deg, rgba(255,209,102,0.9), rgba(255,109,122,0.9));">7</div>
+          <div class="flow-main"><h3>生成 UI 流程模拟原型</h3><p>使用 game-ui-mockup-builder 生成完整界面流程。</p></div>
+          <div class="flow-result"><strong>价值</strong><p>同时生成 UI 示意图和操作流程。</p></div>
+        </article>
+        <article class="flow-step">
+          <div class="num" style="background:linear-gradient(135deg, rgba(255,209,102,0.9), rgba(255,109,122,0.9));">8</div>
+          <div class="flow-main"><h3>调整 UI 原型</h3><p>VS Code + CodeBuddy 精修布局和交互细节。</p></div>
+          <div class="flow-result"><strong>效果</strong><p>满足所有 UI/UX 需求。</p></div>
+        </article>
+        <article class="flow-step">
+          <div class="num" style="background:linear-gradient(135deg, rgba(255,209,102,0.9), rgba(255,109,122,0.9));">9</div>
+          <div class="flow-main"><h3>部署至 GitHub Pages</h3><p>发布为可访问 URL，方便评审和演示。</p></div>
+          <div class="flow-result"><strong>产出</strong><p>在线原型矩阵。</p></div>
+        </article>
+        <article class="flow-step">
+          <div class="num" style="background:linear-gradient(135deg, rgba(255,209,102,0.9), rgba(255,109,122,0.9));">10</div>
+          <div class="flow-main"><h3>整合链接至大纲文档</h3><p>汇总所有链接到交付清单。</p></div>
+          <div class="flow-result"><strong>产出</strong><p>一站式索引文档。</p></div>
+        </article>
+      </div>
+    </section>
+
+    <section id="value" class="section">
+      <div class="section-head">
+        <div class="section-kicker">Value</div>
+        <h2>每一步为什么要这么做</h2>
+        <p>流程的重点不是多产出几个文件，而是让设计问题尽早暴露、尽早验证、尽早统一。</p>
+      </div>
+      <div class="value-grid">
+        <article class="card value-card">
+          <div class="mini-badge">纲</div>
+          <div><h3>策划大纲是项目蓝图</h3><p>把模糊创意转成清晰设计语言，例如把"体感足球"拆解为摆臂加速、挥臂踢球、身体转向等可实现动作。</p></div>
+        </article>
+        <article class="card value-card">
+          <div class="mini-badge" style="background:linear-gradient(135deg, #ffd166, #ff6d7a);">验</div>
+          <div><h3>MVP 验证是核心环节（路径B）</h3><p>文字描述听起来合理，但举手踢球是否自然、摆臂灵敏度是否合适，必须通过真实操作判断。低成本试错，发现问题就推翻重来。</p></div>
+        </article>
+        <article class="card value-card">
+          <div class="mini-badge">改</div>
+          <div><h3>VS Code + CodeBuddy 加速迭代</h3><p>在 HTML 文件中直接修改代码，浏览器刷新即可查看效果，大幅降低调整成本。</p></div>
+        </article>
+        <article class="card value-card">
+          <div class="mini-badge">图</div>
+          <div><h3>网页文档提升理解效率</h3><p>用图表、属性条、流程图展示规则和数值，比纯文字更适合团队评审和远程沟通。</p></div>
+        </article>
+        <article class="card value-card">
+          <div class="mini-badge">UI</div>
+          <div><h3>UI 模拟避免后期返工</h3><p>在开发前验证界面层级、按钮跳转和结果分支，避免做到一半才发现流程不符合需求。</p></div>
+        </article>
+        <article class="card value-card">
+          <div class="mini-badge">链</div>
+          <div><h3>在线链接形成交付矩阵</h3><p>把所有网页部署到 GitHub Pages 后，团队可直接打开链接体验、评审、演示和同步意见。</p></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="loop-panel">
+        <div class="section-head" style="margin-bottom:22px;">
+          <div class="section-kicker">Two Paths</div>
+          <h2>两条路径，一个目标</h2>
+        </div>
+        <div class="loop-chain">
+          <div class="chain-item"><strong style="color:#48df9b;">路径A</strong><span>直接大纲：适合有成熟玩法和参照竞品的项目，快速产出策划文档。</span></div>
+          <div class="chain-item"><strong style="color:#ffd166;">路径B</strong><span>MVP验证：适合纯创意构想或未改编类型，先验证再策划。</span></div>
+          <div class="chain-item"><strong>最终产出</strong><span>策划大纲 + 核心机制文档 + UI原型 + 部署链接。</span></div>
+          <div class="chain-item"><strong>交付目标</strong><span>可体验、可迭代、可分享的游戏设计资产。</span></div>
+          <div class="chain-item"><strong>闭环迭代</strong><span>每一步产出都是下一步输入，形成完整设计流水线。</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="summary" class="section">
+      <div class="section-head">
+        <div class="section-kicker">Summary</div>
+        <h2>两条路径对比</h2>
+      </div>
+
+      <div class="pain-grid" style="grid-template-columns: repeat(2, 1fr); margin-bottom:32px;">
+        <article class="card card-pad">
+          <div class="icon" style="background:linear-gradient(135deg, #54a6ff, #48df9b);">A</div>
+          <h3 style="color:#48df9b;">路径 A：直接大纲路径</h3>
+          <ul style="margin:12px 0 0;color:var(--soft);padding-left:18px;">
+            <li>适用：有成熟玩法 + 有参照竞品</li>
+            <li>MVP 原型：可选</li>
+            <li>流程：7~8 步</li>
+            <li>优势：快速</li>
+          </ul>
+        </article>
+        <article class="card card-pad">
+          <div class="icon" style="background:linear-gradient(135deg, #ffd166, #ff6d7a);">B</div>
+          <h3 style="color:#ffd166;">路径 B：MVP 验证路径</h3>
+          <ul style="margin:12px 0 0;color:var(--soft);padding-left:18px;">
+            <li>适用：纯创意构想 / 未改编类型</li>
+            <li>MVP 原型：必要</li>
+            <li>流程：10 步</li>
+            <li>优势：可验证</li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="quote">根据游戏情况选择合适的路径。不是写完文档就结束，而是通过可体验原型不断验证、调整，直到最终交付的文档与实际实现完全一致。</div>
+    </section>
+
+    <footer class="footer">
+      <div>游戏策划大纲全流程工作法 · v1.3</div>
+      <div>更新日期：2026-05-11 · 作者：谢华明</div>
+    </footer>
+
+    <!-- 弹窗容器 -->
+    <div id="skillModal" class="modal-overlay" role="dialog" aria-modal="true">
+      <div class="modal-box">
+        <div class="modal-header">
+          <div class="modal-title" id="modalTitle">技能流程说明</div>
+          <button class="modal-close" onclick="closeModal()" aria-label="关闭">✕</button>
+        </div>
+        <div class="modal-body">
+          <iframe id="modalFrame" src="" title="技能流程说明"></iframe>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function openModal(title, url) {
+        document.getElementById('modalTitle').textContent = title;
+        document.getElementById('modalFrame').src = url;
+        document.getElementById('skillModal').classList.add('show');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeModal() {
+        document.getElementById('skillModal').classList.remove('show');
+        document.getElementById('modalFrame').src = '';
+        document.body.style.overflow = '';
+      }
+
+      document.getElementById('skillModal').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+      });
+
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeModal();
+      });
+    </script>
+  </div>
+</body>
+</html>

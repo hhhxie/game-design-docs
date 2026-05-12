@@ -676,7 +676,10 @@
       const encoded = params.get("d");
       if (encoded) {
         try {
-          return JSON.parse(atob(encoded));
+          // 先 btoa 解码，再用 decodeURIComponent 还原 Unicode
+          const asciiStr = atob(encoded);
+          const jsonStr = decodeURIComponent(escape(asciiStr));
+          return JSON.parse(jsonStr);
         } catch (e) {
           return JSON.parse(JSON.stringify(DEFAULT_CARS));
         }
@@ -685,8 +688,12 @@
     }
 
     // 将数据编码后写入 URL，不刷新页面
+    // 使用 Unicode 转义处理中文字符
     function encodeToURL(data) {
-      const encoded = btoa(JSON.stringify(data));
+      const jsonStr = JSON.stringify(data);
+      // 将 Unicode 字符转为 \uXXXX 格式，btoa 只能处理 ASCII
+      const asciiStr = unescape(encodeURIComponent(jsonStr));
+      const encoded = btoa(asciiStr);
       const url = new URL(window.location.href);
       url.searchParams.set("d", encoded);
       window.history.replaceState(null, "", url.toString());

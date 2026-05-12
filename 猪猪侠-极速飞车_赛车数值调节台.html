@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>赛车数值调节台</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --blue: #2563eb;
+      --green: #059669;
+      --orange: #ea580c;
+      --red: #dc2626;
+      --purple: #7c3aed;
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .page {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: flex-start;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      line-height: 1.2;
+    }
+
+    .desc {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    button {
+      border: 1px solid var(--line);
+      background: var(--card);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 10px 16px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: 0.15s;
+    }
+
+    button:hover {
+      border-color: var(--blue);
+      color: var(--blue);
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .metric {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 18px;
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .metric-value {
+      font-size: 26px;
+      font-weight: 700;
+    }
+
+    .main {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(360px, 0.65fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .car-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .car-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 18px;
+    }
+
+    .car-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 14px;
+    }
+
+    .car-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .car-id {
+      width: 30px;
+      height: 30px;
+      border-radius: 10px;
+      background: #eff6ff;
+      color: var(--blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .car-name {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .tier {
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .tier-1 {
+      background: #eff6ff;
+      color: var(--blue);
+    }
+
+    .tier-2 {
+      background: #f5f3ff;
+      color: var(--purple);
+    }
+
+    .tier-3 {
+      background: #ecfdf5;
+      color: var(--green);
+    }
+
+    .tier-4 {
+      background: #fff7ed;
+      color: var(--orange);
+    }
+
+    .feature {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .score-box {
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .score-label {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    .score-value {
+      font-size: 24px;
+      font-weight: 800;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .stat {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+      background: #fafafa;
+    }
+
+    .stat-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+
+    .stat-name {
+      color: var(--muted);
+    }
+
+    .stat-number {
+      font-weight: 800;
+    }
+
+    .bar {
+      height: 10px;
+      border-radius: 999px;
+      background: #e5e7eb;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .fill {
+      height: 100%;
+      width: 50%;
+      border-radius: 999px;
+      transition: width 0.12s;
+    }
+
+    .speed {
+      background: var(--blue);
+    }
+
+    .drift {
+      background: var(--purple);
+    }
+
+    .accel {
+      background: var(--orange);
+    }
+
+    .turn {
+      background: var(--green);
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--blue);
+    }
+
+    .side {
+      display: grid;
+      gap: 14px;
+      position: sticky;
+      top: 18px;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 18px;
+    }
+
+    .panel-title {
+      margin: 0 0 12px;
+      font-size: 17px;
+      font-weight: 800;
+    }
+
+    .rank-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .rank-item {
+      display: grid;
+      grid-template-columns: 80px 1fr 40px;
+      gap: 10px;
+      align-items: center;
+      font-size: 13px;
+    }
+
+    .rank-name {
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .rank-bar {
+      height: 10px;
+      border-radius: 999px;
+      background: #e5e7eb;
+      overflow: hidden;
+    }
+
+    .rank-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: var(--blue);
+      transition: width 0.12s;
+    }
+
+    .rank-score {
+      text-align: right;
+      font-weight: 800;
+    }
+
+    .rule-list {
+      display: grid;
+      gap: 10px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    .rule-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 800;
+    }
+
+    .ok {
+      color: var(--green);
+    }
+
+    .bad {
+      color: var(--red);
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 180px;
+      resize: vertical;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+      font-family: Consolas, Monaco, monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      display: none;
+    }
+
+    @media (max-width: 1100px) {
+      .main {
+        grid-template-columns: 1fr;
+      }
+
+      .side {
+        position: static;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .page {
+        padding: 18px;
+      }
+
+      .header {
+        display: block;
+      }
+
+      .actions {
+        justify-content: flex-start;
+        margin-top: 14px;
+      }
+
+      .dashboard {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .metric-value {
+        font-size: 22px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page">
+    <section class="header">
+      <div>
+        <h1>赛车数值调节台</h1>
+        <p class="desc">
+          基于当前修正版赛车数值。每项属性范围为 1–10 级，UI 进度条展示规则为：
+          <strong>30% + 等级 × 7%</strong>。第二档单属性不出现 9 及以上，第三档单属性不出现 10。
+        </p>
+      </div>
+
+      <div class="actions">
+        <button onclick="resetData()">重置数值</button>
+        <button onclick="exportJSON()">导出 JSON</button>
+        <button onclick="exportCSV()">导出 CSV</button>
+      </div>
+    </section>
+
+    <section class="dashboard">
+      <div class="metric">
+        <div class="metric-label">最高总分赛车</div>
+        <div class="metric-value" id="bestCar">凌云九霄</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">总分区间</div>
+        <div class="metric-value" id="scoreRange">21–35</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">平均总分</div>
+        <div class="metric-value" id="avgScore">27.0</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">规则检查</div>
+        <div class="metric-value" id="ruleStatus">通过</div>
+      </div>
+    </section>
+
+    <section class="main">
+      <div class="car-list" id="carList"></div>
+
+      <aside class="side">
+        <div class="panel">
+          <h2 class="panel-title">总评分排行</h2>
+          <div class="rank-list" id="rankList"></div>
+        </div>
+
+        <div class="panel">
+          <h2 class="panel-title">品质规则</h2>
+          <div class="rule-list">
+            <div>第一档：1–3 号车，允许有明显强弱项。</div>
+            <div>第二档：4–5 号车，单属性最高不能达到 9。</div>
+            <div>第三档：6–9 号车，单属性最高不能达到 10。</div>
+            <div>最高档：10 号车，允许出现 10，但保留一个短板。</div>
+            <div>
+              当前状态：
+              <span class="rule-status" id="ruleText">通过</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2 class="panel-title">导出结果</h2>
+          <textarea id="output" readonly></textarea>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const baseCars = [
+      {
+        kartid: 1,
+        prefname: "小黄蜂",
+        tier: "第一档",
+        tierClass: "tier-1",
+        feature: "漂移入门车，漂移收益不错，但转向偏钝。",
+        maximumspeed: 5,
+        driftboost: 7,
+        acceleration: 6,
+        sensitivity: 3
+      },
+      {
+        kartid: 2,
+        prefname: "先锋",
+        tier: "第一档",
+        tierClass: "tier-1",
+        feature: "直线速度车，最大速度突出，但漂移加速较弱。",
+        maximumspeed: 8,
+        driftboost: 3,
+        acceleration: 6,
+        sensitivity: 5
+      },
+      {
+        kartid: 3,
+        prefname: "要塞",
+        tier: "第一档",
+        tierClass: "tier-1",
+        feature: "稳定操控车，加速和转向可靠，但最大速度偏慢。",
+        maximumspeed: 4,
+        driftboost: 4,
+        acceleration: 7,
+        sensitivity: 8
+      },
+      {
+        kartid: 4,
+        prefname: "电光",
+        tier: "第二档",
+        tierClass: "tier-2",
+        feature: "高速灵敏车，速度和转向都强，但起步恢复偏弱。",
+        maximumspeed: 8,
+        driftboost: 5,
+        acceleration: 4,
+        sensitivity: 8
+      },
+      {
+        kartid: 5,
+        prefname: "星辰",
+        tier: "第二档",
+        tierClass: "tier-2",
+        feature: "弯道漂移车，漂移和转向优秀，直线能力一般。",
+        maximumspeed: 5,
+        driftboost: 8,
+        acceleration: 5,
+        sensitivity: 8
+      },
+      {
+        kartid: 6,
+        prefname: "赤焰FX",
+        tier: "第三档",
+        tierClass: "tier-3",
+        feature: "漂移爆发车，漂移加速极强，但转向较重。",
+        maximumspeed: 7,
+        driftboost: 9,
+        acceleration: 8,
+        sensitivity: 4
+      },
+      {
+        kartid: 7,
+        prefname: "鲨克",
+        tier: "第三档",
+        tierClass: "tier-3",
+        feature: "高速压弯车，速度和转向优秀，但漂移收益一般。",
+        maximumspeed: 9,
+        driftboost: 5,
+        acceleration: 6,
+        sensitivity: 9
+      },
+      {
+        kartid: 8,
+        prefname: "云翼",
+        tier: "第三档",
+        tierClass: "tier-3",
+        feature: "加速恢复车，加速度很强，极速不是顶尖。",
+        maximumspeed: 6,
+        driftboost: 8,
+        acceleration: 9,
+        sensitivity: 7
+      },
+      {
+        kartid: 9,
+        prefname: "萝卜火箭",
+        tier: "第三档",
+        tierClass: "tier-3",
+        feature: "直线爆发车，速度和加速强，但漂移是短板。",
+        maximumspeed: 9,
+        driftboost: 5,
+        acceleration: 9,
+        sensitivity: 8
+      },
+      {
+        kartid: 10,
+        prefname: "凌云九霄",
+        tier: "最高档",
+        tierClass: "tier-4",
+        feature: "顶级速度爆发车，速度和加速达到顶级，但转向不是最强。",
+        maximumspeed: 10,
+        driftboost: 9,
+        acceleration: 10,
+        sensitivity: 6
+      }
+    ];
+
+    let cars = JSON.parse(JSON.stringify(baseCars));
+
+    const fields = [
+      ["maximumspeed", "最大速度", "speed"],
+      ["driftboost", "漂移加速", "drift"],
+      ["acceleration", "加速度", "accel"],
+      ["sensitivity", "转向灵敏度", "turn"]
+    ];
+
+    function getScore(car) {
+      return fields.reduce((sum, field) => sum + Number(car[field[0]]), 0);
+    }
+
+    function getUIPercent(value) {
+      return 30 + Number(value) * 7;
+    }
+
+    function getExportRows() {
+      return cars.map(car => ({
+        kartid: car.kartid,
+        prefname: car.prefname,
+        maximumspeed: car.maximumspeed,
+        driftboost: car.driftboost,
+        acceleration: car.acceleration,
+        sensitivity: car.sensitivity
+      }));
+    }
+
+    function checkRules() {
+      return cars.every(car => {
+        const values = fields.map(field => Number(car[field[0]]));
+        const max = Math.max(...values);
+
+        if (car.kartid >= 4 && car.kartid <= 5 && max >= 9) {
+          return false;
+        }
+
+        if (car.kartid >= 6 && car.kartid <= 9 && max >= 10) {
+          return false;
+        }
+
+        return true;
+      });
+    }
+
+    function renderCars() {
+      const list = document.getElementById("carList");
+      list.innerHTML = "";
+
+      cars.forEach((car, index) => {
+        const card = document.createElement("article");
+        card.className = "car-card";
+
+        card.innerHTML = `
+          <div class="car-top">
+            <div>
+              <div class="car-title">
+                <div class="car-id">${car.kartid}</div>
+                <div class="car-name">${car.prefname}</div>
+                <div class="tier ${car.tierClass}">${car.tier}</div>
+              </div>
+              <p class="feature">${car.feature}</p>
+            </div>
+            <div class="score-box">
+              <div class="score-label">总评分</div>
+              <div class="score-value" id="score-${index}">${getScore(car)}</div>
+            </div>
+          </div>
+
+          <div class="stats">
+            ${fields.map(field => {
+              const key = field[0];
+              const label = field[1];
+              const color = field[2];
+              const value = car[key];
+              const percent = getUIPercent(value);
+
+              return `
+                <div class="stat">
+                  <div class="stat-head">
+                    <span class="stat-name">${label}</span>
+                    <span class="stat-number">
+                      <span id="value-${index}-${key}">${value}</span> 级 ·
+                      <span id="percent-${index}-${key}">${percent}</span>%
+                    </span>
+                  </div>
+                  <div class="bar">
+                    <div class="fill ${color}" id="fill-${index}-${key}" style="width: ${percent}%"></div>
+                  </div>
+                  <input
+                    type="range"
+                    min="1"
+                    max="10"
+                    step="1"
+                    value="${value}"
+                    data-index="${index}"
+                    data-key="${key}"
+                    oninput="updateValue(this)"
+                  />
+                </div>
+              `;
+            }).join("")}
+          </div>
+        `;
+
+        list.appendChild(card);
+      });
+    }
+
+    function renderRank() {
+      const rankList = document.getElementById("rankList");
+      const ranked = [...cars].sort((a, b) => getScore(b) - getScore(a));
+      const maxScore = Math.max(...cars.map(getScore));
+
+      rankList.innerHTML = ranked.map(car => {
+        const score = getScore(car);
+        const width = Math.round((score / maxScore) * 100);
+
+        let color = "var(--blue)";
+        if (car.kartid >= 6 && car.kartid <= 9) color = "var(--green)";
+        if (car.kartid === 10) color = "var(--orange)";
+
+        return `
+          <div class="rank-item">
+            <div class="rank-name">${car.prefname}</div>
+            <div class="rank-bar">
+              <div class="rank-fill" style="width: ${width}%; background: ${color};"></div>
+            </div>
+            <div class="rank-score">${score}</div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderSummary() {
+      const scores = cars.map(getScore);
+      const min = Math.min(...scores);
+      const max = Math.max(...scores);
+      const avg = scores.reduce((sum, value) => sum + value, 0) / scores.length;
+      const best = cars[scores.indexOf(max)];
+
+      document.getElementById("bestCar").textContent = best.prefname;
+      document.getElementById("scoreRange").textContent = `${min}–${max}`;
+      document.getElementById("avgScore").textContent = avg.toFixed(1);
+
+      const pass = checkRules();
+      const ruleStatus = document.getElementById("ruleStatus");
+      const ruleText = document.getElementById("ruleText");
+
+      ruleStatus.textContent = pass ? "通过" : "需调整";
+      ruleStatus.style.color = pass ? "var(--green)" : "var(--red)";
+
+      ruleText.textContent = pass ? "通过" : "需调整";
+      ruleText.className = pass ? "rule-status ok" : "rule-status bad";
+    }
+
+    function updateValue(input) {
+      const index = Number(input.dataset.index);
+      const key = input.dataset.key;
+      const value = Number(input.value);
+      const percent = getUIPercent(value);
+
+      cars[index][key] = value;
+
+      document.getElementById(`value-${index}-${key}`).textContent = value;
+      document.getElementById(`percent-${index}-${key}`).textContent = percent;
+      document.getElementById(`fill-${index}-${key}`).style.width = `${percent}%`;
+      document.getElementById(`score-${index}`).textContent = getScore(cars[index]);
+
+      renderSummary();
+      renderRank();
+    }
+
+    function resetData() {
+      cars = JSON.parse(JSON.stringify(baseCars));
+      document.getElementById("output").style.display = "none";
+      renderCars();
+      renderSummary();
+      renderRank();
+    }
+
+    function exportJSON() {
+      const output = document.getElementById("output");
+      output.style.display = "block";
+      output.value = JSON.stringify(getExportRows(), null, 2);
+      output.select();
+    }
+
+    function exportCSV() {
+      const output = document.getElementById("output");
+      const rows = getExportRows();
+
+      output.style.display = "block";
+      output.value = [
+        "kartid,prefname,maximumspeed,driftboost,acceleration,sensitivity",
+        ...rows.map(row => [
+          row.kartid,
+          row.prefname,
+          row.maximumspeed,
+          row.driftboost,
+          row.acceleration,
+          row.sensitivity
+        ].join(","))
+      ].join("\n");
+
+      output.select();
+    }
+
+    renderCars();
+    renderSummary();
+    renderRank();
+  </script>
+</body>
+</html>

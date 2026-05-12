@@ -867,7 +867,7 @@
     }
 
     function resetData() {
-      cars = JSON.parse(JSON.stringify(DEFAULT_CARS));
+      cars = JSON.parse(JSON.stringify(baseCars));
       document.getElementById("output").style.display = "none";
       renderCars();
       renderSummary();

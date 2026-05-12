@@ -383,6 +383,16 @@
       color: var(--red);
     }
 
+    .import-section {
+      margin-bottom: 18px;
+    }
+
+    .import-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
     textarea {
       width: 100%;
       min-height: 180px;
@@ -393,7 +403,7 @@
       font-family: Consolas, Monaco, monospace;
       font-size: 12px;
       line-height: 1.6;
-      display: none;
+      display: block;
     }
 
     .toast {
@@ -472,8 +482,24 @@
       <div class="actions">
         <button onclick="saveAsDefault()">保存</button>
         <button onclick="resetData()">重置数值</button>
+        <button onclick="toggleImport()" id="importBtn">导入 CSV</button>
         <button onclick="exportJSON()">导出 JSON</button>
         <button onclick="exportCSV()">导出 CSV</button>
+      </div>
+    </section>
+
+    <section id="importSection" class="import-section" style="display:none;">
+      <div class="panel" style="background:#f0f9ff;">
+        <h2 class="panel-title">导入 CSV 数据</h2>
+        <p class="desc" style="margin-bottom:12px;">粘贴 CSV 数据（需包含表头：kartid,prefname,maximumspeed,driftboost,acceleration,sensitivity）</p>
+        <textarea id="importInput" placeholder="kartid,prefname,maximumspeed,driftboost,acceleration,sensitivity
+1,小黄蜂,5,7,6,3
+2,先锋,8,3,6,5
+..."></textarea>
+        <div class="import-actions">
+          <button onclick="confirmImport()" style="background:var(--blue);color:#fff;border-color:var(--blue);">确认导入</button>
+          <button onclick="toggleImport()">取消</button>
+        </div>
       </div>
     </section>
 
@@ -892,6 +918,87 @@
       output.style.display = "block";
       output.value = JSON.stringify(getExportRows(), null, 2);
       output.select();
+    }
+
+    function toggleImport() {
+      const section = document.getElementById("importSection");
+      const input = document.getElementById("importInput");
+      if (section.style.display === "none") {
+        section.style.display = "block";
+        input.value = "";
+        input.focus();
+      } else {
+        section.style.display = "none";
+      }
+    }
+
+    function parseCSV(csvText) {
+      const lines = csvText.trim().split("\n");
+      if (lines.length < 2) {
+        throw new Error("CSV 数据不足，至少需要表头和一行数据");
+      }
+
+      const headers = lines[0].split(",").map(h => h.trim().toLowerCase());
+      const requiredFields = ["kartid", "prefname", "maximumspeed", "driftboost", "acceleration", "sensitivity"];
+      const missing = requiredFields.filter(f => !headers.includes(f));
+      if (missing.length > 0) {
+        throw new Error(`缺少必需字段: ${missing.join(", ")}`);
+      }
+
+      const carList = [];
+      const tierMap = { 1: "第一档", 2: "第一档", 3: "第一档", 4: "第二档", 5: "第二档", 6: "第三档", 7: "第三档", 8: "第三档", 9: "第三档", 10: "最高档" };
+      const tierClassMap = { 1: "tier-1", 2: "tier-1", 3: "tier-1", 4: "tier-2", 5: "tier-2", 6: "tier-3", 7: "tier-3", 8: "tier-3", 9: "tier-3", 10: "tier-4" };
+
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(",");
+        if (values.length < headers.length) continue;
+
+        const kartid = parseInt(values[headers.indexOf("kartid")]);
+        const car = {
+          kartid: kartid,
+          prefname: values[headers.indexOf("prefname")].trim(),
+          tier: tierMap[kartid] || "第一档",
+          tierClass: tierClassMap[kartid] || "tier-1",
+          feature: "",
+          maximumspeed: Math.min(10, Math.max(1, parseInt(values[headers.indexOf("maximumspeed")]))) || 5,
+          driftboost: Math.min(10, Math.max(1, parseInt(values[headers.indexOf("driftboost")]))) || 5,
+          acceleration: Math.min(10, Math.max(1, parseInt(values[headers.indexOf("acceleration")]))) || 5,
+          sensitivity: Math.min(10, Math.max(1, parseInt(values[headers.indexOf("sensitivity")]))) || 5
+        };
+        carList.push(car);
+      }
+
+      if (carList.length === 0) {
+        throw new Error("未解析到有效数据");
+      }
+
+      return carList;
+    }
+
+    function confirmImport() {
+      const input = document.getElementById("importInput");
+      const csvText = input.value.trim();
+
+      if (!csvText) {
+        showToast("请先粘贴 CSV 数据");
+        return;
+      }
+
+      try {
+        const importedCars = parseCSV(csvText);
+        cars = importedCars;
+        baseCars = JSON.parse(JSON.stringify(cars));
+        encodeToURL(baseCars);
+
+        toggleImport();
+        renderCars();
+        renderSummary();
+        renderRank();
+
+        showToast(`成功导入 ${cars.length} 辆车，链接已更新！`);
+      } catch (e) {
+        showToast("导入失败: " + e.message);
+      }
     }
 
     function exportCSV() {

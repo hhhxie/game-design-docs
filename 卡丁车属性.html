@@ -644,10 +644,30 @@
       }
     ];
 
-    // baseCars：当前生效默认值（从 localStorage 读取或降级到 DEFAULT_CARS）
-    let baseCars = JSON.parse(JSON.stringify(
-      localStorage.getItem("kartData") ? JSON.parse(localStorage.getItem("kartData")) : DEFAULT_CARS
-    ));
+    // 从 URL 参数读取数据，失败则用默认数据
+    function loadFromURL() {
+      const params = new URLSearchParams(window.location.search);
+      const encoded = params.get("d");
+      if (encoded) {
+        try {
+          return JSON.parse(atob(encoded));
+        } catch (e) {
+          return JSON.parse(JSON.stringify(DEFAULT_CARS));
+        }
+      }
+      return JSON.parse(JSON.stringify(DEFAULT_CARS));
+    }
+
+    // 将数据编码后写入 URL，不刷新页面
+    function encodeToURL(data) {
+      const encoded = btoa(JSON.stringify(data));
+      const url = new URL(window.location.href);
+      url.searchParams.set("d", encoded);
+      window.history.replaceState(null, "", url.toString());
+    }
+
+    // baseCars：从 URL 读取，失败降级到 DEFAULT_CARS
+    let baseCars = loadFromURL();
 
     let cars = JSON.parse(JSON.stringify(baseCars));
 
@@ -849,21 +869,14 @@
     }
 
     function saveAsDefault() {
-      // 提取可导出字段（去掉 feature 等非数值字段）
-      const toSave = cars.map(car => ({
-        kartid: car.kartid,
-        prefname: car.prefname,
-        tier: car.tier,
-        tierClass: car.tierClass,
-        feature: car.feature,
-        maximumspeed: car.maximumspeed,
-        driftboost: car.driftboost,
-        acceleration: car.acceleration,
-        sensitivity: car.sensitivity
-      }));
-      localStorage.setItem("kartData", JSON.stringify(toSave));
-      baseCars = JSON.parse(JSON.stringify(toSave));
-      showToast("已保存为默认值");
+      baseCars = JSON.parse(JSON.stringify(cars));
+      encodeToURL(baseCars);
+      const shareUrl = window.location.href;
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        showToast("已保存，链接已复制到剪贴板，可直接分享！");
+      }).catch(() => {
+        showToast("已保存，请手动复制浏览器地址栏链接分享");
+      });
     }
 
     function resetData() {

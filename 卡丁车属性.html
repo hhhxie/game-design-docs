@@ -530,7 +530,8 @@
   </main>
 
   <script>
-    let baseCars = [
+    // 硬编码原始数据（永不修改，用于重置数值）
+    const DEFAULT_CARS = [
       {
         kartid: 1,
         prefname: "小黄蜂",
@@ -642,6 +643,11 @@
         sensitivity: 6
       }
     ];
+
+    // baseCars：当前生效默认值（从 localStorage 读取或降级到 DEFAULT_CARS）
+    let baseCars = JSON.parse(JSON.stringify(
+      localStorage.getItem("kartData") ? JSON.parse(localStorage.getItem("kartData")) : DEFAULT_CARS
+    ));
 
     let cars = JSON.parse(JSON.stringify(baseCars));
 
@@ -843,12 +849,25 @@
     }
 
     function saveAsDefault() {
-      baseCars = JSON.parse(JSON.stringify(cars));
+      // 提取可导出字段（去掉 feature 等非数值字段）
+      const toSave = cars.map(car => ({
+        kartid: car.kartid,
+        prefname: car.prefname,
+        tier: car.tier,
+        tierClass: car.tierClass,
+        feature: car.feature,
+        maximumspeed: car.maximumspeed,
+        driftboost: car.driftboost,
+        acceleration: car.acceleration,
+        sensitivity: car.sensitivity
+      }));
+      localStorage.setItem("kartData", JSON.stringify(toSave));
+      baseCars = JSON.parse(JSON.stringify(toSave));
       showToast("已保存为默认值");
     }
 
     function resetData() {
-      cars = JSON.parse(JSON.stringify(baseCars));
+      cars = JSON.parse(JSON.stringify(DEFAULT_CARS));
       document.getElementById("output").style.display = "none";
       renderCars();
       renderSummary();

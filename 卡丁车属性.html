@@ -396,6 +396,27 @@
       display: none;
     }
 
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--text);
+      color: #fff;
+      border-radius: 999px;
+      padding: 10px 22px;
+      font-size: 14px;
+      font-weight: 600;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+
+    .toast.show {
+      opacity: 1;
+    }
+
     @media (max-width: 1100px) {
       .main {
         grid-template-columns: 1fr;
@@ -449,6 +470,7 @@
       </div>
 
       <div class="actions">
+        <button onclick="saveAsDefault()">保存</button>
         <button onclick="resetData()">重置数值</button>
         <button onclick="exportJSON()">导出 JSON</button>
         <button onclick="exportCSV()">导出 CSV</button>
@@ -503,6 +525,8 @@
         </div>
       </aside>
     </section>
+
+    <div class="toast" id="toast"></div>
   </main>
 
   <script>
@@ -808,6 +832,19 @@
 
       renderSummary();
       renderRank();
+    }
+
+    function showToast(msg) {
+      const el = document.getElementById("toast");
+      el.textContent = msg;
+      el.classList.add("show");
+      clearTimeout(el._timer);
+      el._timer = setTimeout(() => el.classList.remove("show"), 1800);
+    }
+
+    function saveAsDefault() {
+      baseCars = JSON.parse(JSON.stringify(cars));
+      showToast("已保存为默认值");
     }
 
     function resetData() {

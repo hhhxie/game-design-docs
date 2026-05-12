@@ -237,12 +237,18 @@
       font-weight: 800;
     }
 
+    .bar-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
     .bar {
+      flex: 1;
       height: 10px;
       border-radius: 999px;
       background: #e5e7eb;
       overflow: hidden;
-      margin-bottom: 8px;
     }
 
     .fill {
@@ -268,9 +274,33 @@
       background: var(--green);
     }
 
-    input[type="range"] {
-      width: 100%;
-      accent-color: var(--blue);
+    .adj-btn {
+      flex-shrink: 0;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 1px solid var(--line);
+      background: var(--card);
+      color: var(--text);
+      font-size: 16px;
+      line-height: 1;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: 0.12s;
+      user-select: none;
+    }
+
+    .adj-btn:hover {
+      border-color: var(--blue);
+      color: var(--blue);
+      background: #eff6ff;
+    }
+
+    .adj-btn:active {
+      transform: scale(0.9);
     }
 
     .side {
@@ -673,19 +703,13 @@
                       <span id="percent-${index}-${key}">${percent}</span>%
                     </span>
                   </div>
-                  <div class="bar">
-                    <div class="fill ${color}" id="fill-${index}-${key}" style="width: ${percent}%"></div>
+                  <div class="bar-row">
+                    <button class="adj-btn" onclick="stepValue(${index},'${key}',-1)" title="减少">−</button>
+                    <div class="bar">
+                      <div class="fill ${color}" id="fill-${index}-${key}" style="width: ${percent}%"></div>
+                    </div>
+                    <button class="adj-btn" onclick="stepValue(${index},'${key}',1)" title="增加">+</button>
                   </div>
-                  <input
-                    type="range"
-                    min="1"
-                    max="10"
-                    step="1"
-                    value="${value}"
-                    data-index="${index}"
-                    data-key="${key}"
-                    oninput="updateValue(this)"
-                  />
                 </div>
               `;
             }).join("")}
@@ -741,6 +765,23 @@
 
       ruleText.textContent = pass ? "通过" : "需调整";
       ruleText.className = pass ? "rule-status ok" : "rule-status bad";
+    }
+
+    function stepValue(index, key, delta) {
+      const current = Number(cars[index][key]);
+      const next = Math.min(10, Math.max(1, current + delta));
+      if (next === current) return;
+
+      const percent = getUIPercent(next);
+      cars[index][key] = next;
+
+      document.getElementById(`value-${index}-${key}`).textContent = next;
+      document.getElementById(`percent-${index}-${key}`).textContent = percent;
+      document.getElementById(`fill-${index}-${key}`).style.width = `${percent}%`;
+      document.getElementById(`score-${index}`).textContent = getScore(cars[index]);
+
+      renderSummary();
+      renderRank();
     }
 
     function updateValue(input) {
